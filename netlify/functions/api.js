@@ -23,12 +23,24 @@ function getGenAI() {
   return aiClient;
 }
 
-function jsonResponse(statusCode, data, headers = {}) {
+function getCorsHeaders(event) {
+  const origin = event?.headers?.origin || event?.headers?.Origin || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  };
+}
+
+function jsonResponse(statusCode, data, headers = {}, event = null) {
+  const cors = getCorsHeaders(event);
   return {
     statusCode,
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store, no-cache, must-revalidate',
+      ...cors,
       ...headers,
     },
     body: JSON.stringify(data),
@@ -47,9 +59,30 @@ function parseJsonBody(body) {
 
 export const handler = async (event, context) => {
   try {
+    const method = (event.httpMethod || event.method || 'GET').toUpperCase();
+
+    // Handle CORS OPTIONS preflight immediately
+    if (method === 'OPTIONS') {
+      return {
+        statusCode: 204,
+        headers: {
+          ...getCorsHeaders(event),
+          'Access-Control-Max-Age': '86400',
+        },
+        body: '',
+      };
+    }
+
     await ensureSeeded();
 
-    const method = (event.httpMethod || event.method || 'GET').toUpperCase();
+    const isSecure = (
+      event.headers?.['x-forwarded-proto'] === 'https' ||
+      event.headers?.['X-Forwarded-Proto'] === 'https' ||
+      (event.headers?.referer && event.headers.referer.startsWith('https:')) ||
+      process.env.NODE_ENV === 'production' ||
+      (process.env.APP_URL && process.env.APP_URL.startsWith('https:'))
+    );
+
     const rawPath = (event.path || '').split('?')[0];
 
     let cleanPath = rawPath;
@@ -156,23 +189,31 @@ export const handler = async (event, context) => {
       }
 
       if (ai) {
-        try {
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('AI generation timeout')), 4000)
-          );
-          const genPromise = ai.models.generateContent({
-            model: 'gemini-3.8-flash',
-            contents: prompt,
-            config: {
-              systemInstruction,
-              maxOutputTokens: 1500,
-            },
-          });
-          const response = await Promise.race([genPromise, timeoutPromise]);
-          const text = response.text || 'Output generated successfully.';
-          return jsonResponse(200, { success: true, result: text });
-        } catch (genErr) {
-          console.warn('Gemini API call skipped or timed out, using template generator:', genErr.message);
+        const candidateModels = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'];
+        for (const modelName of candidateModels) {
+          try {
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('AI generation timeout')), 8000)
+            );
+            const genPromise = ai.models.generateContent({
+              model: modelName,
+              contents: prompt,
+              config: {
+                systemInstruction,
+                maxOutputTokens: 1500,
+              },
+            });
+            const response = await Promise.race([genPromise, timeoutPromise]);
+            const text = response.text || 'Output generated successfully.';
+            return jsonResponse(200, {
+              success: true,
+              result: text,
+              is_ai_generated: true,
+              model: modelName,
+            }, {}, event);
+          } catch (genErr) {
+            console.warn(`Model ${modelName} unavailable (${genErr.message}), trying next candidate...`);
+          }
         }
       }
 
@@ -188,7 +229,7 @@ export const handler = async (event, context) => {
         fallbackText = `### 🚀 Generated Strategy for "${input}"\n- **Core Hook:** Stop wasting hours on manual tasks. Here is the streamlined automation framework.\n- **Key Value Proposition:** Built for high efficiency, zero server maintenance, and fast turnaround.\n- **Action Item:** Deploy with a static edge frontend and test conversion metrics.`;
       }
 
-      return jsonResponse(200, { success: true, result: fallbackText });
+      return jsonResponse(200, { success: true, result: fallbackText, is_ai_generated: false, is_fallback: true }, {}, event);
     }
 
     // ==========================================
@@ -198,21 +239,21 @@ export const handler = async (event, context) => {
     // POST /api/admin/login
     if (method === 'POST' && cleanPath === '/admin/login') {
       const body = parseJsonBody(event.body);
-      if (!body) return jsonResponse(400, { error: 'Invalid JSON request payload' });
+      if (!body) return jsonResponse(400, { error: 'Invalid JSON request payload' }, {}, event);
 
       const { username, password } = body;
       if (!username || !password) {
-        return jsonResponse(400, { error: 'Username and password are required' });
+        return jsonResponse(400, { error: 'Username and password are required' }, {}, event);
       }
 
       const auth = await getBlob('auth');
       if (!auth) {
-        return jsonResponse(500, { error: 'Authentication store not initialized' });
+        return jsonResponse(500, { error: 'Authentication store not initialized' }, {}, event);
       }
 
       const isMatch = (username === auth.username) && (await verifyPassword(password, auth.password_hash));
       if (!isMatch) {
-        return jsonResponse(401, { error: 'Invalid username or password' });
+        return jsonResponse(401, { error: 'Invalid username or password' }, {}, event);
       }
 
       const token = signToken({
@@ -220,63 +261,66 @@ export const handler = async (event, context) => {
         mustChange: !!auth.must_change_password,
       });
 
-      const cookieHeader = createAuthCookie(token);
+      const cookieHeader = createAuthCookie(token, isSecure);
 
       return jsonResponse(
         200,
         {
           success: true,
+          token,
           username: auth.username,
           must_change_password: !!auth.must_change_password,
           message: 'Logged in successfully',
         },
-        { 'Set-Cookie': cookieHeader }
+        { 'Set-Cookie': cookieHeader },
+        event
       );
     }
 
     // POST /api/admin/logout
     if (method === 'POST' && cleanPath === '/admin/logout') {
-      const logoutCookie = createLogoutCookie();
+      const logoutCookie = createLogoutCookie(isSecure);
       return jsonResponse(
         200,
         { success: true, message: 'Logged out successfully' },
-        { 'Set-Cookie': logoutCookie }
+        { 'Set-Cookie': logoutCookie },
+        event
       );
     }
 
     // GET /api/admin/me
     if (method === 'GET' && cleanPath === '/admin/me') {
       const admin = await requireAuth();
-      if (!admin) return jsonResponse(401, { error: 'Unauthorized' });
+      if (!admin) return jsonResponse(401, { error: 'Unauthorized' }, {}, event);
 
       return jsonResponse(200, {
         authenticated: true,
         username: admin.username,
         must_change_password: !!admin.must_change_password,
-      });
+      }, {}, event);
     }
 
     // POST /api/admin/password
     if (method === 'POST' && cleanPath === '/admin/password') {
       const admin = await requireAuth();
-      if (!admin) return jsonResponse(401, { error: 'Unauthorized' });
+      if (!admin) return jsonResponse(401, { error: 'Unauthorized' }, {}, event);
 
       const body = parseJsonBody(event.body);
-      if (!body) return jsonResponse(400, { error: 'Invalid request' });
+      if (!body) return jsonResponse(400, { error: 'Invalid request' }, {}, event);
 
       const { current, next } = body;
       if (!current || !next) {
-        return jsonResponse(400, { error: 'Both current and next passwords are required' });
+        return jsonResponse(400, { error: 'Both current and next passwords are required' }, {}, event);
       }
 
       if (typeof next !== 'string' || next.length < 8) {
-        return jsonResponse(400, { error: 'New password must be at least 8 characters long' });
+        return jsonResponse(400, { error: 'New password must be at least 8 characters long' }, {}, event);
       }
 
       const auth = await getBlob('auth');
       const isCurrentValid = await verifyPassword(current, auth.password_hash);
       if (!isCurrentValid) {
-        return jsonResponse(400, { error: 'Current password does not match' });
+        return jsonResponse(400, { error: 'Current password does not match' }, {}, event);
       }
 
       const newHash = await hashPassword(next);
@@ -288,16 +332,18 @@ export const handler = async (event, context) => {
         sub: auth.username,
         mustChange: false,
       });
-      const cookieHeader = createAuthCookie(newToken);
+      const cookieHeader = createAuthCookie(newToken, isSecure);
 
       return jsonResponse(
         200,
         {
           success: true,
+          token: newToken,
           must_change_password: false,
           message: 'Password updated successfully',
         },
-        { 'Set-Cookie': cookieHeader }
+        { 'Set-Cookie': cookieHeader },
+        event
       );
     }
 

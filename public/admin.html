@@ -660,10 +660,22 @@
     }
 
     async function req(url, options = {}) {
-      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-      const res = await fetch('/api' + url, { credentials: 'same-origin', ...options, headers });
+      const token = localStorage.getItem('webnasir_admin_token') || sessionStorage.getItem('webnasir_admin_token');
+      const headers = { 
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(options.headers || {}) 
+      };
+      const res = await fetch('/api' + url, { credentials: 'include', ...options, headers });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Server error ' + res.status);
+      if (!res.ok) {
+        if (res.status === 401 && !url.includes('/login')) {
+          localStorage.removeItem('webnasir_admin_token');
+          sessionStorage.removeItem('webnasir_admin_token');
+          showLogin();
+        }
+        throw new Error(data.error || 'Server error ' + res.status);
+      }
       return data;
     }
 
@@ -714,6 +726,10 @@
           method: 'POST',
           body: JSON.stringify({ username: u, password: p }),
         });
+        if (res.token) {
+          localStorage.setItem('webnasir_admin_token', res.token);
+          sessionStorage.setItem('webnasir_admin_token', res.token);
+        }
         showToast('Login successful!', 'success');
         window.ADMIN.me = res;
         showDashboard(res);
@@ -726,6 +742,8 @@
     }
 
     async function handleLogout() {
+      localStorage.removeItem('webnasir_admin_token');
+      sessionStorage.removeItem('webnasir_admin_token');
       try {
         await req('/admin/logout', { method: 'POST' });
         showToast('Logged out successfully', 'info');
@@ -1146,7 +1164,11 @@
       if (next.length < 8) { showToast('Password must be at least 8 characters long!', 'error'); return; }
 
       try {
-        await req('/admin/password', { method: 'POST', body: JSON.stringify({ current, next }) });
+        const res = await req('/admin/password', { method: 'POST', body: JSON.stringify({ current, next }) });
+        if (res.token) {
+          localStorage.setItem('webnasir_admin_token', res.token);
+          sessionStorage.setItem('webnasir_admin_token', res.token);
+        }
         showToast('Password updated successfully!', 'success');
         document.getElementById('password-alert-banner').classList.add('hidden');
         document.getElementById('pwd-current').value = '';

@@ -83,16 +83,20 @@ export function extractTokenFromEvent(event) {
 /**
  * Generate Set-Cookie string for setting auth token
  */
-export function createAuthCookie(token, isProduction = false) {
+export function createAuthCookie(token, isSecure = false) {
   const maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
-  const secureFlag = (isProduction || process.env.NODE_ENV === 'production') ? '; Secure' : '';
-  return `${TOKEN_NAME}=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secureFlag}`;
+  if (isSecure || process.env.NODE_ENV === 'production' || (process.env.APP_URL && process.env.APP_URL.startsWith('https:'))) {
+    return `${TOKEN_NAME}=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=None; Partitioned`;
+  }
+  return `${TOKEN_NAME}=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax`;
 }
 
 /**
  * Generate Set-Cookie string for clearing auth token on logout
  */
-export function createLogoutCookie(isProduction = false) {
-  const secureFlag = (isProduction || process.env.NODE_ENV === 'production') ? '; Secure' : '';
-  return `${TOKEN_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${secureFlag}`;
+export function createLogoutCookie(isSecure = false) {
+  if (isSecure || process.env.NODE_ENV === 'production' || (process.env.APP_URL && process.env.APP_URL.startsWith('https:'))) {
+    return `${TOKEN_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=None; Partitioned`;
+  }
+  return `${TOKEN_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax`;
 }

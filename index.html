@@ -1,19 +1,1946 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Nasir — AI & Web Income</title>
-    <meta name="description" content="Production-ready website and admin dashboard for Web Nasir featuring AI tools, web monetization guides, and Netlify-native serverless architecture." />
-    <meta property="og:title" content="Web Nasir — AI & Web Income" />
-    <meta property="og:description" content="Production-ready website and admin dashboard for Web Nasir featuring AI tools, web monetization guides, and Netlify-native serverless architecture." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta http-equiv="refresh" content="0; url=/public/index.html" />
-  </head>
-  <body>
-    <script>
-      window.location.replace('/index.html');
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Nasir — AI & Web Income</title>
+  <meta name="description" content="Master high-income web development, free automated AI utilities, and battle-tested Google AdSense & Facebook monetization strategies with 10-year veteran Nasir.">
+  <meta property="og:title" content="Web Nasir — AI & Web Income">
+  <meta property="og:description" content="Master high-income web development, free automated AI utilities, and battle-tested Google AdSense & Facebook monetization strategies with 10-year veteran Nasir.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            },
+            dark: '#0f172a',
+            muted: '#64748b',
+            surface: '#f8fafc',
+            bordercol: '#e2e8f0',
+          },
+          fontFamily: {
+            heading: ['Poppins', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #0f172a;
+      background-color: #ffffff;
+      scroll-behavior: smooth;
+    }
+    h1, h2, h3, h4, h5, h6, .font-heading {
+      font-family: 'Poppins', sans-serif;
+    }
+    .gradient-hero-btn {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.35);
+      transition: all 0.2s ease;
+    }
+    .gradient-hero-btn:hover {
+      box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.5);
+      transform: translateY(-1px);
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.375rem 0.875rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.025em;
+    }
+    /* Modern Tool Tile Hover Effects */
+    .tool-tile {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .tool-tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px -8px rgba(124, 58, 237, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+      border-color: #c4b5fd;
+    }
+    /* Markdown Article Styler */
+    .article-content h1 { font-size: 2rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; color: #0f172a; }
+    .article-content h2 { font-size: 1.5rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; }
+    .article-content h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #1e293b; }
+    .article-content p { margin-bottom: 1.15rem; line-height: 1.75; color: #334155; font-size: 1.05rem; }
+    .article-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.25rem; color: #334155; }
+    .article-content li { margin-bottom: 0.5rem; line-height: 1.6; }
+    .article-content pre { background: #0f172a; color: #f8fafc; padding: 1.25rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.9rem; }
+    .article-content code { background: #f1f5f9; color: #7c3aed; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    .article-content pre code { background: transparent; color: inherit; padding: 0; }
+    
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .pulse-ring {
+      animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-white text-dark antialiased">
+
+  <!-- Top Announcement Bar (Configurable in Admin) -->
+  <div id="top-announcement-bar" class="bg-dark text-white text-xs sm:text-sm py-2 px-4 text-center font-medium border-b border-slate-800 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+      <span id="announcement-badge" class="font-semibold text-brand-300">New 2025 Edition:</span>
+      <span id="announcement-text">Free AI Utilities, 10-Year AdSense High-RPM Blueprint & Facebook Monetization are live!</span>
+      <a id="announcement-link" href="#/articles" class="underline text-brand-300 hover:text-white font-semibold ml-1">Read Guides &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Main Navbar (Admin portal link hidden) -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-bordercol shadow-xs transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#/" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="zap" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold font-heading tracking-tight text-dark flex items-center gap-1.5">
+            <span id="nav-brand-name">Web Nasir</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">PRO</span>
+          </span>
+          <span id="nav-tagline" class="text-xs text-muted block -mt-0.5">AI & Web Income</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-700">
+        <a href="#/" class="nav-link hover:text-brand-600 transition-colors">Home</a>
+        <a href="#/articles" class="nav-link hover:text-brand-600 transition-colors">Guides & Articles</a>
+        <a href="#/tools" class="nav-link hover:text-brand-600 transition-colors flex items-center gap-1">
+          <span>Free AI Tools</span>
+          <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full">Free</span>
+        </a>
+        <a href="#/topics" class="nav-link hover:text-brand-600 transition-colors">Topics</a>
+        <a href="#/about" class="nav-link hover:text-brand-600 transition-colors">About Nasir</a>
+        <a href="#/contact" class="nav-link hover:text-brand-600 transition-colors">Contact</a>
+      </nav>
+
+      <!-- Action & Firebase Auth Container -->
+      <div class="hidden sm:flex items-center gap-3">
+        <!-- Firebase Auth Button / Profile -->
+        <div id="auth-nav-container">
+          <button onclick="handleGoogleSignIn()" class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-surface hover:bg-slate-100 border border-bordercol rounded-xl transition-all shadow-xs">
+            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>Google Sign In</span>
+          </button>
+        </div>
+
+        <a href="#/tools" class="gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Explore Tools</span>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-slate-600 hover:text-dark hover:bg-slate-100">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer (Zero admin link shown) -->
+    <div id="mobile-menu" class="hidden md:hidden border-b border-bordercol bg-white px-4 pt-3 pb-6 space-y-3">
+      <a href="#/" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">Home</a>
+      <a href="#/articles" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">Guides & Articles</a>
+      <a href="#/tools" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">Free AI Tools</a>
+      <a href="#/topics" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">Topics</a>
+      <a href="#/about" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">About Nasir</a>
+      <a href="#/contact" class="mobile-nav-link block px-3 py-2 rounded-lg font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-600">Contact</a>
+      <div id="mobile-auth-container" class="pt-2">
+        <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-xl">
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+      <div class="pt-1">
+        <a href="#/tools" class="gradient-hero-btn text-center text-white text-xs font-semibold py-2.5 rounded-xl block">Explore Free AI Tools</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Router View Container -->
+  <main id="app-view" class="flex-grow">
+    <div class="py-24 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-600 border-t-transparent"></div>
+      <p class="mt-4 text-sm text-muted">Loading Web Nasir platform...</p>
+    </div>
+  </main>
+
+  <!-- Floating WhatsApp Contact Button -->
+  <div class="fixed bottom-6 right-6 z-50 flex items-center group">
+    <div class="hidden md:block mr-3 bg-dark text-white text-xs font-medium py-1.5 px-3 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+      Chat with Nasir on WhatsApp
+    </div>
+    <a id="whatsapp-float-link" href="https://wa.me/917006334417?text=Hi%20Nasir,%20I%20visited%20Web%20Nasir%20and%20would%20like%20to%20connect!" target="_blank" rel="noopener noreferrer" class="relative flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 transition-transform hover:scale-110">
+      <span class="absolute inset-0 rounded-full bg-emerald-400 opacity-75 pulse-ring"></span>
+      <i data-lucide="message-circle" class="w-7 h-7 relative z-10"></i>
+    </a>
+  </div>
+
+  <!-- Global Footer (Zero admin link shown) -->
+  <footer class="bg-dark text-slate-300 border-t border-slate-800 pt-16 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <!-- Brand Info -->
+        <div class="md:col-span-1 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-white">
+              <i data-lucide="zap" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xl font-bold font-heading text-white tracking-tight">Web Nasir</span>
+          </div>
+          <p id="footer-summary" class="text-sm text-slate-400 leading-relaxed">
+            Helping developers, bloggers, and creators build higher-converting websites and establish recurring income streams with AI and modern web engineering.
+          </p>
+          <div class="flex items-center gap-3 text-slate-400 pt-2">
+            <a id="soc-fb" href="https://facebook.com/webnasir" target="_blank" class="hover:text-white transition-colors p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+            <a id="soc-x" href="https://x.com/webnasir" target="_blank" class="hover:text-white transition-colors p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+            <a id="soc-yt" href="https://youtube.com/@webnasir" target="_blank" class="hover:text-white transition-colors p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+            <a id="soc-ig" href="https://instagram.com/webnasir" target="_blank" class="hover:text-white transition-colors p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+            <a id="soc-li" href="https://linkedin.com/in/webnasir" target="_blank" class="hover:text-white transition-colors p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+          </div>
+        </div>
+
+        <!-- Blueprints -->
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-white mb-4">Core Blueprints</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#/article/ai-tools-monetization" class="hover:text-white transition-colors">AI Micro-SaaS Architecture</a></li>
+            <li><a href="#/article/google-adsense-high-rpm" class="hover:text-white transition-colors">Google AdSense High RPM</a></li>
+            <li><a href="#/article/facebook-monetization-playbook" class="hover:text-white transition-colors">Facebook In-Stream & Reels</a></li>
+            <li><a href="#/articles" class="hover:text-white transition-colors text-brand-400 font-medium">All Practical Guides &rarr;</a></li>
+          </ul>
+        </div>
+
+        <!-- Free Utilities -->
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-white mb-4">Free AI Utilities</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#/tool/youtube" class="hover:text-white transition-colors">AI YouTube Title Crafter</a></li>
+            <li><a href="#/tool/blogoutline" class="hover:text-white transition-colors">AI SEO Blog Outline Tool</a></li>
+            <li><a href="#/tool/codeexplainer" class="hover:text-white transition-colors">AI Code & Regex Explainer</a></li>
+            <li><a href="#/tool/business" class="hover:text-white transition-colors">AdSense Income Estimator</a></li>
+            <li><a href="#/tool/name" class="hover:text-white transition-colors">AI Brand & Domain Generator</a></li>
+            <li><a href="#/tools" class="hover:text-white transition-colors text-brand-400 font-medium">Browse All 10+ Free Tools &rarr;</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact & Credentials -->
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-white mb-4">Connect with Nasir</h4>
+          <p class="text-xs text-slate-400 mb-3">
+            Open for full-stack web consulting, high-RPM site audits, and bespoke AI utility development.
+          </p>
+          <div class="space-y-2 text-sm">
+            <p class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-brand-400"></i>
+              <a id="footer-email" href="mailto:hello@webnasir.com" class="hover:text-white">hello@webnasir.com</a>
+            </p>
+            <p class="flex items-center gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-brand-400"></i>
+              <span id="footer-phone">+91 7006334417</span>
+            </p>
+            <p class="flex items-center gap-2 text-emerald-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Available for Consultations
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <p>&copy; <span id="year-curr">2025</span> Web Nasir. Deployed on Netlify Serverless Architecture.</p>
+        <div class="flex items-center gap-6">
+          <a href="#/about" class="hover:text-slate-400">About Author</a>
+          <a href="#/contact" class="hover:text-slate-400">Contact & Support</a>
+          <a href="#/tools" class="hover:text-brand-400">Free Tools Directory</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- User Saved History Drawer / Modal -->
+  <div id="saved-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-lg font-bold font-heading text-dark">My Saved Generations & Bookmarks</h3>
+        </div>
+        <button onclick="closeSavedModal()" class="p-2 text-slate-400 hover:text-dark rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="saved-list" class="space-y-4">
+        <p class="text-xs text-muted py-8 text-center">Loading your saved items from Firestore...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- FIREBASE INTEGRATION & APPLICATION SCRIPTS -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    // Global State
+    window.APP_STATE = {
+      settings: null,
+      topics: [],
+      tools: [],
+      articles: [],
+      currentUser: null,
+      firebaseReady: false,
+    };
+
+    let fbApp, fbAuth, fbDb;
+
+    // Load Firebase Config
+    async function initFirebase() {
+      try {
+        const res = await fetch('/firebase-applet-config.json');
+        if (!res.ok) return;
+        const config = await res.json();
+        fbApp = initializeApp(config);
+        fbDb = getFirestore(fbApp, config.firestoreDatabaseId);
+        fbAuth = getAuth(fbApp);
+        window.fbAuth = fbAuth;
+        window.fbDb = fbDb;
+        window.APP_STATE.firebaseReady = true;
+
+        onAuthStateChanged(fbAuth, async (user) => {
+          window.APP_STATE.currentUser = user;
+          updateAuthUI(user);
+          if (user) {
+            // Upsert user in Firestore
+            try {
+              await setDoc(doc(fbDb, 'users', user.uid), {
+                userId: user.uid,
+                email: user.email,
+                displayName: user.displayName || 'Creator',
+                photoURL: user.photoURL || '',
+                updatedAt: new Date().toISOString(),
+              }, { merge: true });
+            } catch (err) {
+              console.warn('Firestore user profile sync:', err);
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('Firebase init warning:', err);
+      }
+    }
+
+    function updateAuthUI(user) {
+      const container = document.getElementById('auth-nav-container');
+      const mobileContainer = document.getElementById('mobile-auth-container');
+      if (!container) return;
+
+      if (user) {
+        const photo = user.photoURL || '';
+        const name = user.displayName || user.email?.split('@')[0] || 'User';
+        const html = `
+          <div class="flex items-center gap-2">
+            <button onclick="openSavedModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold transition-colors" title="View Saved Results">
+              <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+              <span class="hidden lg:inline">Saved</span>
+            </button>
+            <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+              ${photo ? `<img src="${photo}" class="w-7 h-7 rounded-full border border-brand-300">` : `<div class="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center">${name[0].toUpperCase()}</div>`}
+              <span class="text-xs font-semibold text-slate-700 hidden xl:inline max-w-[90px] truncate">${name}</span>
+              <button onclick="handleSignOut()" class="text-slate-400 hover:text-rose-600 p-1" title="Sign Out">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        container.innerHTML = html;
+        if (mobileContainer) {
+          mobileContainer.innerHTML = `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-bordercol">
+              <span class="text-xs font-bold text-dark">${name}</span>
+              <div class="flex items-center gap-2">
+                <button onclick="openSavedModal()" class="text-xs font-semibold text-brand-600">Saved</button>
+                <button onclick="handleSignOut()" class="text-xs font-semibold text-rose-600">Sign Out</button>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        container.innerHTML = `
+          <button onclick="handleGoogleSignIn()" class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-surface hover:bg-slate-100 border border-bordercol rounded-xl transition-all shadow-xs">
+            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>Google Sign In</span>
+          </button>
+        `;
+        if (mobileContainer) {
+          mobileContainer.innerHTML = `
+            <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-xl">
+              <span>Sign in with Google</span>
+            </button>
+          `;
+        }
+      }
+      lucide.createIcons();
+    }
+
+    window.handleGoogleSignIn = async function() {
+      if (!fbAuth) {
+        showToast('Firebase Auth is readying...', 'info');
+        return;
+      }
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(fbAuth, provider);
+        showToast('Signed in successfully with Google!', 'success');
+      } catch (err) {
+        showToast('Google Sign-in: ' + err.message, 'error');
+      }
+    };
+
+    window.handleSignOut = async function() {
+      if (!fbAuth) return;
+      try {
+        await signOut(fbAuth);
+        showToast('Signed out', 'info');
+      } catch (err) {}
+    };
+
+    window.saveResultToFirestore = async function(toolKey, toolName, inputPrompt, outputResult) {
+      if (!window.APP_STATE.currentUser) {
+        showToast('Please sign in with Google to save this result!', 'info');
+        handleGoogleSignIn();
+        return;
+      }
+      try {
+        const colRef = collection(fbDb, 'users', window.APP_STATE.currentUser.uid, 'saved_generations');
+        const id = 'save-' + Date.now();
+        await addDoc(colRef, {
+          id,
+          userId: window.APP_STATE.currentUser.uid,
+          toolKey,
+          toolName,
+          inputPrompt: String(inputPrompt).slice(0, 5000),
+          outputResult: String(outputResult).slice(0, 20000),
+          createdAt: new Date().toISOString(),
+        });
+        showToast('Saved to your Web Nasir account history!', 'success');
+      } catch (err) {
+        showToast('Error saving: ' + err.message, 'error');
+      }
+    };
+
+    window.openSavedModal = async function() {
+      const modal = document.getElementById('saved-modal');
+      const list = document.getElementById('saved-list');
+      modal.classList.remove('hidden');
+
+      if (!window.APP_STATE.currentUser) {
+        list.innerHTML = `<div class="text-center py-8"><p class="text-sm text-muted">Please sign in with Google to view your saved history.</p><button onclick="handleGoogleSignIn()" class="mt-3 gradient-hero-btn text-white text-xs font-semibold px-4 py-2 rounded-xl">Sign In Now</button></div>`;
+        return;
+      }
+
+      list.innerHTML = `<p class="text-xs text-muted py-6 text-center">Loading from Firestore...</p>`;
+
+      try {
+        const colRef = collection(fbDb, 'users', window.APP_STATE.currentUser.uid, 'saved_generations');
+        const snap = await getDocs(colRef);
+        if (snap.empty) {
+          list.innerHTML = `<div class="text-center py-8"><i data-lucide="bookmark" class="w-8 h-8 text-slate-300 mx-auto mb-2"></i><p class="text-sm text-dark font-bold">No saved generations yet</p><p class="text-xs text-muted mt-1">Run any AI tool or calculator and click "Save Result" to bookmark it here.</p></div>`;
+          lucide.createIcons();
+          return;
+        }
+
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        items.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        list.innerHTML = items.map(item => `
+          <div class="p-4 rounded-2xl bg-surface border border-bordercol hover:border-brand-300 transition-all text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-brand-700 uppercase tracking-wider text-[11px]">${item.toolName || item.toolKey}</span>
+              <span class="text-slate-400 text-[10px]">${item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</span>
+            </div>
+            ${item.inputPrompt ? `<div class="text-slate-600 line-clamp-1"><strong>Prompt:</strong> ${item.inputPrompt}</div>` : ''}
+            <div class="p-3 bg-white rounded-xl border border-slate-200 font-mono text-[11px] max-h-36 overflow-y-auto whitespace-pre-wrap text-slate-800">${item.outputResult}</div>
+            <div class="flex justify-end gap-2 pt-1">
+              <button onclick="navigator.clipboard.writeText('${encodeURIComponent(item.outputResult)}'.replace(/%0A/g, '\\n')); showToast('Copied result!', 'success');" class="text-brand-600 hover:underline font-semibold text-[11px]">Copy Text</button>
+            </div>
+          </div>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        list.innerHTML = `<p class="text-xs text-rose-600 py-4 text-center">Failed to load history: ${err.message}</p>`;
+      }
+    };
+
+    window.closeSavedModal = function() {
+      document.getElementById('saved-modal').classList.add('hidden');
+    };
+
+    // Initialize Firebase
+    initFirebase();
+  </script>
+
+  <script>
+    // UI Helpers
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-slate-900';
+      toast.className = `${bg} text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function parseSimpleMarkdown(md) {
+      if (!md) return '';
+      let html = md
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+        .replace(/```([a-z]*)\n([\s\S]*?)```/gim, '<pre><code>$2</code></pre>')
+        .replace(/`([^`]+)`/gim, '<code>$1</code>')
+        .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+        .replace(/^---$/gim, '<hr class="my-8 border-slate-200">');
+
+      html = html.replace(/(<li>[\s\S]*?<\/li>)/gim, '<ul>$1</ul>');
+      
+      const lines = html.split('\n\n');
+      html = lines.map(line => {
+        line = line.trim();
+        if (!line) return '';
+        if (line.startsWith('<h') || line.startsWith('<pre') || line.startsWith('<ul') || line.startsWith('<block') || line.startsWith('<hr')) {
+          return line;
+        }
+        return `<p>${line}</p>`;
+      }).join('\n');
+
+      return html;
+    }
+
+    async function apiFetch(endpoint) {
+      try {
+        const res = await fetch('/api' + endpoint);
+        if (!res.ok) throw new Error('Failed to load: ' + res.status);
+        return await res.json();
+      } catch (err) {
+        console.warn('API fetch warning:', endpoint, err.message);
+        return null;
+      }
+    }
+
+    async function initAppData() {
+      document.getElementById('year-curr').textContent = new Date().getFullYear();
+      
+      const [settings, topics, tools, articles] = await Promise.all([
+        apiFetch('/settings'),
+        apiFetch('/topics'),
+        apiFetch('/tools'),
+        apiFetch('/articles'),
+      ]);
+
+      if (settings) {
+        window.APP_STATE.settings = settings;
+        document.getElementById('nav-brand-name').textContent = settings.site_name || 'Web Nasir';
+        document.getElementById('nav-tagline').textContent = settings.tagline || 'AI & Web Income';
+        
+        // Announcement bar settings
+        if (settings.announcement_enabled === false) {
+          document.getElementById('top-announcement-bar').classList.add('hidden');
+        } else {
+          document.getElementById('top-announcement-bar').classList.remove('hidden');
+          if (settings.announcement_badge) document.getElementById('announcement-badge').textContent = settings.announcement_badge + ':';
+          if (settings.announcement_text) document.getElementById('announcement-text').textContent = settings.announcement_text;
+          if (settings.announcement_link_text) document.getElementById('announcement-link').textContent = settings.announcement_link_text;
+          if (settings.announcement_link_url) document.getElementById('announcement-link').href = settings.announcement_link_url;
+        }
+
+        if (settings.whatsapp_number) {
+          const cleanNum = settings.whatsapp_number.replace(/[^0-9]/g, '');
+          document.getElementById('whatsapp-float-link').href = `https://wa.me/${cleanNum}?text=Hi%20Nasir,%20I%20visited%20Web%20Nasir%20and%20would%20like%20to%20connect!`;
+          document.getElementById('footer-phone').textContent = `+${cleanNum}`;
+        }
+        if (settings.email) {
+          document.getElementById('footer-email').textContent = settings.email;
+          document.getElementById('footer-email').href = `mailto:${settings.email}`;
+        }
+        if (settings.footer_text) {
+          document.getElementById('footer-summary').textContent = settings.footer_text;
+        }
+        if (settings.social_facebook) document.getElementById('soc-fb').href = settings.social_facebook;
+        if (settings.social_x) document.getElementById('soc-x').href = settings.social_x;
+        if (settings.social_youtube) document.getElementById('soc-yt').href = settings.social_youtube;
+        if (settings.social_instagram) document.getElementById('soc-ig').href = settings.social_instagram;
+        if (settings.social_linkedin) document.getElementById('soc-li').href = settings.social_linkedin;
+      }
+
+      if (topics) window.APP_STATE.topics = topics;
+      if (tools) window.APP_STATE.tools = tools;
+      if (articles) window.APP_STATE.articles = articles;
+
+      window.addEventListener('hashchange', router);
+      router();
+    }
+
+    async function router() {
+      const hash = window.location.hash || '#/';
+      const appView = document.getElementById('app-view');
+      window.scrollTo(0, 0);
+
+      document.getElementById('mobile-menu').classList.add('hidden');
+
+      if (hash === '#/' || hash === '#' || hash === '') {
+        renderHomePage(appView);
+      } else if (hash === '#/articles' || hash.startsWith('#/articles?')) {
+        renderArticlesPage(appView);
+      } else if (hash.startsWith('#/article/')) {
+        const slug = hash.replace('#/article/', '').split('?')[0];
+        renderSingleArticlePage(appView, slug);
+      } else if (hash === '#/tools') {
+        renderToolsPage(appView);
+      } else if (hash.startsWith('#/tool/')) {
+        const key = hash.replace('#/tool/', '').split('?')[0];
+        renderToolWorkspacePage(appView, key);
+      } else if (hash === '#/topics') {
+        renderTopicsPage(appView);
+      } else if (hash === '#/about') {
+        renderAboutPage(appView);
+      } else if (hash === '#/contact') {
+        renderContactPage(appView);
+      } else {
+        renderHomePage(appView);
+      }
+
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // VIEW 1: HOME PAGE
+    // ==========================================
+    function renderHomePage(container) {
+      const s = window.APP_STATE.settings || {};
+      const heroTitle = s.hero_title || 'Build Faster with AI, Earn Smarter on the Web.';
+      const heroSubtitle = s.hero_subtitle || 'Master modern full-stack web development, automated AI utilities, and battle-tested Google AdSense & Facebook monetization strategies with 10-year engineering veteran Nasir.';
+      const badges = s.trust_badges || ['10+ Years Experience', '250+ Projects', '150+ Guides', '100% Practical', 'Live Client Work', '4.9 ★'];
+
+      const statYears = s.stat_years || '10+ Yrs';
+      const statRpm = s.stat_rpm || '$35+';
+      const statProjects = s.stat_projects || '250+';
+      const statTools = s.stat_tools || '100% Free';
+      const nasirQuote = s.nasir_quote || 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.';
+
+      const featuredArticles = (window.APP_STATE.articles || []).slice(0, 3);
+      const tools = window.APP_STATE.tools || [];
+      const topics = (window.APP_STATE.topics || []).slice(0, 6);
+
+      container.innerHTML = `
+        <!-- HERO SECTION -->
+        <section class="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-white">
+          <div class="absolute top-0 right-1/4 w-96 h-96 bg-brand-100/40 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+          <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-100/50 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            
+            <!-- Badges -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-8 max-w-4xl mx-auto">
+              ${badges.map(b => `
+                <span class="pill-badge bg-brand-50 text-brand-700 border border-brand-200/80 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
+                  ${b}
+                </span>
+              `).join('')}
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold font-heading text-dark tracking-tight leading-[1.15] max-w-4xl mx-auto mb-6">
+              ${heroTitle}
+            </h1>
+
+            <p class="text-lg sm:text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+              ${heroSubtitle}
+            </p>
+
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <a href="#/tools" class="w-full sm:w-auto gradient-hero-btn text-white font-semibold text-base px-8 py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                <span>Explore Free AI Tools (${tools.length}+ Active)</span>
+              </a>
+              <a href="#/articles" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-dark font-semibold text-base px-8 py-4 rounded-xl border border-bordercol shadow-xs flex items-center justify-center gap-2 transition-all">
+                <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
+                <span>Browse Monetization Guides</span>
+              </a>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto text-left">
+              <div class="bg-surface p-6 rounded-2xl border border-bordercol shadow-xs hover:border-brand-200 transition-all">
+                <div class="text-3xl font-extrabold font-heading text-brand-700 mb-1">${statYears}</div>
+                <div class="text-sm font-semibold text-dark">Real World Experience</div>
+                <div class="text-xs text-muted mt-1">Full-stack web & digital assets</div>
+              </div>
+              <div class="bg-surface p-6 rounded-2xl border border-bordercol shadow-xs hover:border-brand-200 transition-all">
+                <div class="text-3xl font-extrabold font-heading text-brand-700 mb-1">${statRpm}</div>
+                <div class="text-sm font-semibold text-dark">AdSense Top RPM</div>
+                <div class="text-xs text-muted mt-1">Achieved via tier-1 niche strategy</div>
+              </div>
+              <div class="bg-surface p-6 rounded-2xl border border-bordercol shadow-xs hover:border-brand-200 transition-all">
+                <div class="text-3xl font-extrabold font-heading text-brand-700 mb-1">${statProjects}</div>
+                <div class="text-sm font-semibold text-dark">Production Projects</div>
+                <div class="text-xs text-muted mt-1">SaaS, utility tools & media hubs</div>
+              </div>
+              <div class="bg-surface p-6 rounded-2xl border border-bordercol shadow-xs hover:border-brand-200 transition-all">
+                <div class="text-3xl font-extrabold font-heading text-brand-700 mb-1">${statTools}</div>
+                <div class="text-sm font-semibold text-dark">Free AI Utilities</div>
+                <div class="text-xs text-muted mt-1">Zero paywall utilities</div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PROFESSIONAL TOOLS TILES SECTION (#f8fafc) -->
+        <section id="tools-section" class="py-20 bg-surface border-y border-bordercol">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+              <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+                Productivity Suite
+              </span>
+              <h2 class="text-3xl sm:text-4xl font-extrabold font-heading text-dark mt-3">
+                Free AI & Webmaster Utilities
+              </h2>
+              <p class="text-muted mt-3 text-base">
+                Instant calculations, viral hooks, SEO plans, and branding tools. 100% free with zero paywall.
+              </p>
+            </div>
+
+            <!-- Categories Tabs & Filter -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-10">
+              <button onclick="filterHomeTools('all')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm" data-cat="all">All Utilities (${tools.length})</button>
+              <button onclick="filterHomeTools('AI Creators')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="AI Creators">AI Creators</button>
+              <button onclick="filterHomeTools('Monetization')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="Monetization">Monetization</button>
+              <button onclick="filterHomeTools('SEO & Copy')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="SEO & Copy">SEO & Content</button>
+              <button onclick="filterHomeTools('Calculators')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="Calculators">Calculators</button>
+            </div>
+
+            <!-- Tools Tiles Grid -->
+            <div id="home-tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${tools.map(t => renderToolTileHtml(t)).join('')}
+            </div>
+
+            <div class="mt-12 text-center">
+              <a href="#/tools" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-800">
+                <span>View Full Free Tools Hub & Saved History</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- TOPICS SECTION (Alternate White) -->
+        <section class="py-20 bg-white">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+              <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+                Core Disciplines
+              </span>
+              <h2 class="text-3xl sm:text-4xl font-extrabold font-heading text-dark mt-3">
+                Everything You Need to Build & Monetize
+              </h2>
+              <p class="text-muted mt-3 text-base">
+                Curated pathways from 10 years of production code and active advertising assets.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${topics.map(t => `
+                <a href="${t.link || `#/articles?tag=${t.key}`}" class="group bg-surface p-7 rounded-2xl border border-bordercol hover:border-brand-400 hover:shadow-xl transition-all duration-200 flex flex-col justify-between">
+                  <div>
+                    <div class="w-12 h-12 rounded-xl bg-brand-100/70 text-brand-700 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                      <i data-lucide="${t.icon || 'layers'}" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold font-heading text-dark group-hover:text-brand-600 transition-colors mb-2">
+                      ${t.name}
+                    </h3>
+                    <p class="text-sm text-muted leading-relaxed">
+                      ${t.description}
+                    </p>
+                  </div>
+                  <div class="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-brand-600 group-hover:text-brand-700">
+                    <span>View Guides & Blueprints</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        </section>
+
+        <!-- FEATURED ARTICLES SECTION (#f8fafc) -->
+        <section class="py-20 bg-surface border-t border-bordercol">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+                  Authoritative Guides
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-heading text-dark mt-3">
+                  Battle-Tested Case Studies
+                </h2>
+                <p class="text-muted mt-2 text-base">
+                  Deep, 700-900 word practical technical and monetization walkthroughs.
+                </p>
+              </div>
+              <a href="#/articles" class="mt-4 md:mt-0 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700">
+                <span>View all guides</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              ${featuredArticles.map(a => `
+                <article class="bg-white rounded-2xl border border-bordercol overflow-hidden shadow-xs hover:shadow-xl hover:border-brand-300 transition-all duration-300 flex flex-col justify-between">
+                  <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-brand-100 text-brand-700">
+                        ${a.tag}
+                      </span>
+                      <span class="text-xs text-muted">6 min read</span>
+                    </div>
+                    <h3 class="text-xl font-bold font-heading text-dark hover:text-brand-600 transition-colors line-clamp-2 mb-3">
+                      <a href="#/article/${a.slug}">${a.title}</a>
+                    </h3>
+                    <p class="text-sm text-muted line-clamp-3 leading-relaxed mb-6">
+                      ${a.meta}
+                    </p>
+                  </div>
+                  <div class="px-6 py-4 bg-slate-50 border-t border-bordercol flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs">N</div>
+                      <span class="text-xs font-medium text-slate-700">Nasir · 10 Yrs Exp</span>
+                    </div>
+                    <a href="#/article/${a.slug}" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
+                      Read Blueprint &rarr;
+                    </a>
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          </div>
+        </section>
+
+        <!-- WHY LEARN WITH NASIR -->
+        <section class="py-20 bg-white border-t border-bordercol">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div class="lg:col-span-6 space-y-6">
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+                  Engineering + Monetization
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-heading text-dark leading-tight">
+                  Stop Building Sites That Look Nice but Never Make a Single Dollar.
+                </h2>
+                <p class="text-muted text-base leading-relaxed">
+                  Most coding tutorials teach you syntax, but ignore serverless cost structures, Google AdSense arbitrage, Facebook video retention editing, and user conversion.
+                </p>
+                <div class="space-y-4 pt-2">
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold text-xs">✓</div>
+                    <div>
+                      <h4 class="text-sm font-bold text-dark">Zero-Server Overhead</h4>
+                      <p class="text-xs text-muted">Deploy serverless Jamstack architectures on Netlify that handle 100k requests for $0 hosting cost.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold text-xs">✓</div>
+                    <div>
+                      <h4 class="text-sm font-bold text-dark">Data-Backed AdSense RPM</h4>
+                      <p class="text-xs text-muted">Strategic sticky sidebar placements, high-GEO targeting, and high viewability tuning.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nasir Highlight Card -->
+              <div class="lg:col-span-6 bg-gradient-to-br from-slate-900 to-brand-950 p-8 sm:p-10 rounded-3xl text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-brand-600/30 rounded-full blur-2xl"></div>
+                
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white text-2xl font-bold font-heading shadow-lg">
+                    N
+                  </div>
+                  <div>
+                    <h3 class="text-2xl font-bold font-heading">Nasir</h3>
+                    <p class="text-sm text-brand-300">Senior Full-Stack Architect & Digital Publisher</p>
+                    <div class="flex items-center gap-1 text-amber-400 text-xs mt-1">
+                      <span>★★★★★</span>
+                      <span class="text-white font-semibold ml-1">4.9 / 5.0 (250+ clients)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="text-sm text-slate-300 leading-relaxed mb-8">
+                  "${nasirQuote}"
+                </p>
+
+                <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800 text-center">
+                  <div>
+                    <div class="text-xl font-bold text-white font-heading">${statYears}</div>
+                    <div class="text-xs text-slate-400">Experience</div>
+                  </div>
+                  <div>
+                    <div class="text-xl font-bold text-white font-heading">${statProjects}</div>
+                    <div class="text-xs text-slate-400">Deployments</div>
+                  </div>
+                  <div>
+                    <div class="text-xl font-bold text-white font-heading">${statRpm}</div>
+                    <div class="text-xs text-slate-400">Top RPM</div>
+                  </div>
+                </div>
+
+                <div class="mt-8">
+                  <a href="https://wa.me/917006334417?text=Hi%20Nasir,%20I%20would%20like%20to%20consult%20with%20you!" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                    <span>Connect with Nasir Directly</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    // Professional Tool Tile Renderer
+    function renderToolTileHtml(t) {
+      const isAi = t.badge?.toLowerCase().includes('ai') || t.category?.toLowerCase().includes('ai');
+      const badgeBg = isAi 
+        ? 'bg-gradient-to-r from-brand-600 to-purple-600 text-white' 
+        : 'bg-emerald-50 text-emerald-800 border border-emerald-200';
+
+      return `
+        <div class="tool-tile bg-white p-7 rounded-2xl border border-bordercol shadow-xs flex flex-col justify-between" data-category="${t.category || 'Calculators'}">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-200 text-brand-600 flex items-center justify-center shadow-xs">
+                <i data-lucide="${getToolIcon(t.key)}" class="w-6 h-6"></i>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full ${badgeBg}">
+                  ${t.badge || 'Free'}
+                </span>
+                <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                  ${t.category || 'Utility'}
+                </span>
+              </div>
+            </div>
+
+            <h3 class="text-lg font-bold font-heading text-dark mb-2 hover:text-brand-600 transition-colors">
+              <a href="#/tool/${t.key}">${t.name}</a>
+            </h3>
+
+            <p class="text-xs text-muted leading-relaxed mb-6">
+              ${t.description}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Free Forever
+            </span>
+            <a href="#/tool/${t.key}" class="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-800 group">
+              <span>Launch Utility</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    window.filterHomeTools = function(category) {
+      document.querySelectorAll('.home-tool-tab').forEach(b => {
+        if (b.dataset.cat === category) {
+          b.className = 'home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm';
+        } else {
+          b.className = 'home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50';
+        }
+      });
+
+      document.querySelectorAll('.tool-tile').forEach(tile => {
+        if (category === 'all' || tile.dataset.category === category) {
+          tile.style.display = '';
+        } else {
+          tile.style.display = 'none';
+        }
+      });
+    };
+
+    function getToolIcon(key) {
+      switch(key) {
+        case 'youtube': return 'video';
+        case 'blogoutline': return 'file-text';
+        case 'codeexplainer': return 'code';
+        case 'adcopy': return 'sparkles';
+        case 'age': return 'calendar';
+        case 'name': return 'sparkles';
+        case 'business': return 'dollar-sign';
+        case 'instagram': return 'hash';
+        case 'password': return 'shield-check';
+        case 'wordcount': return 'file-text';
+        default: return 'tool';
+      }
+    }
+
+    // ==========================================
+    // VIEW 2: ARTICLES DIRECTORY
+    // ==========================================
+    function renderArticlesPage(container) {
+      const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      const activeTag = (urlParams.get('tag') || 'all').toLowerCase();
+      const articles = window.APP_STATE.articles || [];
+
+      const tags = ['all', 'ai', 'adsense', 'facebook', 'webdev', 'blogging', 'earning'];
+
+      let filtered = activeTag === 'all' 
+        ? articles 
+        : articles.filter(a => (a.tag || '').toLowerCase() === activeTag);
+
+      container.innerHTML = `
+        <div class="bg-surface py-12 border-b border-bordercol">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+              Technical Knowledgebase
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold font-heading text-dark mt-3">
+              Web Development & Monetization Guides
+            </h1>
+            <p class="text-muted text-base max-w-2xl mx-auto mt-3">
+              Comprehensive blueprints, code architectures, and revenue case studies written by senior developer Nasir.
+            </p>
+
+            <div class="max-w-xl mx-auto mt-8">
+              <div class="relative">
+                <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-3.5"></i>
+                <input id="article-search-input" oninput="filterArticlesLive()" type="text" placeholder="Search guides by title, keyword, or concept..." class="w-full pl-12 pr-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs">
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-6">
+              ${tags.map(t => `
+                <a href="#/articles${t === 'all' ? '' : '?tag=' + t}" class="px-4 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${activeTag === t ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-bordercol hover:bg-slate-50'}">
+                  ${t}
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            ${filtered.length > 0 ? filtered.map(a => `
+              <article class="article-card bg-white rounded-2xl border border-bordercol overflow-hidden shadow-xs hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between">
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-brand-100 text-brand-700">
+                      ${a.tag}
+                    </span>
+                    <span class="text-xs text-muted">6 min read</span>
+                  </div>
+                  <h3 class="text-xl font-bold font-heading text-dark hover:text-brand-600 transition-colors mb-3">
+                    <a href="#/article/${a.slug}">${a.title}</a>
+                  </h3>
+                  <p class="text-sm text-muted leading-relaxed mb-6">
+                    ${a.meta}
+                  </p>
+                </div>
+                <div class="px-6 py-4 bg-slate-50 border-t border-bordercol flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs">N</div>
+                    <span class="text-xs font-medium text-slate-700">Nasir · 10 Yrs Exp</span>
+                  </div>
+                  <a href="#/article/${a.slug}" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
+                    Read Guide &rarr;
+                  </a>
+                </div>
+              </article>
+            `).join('') : `
+              <div class="col-span-3 text-center py-16 bg-surface rounded-2xl border border-dashed border-bordercol">
+                <i data-lucide="book-open" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
+                <h3 class="text-lg font-bold text-dark">No articles found in this category</h3>
+                <a href="#/articles" class="mt-4 inline-block text-xs font-semibold text-brand-600 underline">Show All Guides</a>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    window.filterArticlesLive = function() {
+      const query = (document.getElementById('article-search-input').value || '').toLowerCase();
+      document.querySelectorAll('.article-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(query) ? '' : 'none';
+      });
+    };
+
+    // ==========================================
+    // VIEW 3: SINGLE ARTICLE VIEW
+    // ==========================================
+    async function renderSingleArticlePage(container, slug) {
+      container.innerHTML = `
+        <div class="py-24 text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-600 border-t-transparent"></div>
+          <p class="mt-4 text-sm text-muted">Retrieving complete blueprint...</p>
+        </div>
+      `;
+
+      let article = (window.APP_STATE.articles || []).find(a => a.slug === slug);
+      if (!article || !article.body) {
+        article = await apiFetch(`/articles/${slug}`);
+      }
+
+      if (!article) {
+        container.innerHTML = `
+          <div class="max-w-3xl mx-auto px-4 py-24 text-center">
+            <h1 class="text-3xl font-extrabold font-heading text-dark mb-4">Article Not Found</h1>
+            <a href="#/articles" class="gradient-hero-btn text-white px-6 py-3 rounded-xl font-semibold">Browse All Guides</a>
+          </div>
+        `;
+        return;
+      }
+
+      const formattedBody = parseSimpleMarkdown(article.body);
+      const shareUrl = encodeURIComponent(window.location.href);
+      const shareText = encodeURIComponent(article.title + ' by Web Nasir');
+
+      container.innerHTML = `
+        <article class="bg-white pb-24">
+          <div class="bg-surface py-12 border-b border-bordercol">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <nav class="flex items-center gap-2 text-xs text-muted mb-6">
+                <a href="#/" class="hover:text-brand-600">Home</a>
+                <span>/</span>
+                <a href="#/articles" class="hover:text-brand-600">Guides</a>
+                <span>/</span>
+                <span class="text-dark font-medium capitalize">${article.tag}</span>
+              </nav>
+
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-brand-100 text-brand-700">
+                  ${article.tag}
+                </span>
+                <span class="text-xs text-muted">6 min read</span>
+              </div>
+
+              <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold font-heading text-dark tracking-tight leading-tight mb-6">
+                ${article.title}
+              </h1>
+
+              <p class="text-lg text-slate-600 leading-relaxed mb-8">
+                ${article.meta}
+              </p>
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-700 to-brand-500 text-white font-bold flex items-center justify-center text-lg font-heading shadow-md">
+                    N
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-dark flex items-center gap-1.5">
+                      <span>Nasir</span>
+                      <span class="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full border border-brand-200">Verified Author</span>
+                    </div>
+                    <div class="text-xs text-muted">10+ Years Full-Stack Engineer & Digital Publisher</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 text-slate-600">
+                  <span class="text-xs font-semibold mr-1">Share:</span>
+                  <a href="https://wa.me/?text=${shareText}%20${shareUrl}" target="_blank" class="p-2 rounded-lg bg-white border border-bordercol hover:bg-emerald-50 hover:text-emerald-600 transition-colors shadow-xs">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                  </a>
+                  <a href="https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}" target="_blank" class="p-2 rounded-lg bg-white border border-bordercol hover:bg-sky-50 hover:text-sky-600 transition-colors shadow-xs">
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                  </a>
+                  <button onclick="navigator.clipboard.writeText(window.location.href); showToast('Link copied to clipboard!', 'success');" class="p-2 rounded-lg bg-white border border-bordercol hover:bg-slate-50 transition-colors shadow-xs">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+            <div class="article-content leading-relaxed">
+              ${formattedBody}
+            </div>
+
+            <div class="mt-16 bg-gradient-to-br from-brand-50 via-purple-50 to-white p-8 rounded-3xl border border-brand-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-100/70 px-2.5 py-0.5 rounded-full">
+                  1-on-1 Implementation
+                </span>
+                <h3 class="text-xl font-bold font-heading text-dark mt-2">
+                  Need Help Applying This Strategy To Your Site?
+                </h3>
+                <p class="text-sm text-muted mt-1 max-w-lg">
+                  Reach out directly to Nasir on WhatsApp for technical architecture reviews, AdSense setup audits, or bespoke tool development.
+                </p>
+              </div>
+              <a href="https://wa.me/917006334417?text=Hi%20Nasir,%20I%20just%20read%20your%20article%20on%20${encodeURIComponent(article.title)}%20and%20want%20to%20consult!" target="_blank" class="flex-shrink-0 gradient-hero-btn text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                <span>Ask Nasir on WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // VIEW 4: TOOLS HUB DIRECTORY
+    // ==========================================
+    function renderToolsPage(container) {
+      const tools = window.APP_STATE.tools || [];
+
+      container.innerHTML = `
+        <div class="bg-surface py-12 border-b border-bordercol">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              Interactive Web Utilities
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold font-heading text-dark mt-3">
+              Free AI & Webmaster Tools Directory
+            </h1>
+            <p class="text-muted text-base max-w-2xl mx-auto mt-3">
+              Lightweight, zero-login interactive utilities built for instant calculations, viral hooks, SEO analysis, and social media growth.
+            </p>
+
+            <div class="max-w-md mx-auto mt-6">
+              <input id="tools-search-input" oninput="filterToolsDirectoryLive()" type="text" placeholder="Search by tool name or function..." class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs">
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div id="tools-directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            ${tools.map(t => renderToolTileHtml(t)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    window.filterToolsDirectoryLive = function() {
+      const q = (document.getElementById('tools-search-input').value || '').toLowerCase();
+      document.querySelectorAll('.tool-tile').forEach(tile => {
+        tile.style.display = tile.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    };
+
+    // ==========================================
+    // VIEW 5: DEDICATED TOOL WORKSPACES
+    // ==========================================
+    function renderToolWorkspacePage(container, key) {
+      const tool = (window.APP_STATE.tools || []).find(t => t.key === key) || { name: key, description: '' };
+
+      container.innerHTML = `
+        <div class="bg-surface py-8 border-b border-bordercol">
+          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <a href="#/tools" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-800">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              <span>Back to all tools</span>
+            </a>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">100% Free Tool</span>
+              <button onclick="openSavedModal()" class="text-xs font-semibold text-slate-600 hover:text-brand-600 flex items-center gap-1">
+                <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">My Saved Results</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div id="tool-interactive-container" class="bg-white rounded-3xl border border-bordercol p-6 sm:p-10 shadow-lg">
+            <!-- Tool Injected Here -->
+          </div>
+        </div>
+      `;
+
+      const target = document.getElementById('tool-interactive-container');
+
+      switch (key) {
+        case 'youtube':
+          mountAiYoutubeTool(target);
+          break;
+        case 'blogoutline':
+          mountAiBlogOutlineTool(target);
+          break;
+        case 'codeexplainer':
+          mountAiCodeTool(target);
+          break;
+        case 'adcopy':
+          mountAiAdCopyTool(target);
+          break;
+        case 'age':
+          mountAgeCalculator(target);
+          break;
+        case 'name':
+          mountNameGenerator(target);
+          break;
+        case 'business':
+          mountBusinessCalculator(target);
+          break;
+        case 'instagram':
+          mountInstagramGenerator(target);
+          break;
+        case 'password':
+          mountPasswordGenerator(target);
+          break;
+        case 'wordcount':
+          mountWordCounter(target);
+          break;
+        default:
+          mountCustomAiTool(target, tool);
+      }
+
+      lucide.createIcons();
+    }
+
+    // --- AI TOOL 1: YOUTUBE TITLE & RETENTION HOOK ---
+    function mountAiYoutubeTool(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="video" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Viral YouTube Title & Hook Crafter</h2>
+            <p class="text-xs text-muted mt-1">Generate 5 viral, high-CTR titles, 30-second retention hooks, and thumbnail concepts.</p>
+          </div>
+
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Video Topic / Core Idea</label>
+              <input id="yt-topic" type="text" value="How I Made $5,000 with AI Micro-SaaS" placeholder="e.g. Google AdSense high RPM, learning python in 30 days" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Audience Tone</label>
+              <select id="yt-tone" class="w-full px-4 py-2.5 bg-white border border-bordercol rounded-xl text-sm font-medium">
+                <option value="Curious & Intriguing">Curious & Intriguing (Highest CTR)</option>
+                <option value="Urgent & Contrarian">Urgent & Contrarian ("Stop doing this")</option>
+                <option value="Educational & Authoritative">Educational & Authoritative</option>
+              </select>
+            </div>
+            <button id="yt-submit-btn" onclick="executeAiTool('ai_youtube', 'yt-topic', 'yt-tone', 'yt-output', 'AI YouTube Title Crafter')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Generate Viral Titles & Retention Hooks</span>
+            </button>
+          </div>
+
+          <div id="yt-output" class="hidden space-y-4"></div>
+        </div>
+      `;
+    }
+
+    // --- AI TOOL 2: SEO BLOG OUTLINE & KEYWORDS ---
+    function mountAiBlogOutlineTool(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="file-text" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI SEO Blog Outline & Keyword Strategist</h2>
+            <p class="text-xs text-muted mt-1">Structure intent-driven H2/H3 article hierarchies and high-CPC keywords to rank fast.</p>
+          </div>
+
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Target Article Keyword / Topic</label>
+              <input id="blog-topic" type="text" value="Google AdSense High RPM Strategy" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+            </div>
+            <button id="blog-submit-btn" onclick="executeAiTool('ai_blog', 'blog-topic', null, 'blog-output', 'AI Blog Outline Strategist')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Generate SEO Outline & Keywords</span>
+            </button>
+          </div>
+
+          <div id="blog-output" class="hidden space-y-4"></div>
+        </div>
+      `;
+    }
+
+    // --- AI TOOL 3: CODE & REGEX EXPLAINER ---
+    function mountAiCodeTool(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="code" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Code, Regex & Script Explainer</h2>
+            <p class="text-xs text-muted mt-1">Paste any regular expression, SQL query, or script for an instant plain-English breakdown.</p>
+          </div>
+
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Paste Code / Regex Snippet</label>
+              <textarea id="code-snippet" rows="5" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed">^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$</textarea>
+            </div>
+            <button id="code-submit-btn" onclick="executeAiTool('ai_code', 'code-snippet', null, 'code-output', 'AI Code Explainer')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Explain Code Snippet</span>
+            </button>
+          </div>
+
+          <div id="code-output" class="hidden space-y-4"></div>
+        </div>
+      `;
+    }
+
+    // --- AI TOOL 4: AD COPY GENERATOR ---
+    function mountAiAdCopyTool(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI AdSense & Social Ad Copy Generator</h2>
+            <p class="text-xs text-muted mt-1">Craft punchy headlines and click-optimized ad copy variations for low CPC campaigns.</p>
+          </div>
+
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Product, Service, or Content Offer</label>
+              <input id="ad-topic" type="text" value="Free online tools for web developers" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+            </div>
+            <button id="ad-submit-btn" onclick="executeAiTool('ai_adcopy', 'ad-topic', null, 'ad-output', 'AI Ad Copy Generator')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Generate Ad Copy Variations</span>
+            </button>
+          </div>
+
+          <div id="ad-output" class="hidden space-y-4"></div>
+        </div>
+      `;
+    }
+
+    // --- CUSTOM DYNAMIC AI TOOL MOUNT ---
+    function mountCustomAiTool(el, tool) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="${getToolIcon(tool.key)}" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${tool.name}</h2>
+            <p class="text-xs text-muted mt-1">${tool.description}</p>
+          </div>
+
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Your Input</label>
+              <textarea id="custom-tool-input" rows="4" placeholder="Enter keywords, text, or details to process..." class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"></textarea>
+            </div>
+            <button onclick="executeCustomTool('${tool.key}', '${tool.name}')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Run AI Utility</span>
+            </button>
+          </div>
+
+          <div id="custom-tool-output" class="hidden space-y-4"></div>
+        </div>
+      `;
+    }
+
+    // Central AI Tool Runner
+    window.executeAiTool = async function(toolType, inputId, toneId, outputId, toolName) {
+      const inputEl = document.getElementById(inputId);
+      const text = (inputEl.value || '').trim();
+      if (!text) {
+        showToast('Please enter an input topic or text!', 'error');
+        return;
+      }
+
+      const tone = toneId ? document.getElementById(toneId)?.value : null;
+      const outputEl = document.getElementById(outputId);
+      outputEl.classList.remove('hidden');
+      outputEl.innerHTML = `
+        <div class="p-8 text-center bg-surface rounded-2xl border border-bordercol">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-600 border-t-transparent"></div>
+          <p class="mt-3 text-xs text-muted font-medium">Generating with Gemini AI...</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/api/ai/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_type: toolType, input: text, tone }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'AI generation failed');
+
+        const resultText = data.result || 'No output received';
+        const formatted = parseSimpleMarkdown(resultText);
+
+        outputEl.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="text-xs font-bold text-dark uppercase tracking-wider">AI Generated Result</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="navigator.clipboard.writeText('${encodeURIComponent(resultText)}'.replace(/%0A/g, '\\n')); showToast('Copied to clipboard!', 'success');" class="px-3 py-1.5 rounded-lg border border-bordercol text-xs font-semibold hover:bg-slate-50 flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Copy</span>
+                </button>
+                <button onclick="saveResultToFirestore('${toolType}', '${toolName}', '${encodeURIComponent(text)}', '${encodeURIComponent(resultText)}')" class="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold flex items-center gap-1">
+                  <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
+            <div class="article-content text-sm leading-relaxed text-slate-800">
+              ${formatted}
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        outputEl.innerHTML = `<div class="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl">${err.message}</div>`;
+      }
+    };
+
+    window.executeCustomTool = async function(toolKey, toolName) {
+      const text = (document.getElementById('custom-tool-input').value || '').trim();
+      if (!text) {
+        showToast('Please enter an input!', 'error');
+        return;
+      }
+      const outputEl = document.getElementById('custom-tool-output');
+      outputEl.classList.remove('hidden');
+      outputEl.innerHTML = `
+        <div class="p-8 text-center bg-surface rounded-2xl border border-bordercol">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-600 border-t-transparent"></div>
+          <p class="mt-3 text-xs text-muted font-medium">Processing custom utility...</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/api/ai/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_type: 'custom', input: text }),
+        });
+        const data = await res.json();
+        const resultText = data.result || 'Done.';
+        const formatted = parseSimpleMarkdown(resultText);
+
+        outputEl.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <span class="text-xs font-bold text-dark uppercase tracking-wider">Output</span>
+              <button onclick="saveResultToFirestore('${toolKey}', '${toolName}', '${encodeURIComponent(text)}', '${encodeURIComponent(resultText)}')" class="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold flex items-center gap-1">
+                <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+                <span>Save</span>
+              </button>
+            </div>
+            <div class="article-content text-sm text-slate-800">${formatted}</div>
+          </div>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        outputEl.innerHTML = `<div class="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl">${err.message}</div>`;
+      }
+    };
+
+    // --- CLIENT UTILITIES (Age, Name, Business, Instagram, Password, Wordcount) ---
+    function mountAgeCalculator(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="calendar" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Exact Age & Milestone Calculator</h2>
+            <p class="text-xs text-muted mt-1">Calculate exact age in years, months, days, total hours, and upcoming birthdays.</p>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8">
+            <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Select Your Date of Birth</label>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input id="age-input-date" type="date" value="1998-05-15" class="flex-grow px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+              <button onclick="calculateAgeNow()" class="gradient-hero-btn text-white font-semibold px-6 py-3 rounded-xl text-sm whitespace-nowrap">Calculate</button>
+            </div>
+          </div>
+          <div id="age-results" class="space-y-6"></div>
+        </div>
+      `;
+      calculateAgeNow();
+    }
+
+    window.calculateAgeNow = function() {
+      const input = document.getElementById('age-input-date').value;
+      if (!input) return;
+      const birth = new Date(input);
+      const now = new Date();
+      if (birth > now) { showToast('Birthdate cannot be in future!', 'error'); return; }
+
+      let years = now.getFullYear() - birth.getFullYear();
+      let months = now.getMonth() - birth.getMonth();
+      let days = now.getDate() - birth.getDate();
+      if (days < 0) {
+        months -= 1;
+        days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      }
+      if (months < 0) { years -= 1; months += 12; }
+
+      const diffTime = Math.abs(now - birth);
+      const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
+
+      const nextBday = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+      if (nextBday < now) nextBday.setFullYear(now.getFullYear() + 1);
+      const daysUntilBday = Math.ceil((nextBday - now) / (1000 * 60 * 60 * 24));
+
+      document.getElementById('age-results').innerHTML = `
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div class="bg-brand-50 p-5 rounded-2xl border border-brand-200">
+            <div class="text-3xl font-extrabold font-heading text-brand-700">${years}</div>
+            <div class="text-xs font-semibold text-slate-600 mt-1 uppercase">Years</div>
+          </div>
+          <div class="bg-brand-50 p-5 rounded-2xl border border-brand-200">
+            <div class="text-3xl font-extrabold font-heading text-brand-700">${months}</div>
+            <div class="text-xs font-semibold text-slate-600 mt-1 uppercase">Months</div>
+          </div>
+          <div class="bg-brand-50 p-5 rounded-2xl border border-brand-200">
+            <div class="text-3xl font-extrabold font-heading text-brand-700">${days}</div>
+            <div class="text-xs font-semibold text-slate-600 mt-1 uppercase">Days</div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-bordercol divide-y divide-slate-100 text-sm">
+          <div class="py-2.5 flex justify-between">
+            <span class="text-muted">Total Days Lived</span>
+            <span class="font-bold text-dark">${totalDays.toLocaleString()} days</span>
+          </div>
+          <div class="py-2.5 flex justify-between">
+            <span class="text-muted">Days Until Next Birthday</span>
+            <span class="font-bold text-brand-600">${daysUntilBday} days</span>
+          </div>
+        </div>
+      `;
+    };
+
+    function mountNameGenerator(el) {
+      el.innerHTML = `
+        <div class="max-w-3xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3"><i data-lucide="sparkles" class="w-6 h-6"></i></div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Brand & Domain Generator</h2>
+            <p class="text-xs text-muted mt-1">Catchy tech names, domain availability hints, and brand vibe scores.</p>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Core Keyword</label>
+                <input id="name-kw" type="text" value="income" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Vibe</label>
+                <select id="name-vibe" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm font-medium">
+                  <option value="modern">Modern Tech</option>
+                  <option value="catchy">Catchy & Short</option>
+                  <option value="ai">AI / Automation</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="generateNamesNow()" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md">Generate 12 Brand Ideas</button>
+          </div>
+          <div id="names-output" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+      `;
+      generateNamesNow();
+    }
+
+    window.generateNamesNow = function() {
+      const kw = (document.getElementById('name-kw').value || 'tool').trim();
+      const vibe = document.getElementById('name-vibe').value;
+      const prefixes = vibe === 'ai' ? ['Neuro', 'Synapse', 'Omni', 'Hyper', 'Auto', 'Mind'] : ['Nova', 'Zen', 'Pulse', 'Stack', 'Flow', 'Nexus'];
+      const suffixes = vibe === 'ai' ? ['Mind', 'Bot', 'Logic', 'Lab', 'Engine', 'Brain'] : ['Craft', 'Works', 'Wave', 'Grid', 'Link', 'Hub'];
+      const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+      const cleanKw = cap(kw);
+
+      const ideas = [];
+      for (let i = 0; i < 6; i++) {
+        ideas.push({ name: `${prefixes[i]}${cleanKw}`, tld: '.com', score: 92 + (i % 7) });
+        ideas.push({ name: `${cleanKw}${suffixes[i]}`, tld: '.io', score: 88 + (i % 8) });
+      }
+
+      document.getElementById('names-output').innerHTML = ideas.map(idea => `
+        <div class="bg-white p-4 rounded-xl border border-bordercol hover:border-brand-400 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-base font-bold font-heading text-dark">${idea.name}</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700">${idea.tld}</span>
+            </div>
+            <span class="text-[11px] text-emerald-600 font-medium">Score: ${idea.score}/100</span>
+          </div>
+          <button onclick="navigator.clipboard.writeText('${idea.name}${idea.tld}'); showToast('Copied ${idea.name}${idea.tld}!', 'success');" class="p-2 text-slate-500 hover:text-brand-600"><i data-lucide="copy" class="w-4 h-4"></i></button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    };
+
+    function mountBusinessCalculator(el) {
+      el.innerHTML = `
+        <div class="max-w-3xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3"><i data-lucide="dollar-sign" class="w-6 h-6"></i></div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AdSense & Website Revenue Estimator</h2>
+            <p class="text-xs text-muted mt-1">Project monthly and annual income based on traffic, RPM, and affiliate conversions.</p>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-6">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs font-bold uppercase text-slate-700">Monthly Pageviews</label>
+                <span id="biz-views-display" class="text-sm font-bold text-brand-700">50,000 views</span>
+              </div>
+              <input id="biz-views" type="range" min="5000" max="500000" step="5000" value="50000" oninput="computeRevenueNow()" class="w-full accent-brand-600 cursor-pointer">
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs font-bold uppercase text-slate-700">Page RPM ($)</label>
+                <span id="biz-rpm-display" class="text-sm font-bold text-brand-700">$12.00 RPM</span>
+              </div>
+              <input id="biz-rpm" type="range" min="1" max="60" step="0.5" value="12" oninput="computeRevenueNow()" class="w-full accent-brand-600 cursor-pointer">
+            </div>
+          </div>
+          <div id="revenue-projections"></div>
+        </div>
+      `;
+      computeRevenueNow();
+    }
+
+    window.computeRevenueNow = function() {
+      const views = Number(document.getElementById('biz-views').value);
+      const rpm = Number(document.getElementById('biz-rpm').value);
+      document.getElementById('biz-views-display').textContent = views.toLocaleString() + ' views';
+      document.getElementById('biz-rpm-display').textContent = '$' + rpm.toFixed(2) + ' RPM';
+
+      const adMonthly = (views / 1000) * rpm;
+      document.getElementById('revenue-projections').innerHTML = `
+        <div class="grid grid-cols-2 gap-4 text-center">
+          <div class="bg-brand-50 p-6 rounded-2xl border border-brand-200">
+            <div class="text-xs font-semibold text-brand-700 uppercase">Monthly Income</div>
+            <div class="text-3xl font-extrabold font-heading text-brand-700 mt-1">$${adMonthly.toFixed(2)}</div>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol">
+            <div class="text-xs font-semibold text-muted uppercase">Yearly Projection</div>
+            <div class="text-3xl font-extrabold font-heading text-dark mt-1">$${(adMonthly * 12).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    function mountInstagramGenerator(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3"><i data-lucide="hash" class="w-6 h-6"></i></div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Social Media Viral Caption & Tag Generator</h2>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-6 space-y-4">
+            <input id="ig-topic" type="text" value="coding tips" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm font-medium">
+            <button onclick="generateCaptionsNow()" class="w-full gradient-hero-btn text-white font-semibold py-3 rounded-xl text-sm">Generate Tags & Hooks</button>
+          </div>
+          <div id="ig-output"></div>
+        </div>
+      `;
+      generateCaptionsNow();
+    }
+
+    window.generateCaptionsNow = function() {
+      const topic = (document.getElementById('ig-topic').value || 'tech').trim();
+      const cleanTag = topic.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const tags = `#${cleanTag} #techlife #fullstackdev #${cleanTag}guide #programming #buildinpublic`;
+      document.getElementById('ig-output').innerHTML = `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol space-y-3">
+          <div class="font-bold text-xs uppercase text-dark">Hashtag Bundle</div>
+          <div class="p-3 bg-surface rounded-xl font-mono text-xs text-brand-600">${tags}</div>
+          <button onclick="navigator.clipboard.writeText('${tags}'); showToast('Tags copied!', 'success');" class="text-xs font-semibold text-brand-600 hover:underline">Copy All Tags</button>
+        </div>
+      `;
+    };
+
+    function mountPasswordGenerator(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Military-Grade Password Generator</h2>
+          </div>
+          <div class="bg-slate-900 p-6 rounded-2xl mb-6 flex items-center justify-between">
+            <div id="pwd-display" class="font-mono text-lg text-emerald-400 font-semibold">••••••••••••••••</div>
+            <button onclick="copyGeneratedPassword()" class="p-3 rounded-xl bg-slate-800 text-white"><i data-lucide="copy" class="w-5 h-5"></i></button>
+          </div>
+          <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
+            <input id="pwd-length" type="range" min="12" max="64" value="20" oninput="generatePasswordNow()" class="w-full accent-brand-600">
+            <button onclick="generatePasswordNow()" class="w-full gradient-hero-btn text-white font-semibold py-3 rounded-xl text-sm">Generate Key</button>
+          </div>
+        </div>
+      `;
+      generatePasswordNow();
+    }
+
+    window.generatePasswordNow = function() {
+      const len = Number(document.getElementById('pwd-length').value || 20);
+      const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()_+';
+      let pwd = '';
+      const array = new Uint32Array(len);
+      window.crypto.getRandomValues(array);
+      for (let i = 0; i < len; i++) pwd += charset[array[i] % charset.length];
+      document.getElementById('pwd-display').textContent = pwd;
+    };
+
+    window.copyGeneratedPassword = function() {
+      navigator.clipboard.writeText(document.getElementById('pwd-display').textContent.trim());
+      showToast('Password copied!', 'success');
+    };
+
+    function mountWordCounter(el) {
+      el.innerHTML = `
+        <div class="max-w-2xl mx-auto">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold font-heading text-dark">Content SEO & Word Counter</h2>
+          </div>
+          <textarea id="wordcount-text" oninput="analyzeContentNow()" rows="6" class="w-full p-4 bg-surface border border-bordercol rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 mb-4" placeholder="Type or paste content..."></textarea>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="bg-surface p-4 rounded-xl border border-bordercol"><div id="stat-words" class="text-2xl font-bold text-brand-700">0</div><div class="text-xs text-muted">Words</div></div>
+            <div class="bg-surface p-4 rounded-xl border border-bordercol"><div id="stat-chars" class="text-2xl font-bold text-dark">0</div><div class="text-xs text-muted">Characters</div></div>
+            <div class="bg-surface p-4 rounded-xl border border-bordercol"><div id="stat-read" class="text-2xl font-bold text-dark">0 min</div><div class="text-xs text-muted">Read Time</div></div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.analyzeContentNow = function() {
+      const text = document.getElementById('wordcount-text').value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      document.getElementById('stat-words').textContent = words;
+      document.getElementById('stat-chars').textContent = text.length;
+      document.getElementById('stat-read').textContent = Math.ceil(words / 200) + ' min';
+    };
+
+    // Topics, About, Contact
+    function renderTopicsPage(container) {
+      const topics = window.APP_STATE.topics || [];
+      container.innerHTML = `
+        <div class="bg-surface py-12 border-b border-bordercol text-center">
+          <h1 class="text-4xl font-extrabold font-heading text-dark">Topics Taxonomy</h1>
+          <p class="text-muted text-sm mt-2">Explore Web Nasir knowledge pathways.</p>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          ${topics.map(t => `
+            <div class="bg-white p-6 rounded-2xl border border-bordercol">
+              <h3 class="font-bold text-lg mb-2">${t.name}</h3>
+              <p class="text-xs text-muted mb-4">${t.description}</p>
+              <a href="${t.link || `#/articles?tag=${t.key}`}" class="text-xs font-bold text-brand-600">View Articles &rarr;</a>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderAboutPage(container) {
+      container.innerHTML = `
+        <div class="max-w-4xl mx-auto px-4 py-16">
+          <div class="flex items-center gap-6 mb-12">
+            <div class="w-24 h-24 rounded-2xl bg-brand-600 text-white font-extrabold text-4xl flex items-center justify-center font-heading">N</div>
+            <div>
+              <h1 class="text-3xl sm:text-4xl font-extrabold font-heading text-dark">About Nasir</h1>
+              <p class="text-sm text-muted mt-1">10+ Years Senior Full-Stack Engineer & Digital Publisher</p>
+            </div>
+          </div>
+          <div class="prose text-slate-700 text-sm leading-relaxed space-y-4">
+            <p>I build high-performance web applications, automated micro-utilities, and digital publishing assets that generate real revenue. No academic theory—everything I teach is extracted directly from production code and active advertising accounts.</p>
+            <p>Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderContactPage(container) {
+      container.innerHTML = `
+        <div class="max-w-3xl mx-auto px-4 py-16 text-center">
+          <h1 class="text-3xl font-extrabold font-heading text-dark mb-4">Contact Nasir</h1>
+          <p class="text-muted text-sm mb-8">Reach out for consulting, AdSense audits, or custom AI utility development.</p>
+          <div class="bg-surface p-8 rounded-3xl border border-bordercol space-y-4 text-left max-w-lg mx-auto">
+            <div><span class="text-xs font-bold text-slate-500 uppercase">WhatsApp:</span> <a href="https://wa.me/917006334417" class="text-sm font-bold text-emerald-600 block">+91 7006334417</a></div>
+            <div><span class="text-xs font-bold text-slate-500 uppercase">Email:</span> <a href="mailto:hello@webnasir.com" class="text-sm font-bold text-brand-600 block">hello@webnasir.com</a></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Mobile Menu
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+
+    initAppData();
+  </script>
+</body>
 </html>

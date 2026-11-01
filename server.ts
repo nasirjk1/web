@@ -13,6 +13,30 @@ const PORT = Number(process.env.PORT) || 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Global CORS middleware
+app.use((req, res, next) => {
+  const origin = (req.headers.origin as string) || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// Serve Firebase Applet Config explicitly
+app.get('/firebase-applet-config.json', (req, res) => {
+  const configPath = path.join(__dirname, 'public', 'firebase-applet-config.json');
+  res.sendFile(configPath);
+});
+
+// Admin direct routes
+app.get(['/admin', '/admin.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
 // Forward all /api/* and /.netlify/functions/api/* requests to the single Netlify function handler
 app.all(['/api', '/api/*', '/.netlify/functions/api', '/.netlify/functions/api/*'], async (req, res) => {
   try {
@@ -35,16 +59,20 @@ app.all(['/api', '/api/*', '/.netlify/functions/api', '/.netlify/functions/api/*
       }
     }
 
+    const multiHeaders = (response as any).multiValueHeaders;
+    if (multiHeaders) {
+      for (const [key, values] of Object.entries(multiHeaders)) {
+        if (Array.isArray(values)) {
+          res.setHeader(key, values);
+        }
+      }
+    }
+
     res.status(response.statusCode).send(response.body);
   } catch (err: any) {
     console.error('Server bridge error:', err);
     res.status(500).json({ error: 'Server bridge error', details: err.message });
   }
-});
-
-// Admin direct route
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // Serve static directory
