@@ -131,6 +131,8 @@
       animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
     }
   </style>
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body class="min-h-screen flex flex-col bg-white text-dark antialiased selection:bg-brand-100 selection:text-brand-900">
 
@@ -144,12 +146,7 @@
     </div>
   </div>
 
-  <!-- MOVING TICKER MARQUEE (Reference Style) -->
-  <div class="bg-brand-50/70 border-b border-brand-100/60 overflow-hidden py-2 text-xs font-semibold text-brand-900 select-none">
-    <div class="animate-marquee flex items-center gap-8" id="marquee-track">
-      <!-- Injected dynamically from APP_STATE.marquee -->
-    </div>
-  </div>
+  
 
   <!-- ACADEMY HEADER & MEGA NAVIGATION -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
@@ -287,7 +284,7 @@
       <div class="hidden sm:flex items-center gap-3">
         <!-- Auth / Student Dashboard Container -->
         <div id="auth-nav-container">
-          <button onclick="handleGoogleSignIn()" class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-surface hover:bg-slate-100 border border-bordercol rounded-xl transition-all shadow-xs">
+          <button onclick="openStudentAuthModal()" class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-surface hover:bg-slate-100 border border-bordercol rounded-xl transition-all shadow-xs">
             <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
             <span>Student Login</span>
           </button>
@@ -345,79 +342,146 @@
     </a>
   </div>
 
-  <!-- ACADEMY FOOTER (5-Column Reference Style) -->
+  <!-- ACADEMY FOOTER (Reference Academy WeBotApp Multi-Column Design) -->
   <footer class="bg-navy text-slate-300 border-t border-slate-800 pt-16 pb-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Newsletter Subscription Card with Explicit Marketing Consent -->
+      <div class="mb-14 p-8 sm:p-10 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="max-w-xl space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/80 border border-violet-700/40 text-violet-300 text-[11px] font-bold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Weekly Technology & Monetization Dispatch</span>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold font-heading text-white tracking-tight">Join Web Nasir Academy Community</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Get practical engineering guides on autonomous AI agents, Google AdSense high-RPM architectures, and production Jamstack systems directly to your inbox. Zero marketing fluff.
+          </p>
+        </div>
+
+        <form onsubmit="handleNewsletterSubscribe(event)" class="w-full lg:w-auto flex-shrink-0 flex flex-col gap-2.5">
+          <div class="flex flex-col sm:flex-row items-center gap-2">
+            <input id="newsletter-email" type="email" required placeholder="Enter your email address..." class="w-full sm:w-auto px-4 py-3 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[280px]">
+            <button type="submit" id="newsletter-submit-btn" class="w-full sm:w-auto gradient-hero-btn text-white text-xs font-semibold px-6 py-3 rounded-xl hover:opacity-95 transition-all shadow-md whitespace-nowrap">
+              Subscribe Free
+            </button>
+          </div>
+          <label class="flex items-center gap-2 text-[10px] text-slate-400 cursor-pointer pt-0.5">
+            <input type="checkbox" id="newsletter-consent" required checked class="w-3.5 h-3.5 text-violet-600 rounded bg-slate-800 border-slate-700">
+            <span>I consent to receive educational newsletters and course updates. (Unsubscribe anytime via 1-click link).</span>
+          </label>
+        </form>
+      </div>
+
+      <!-- Multi-Column Links Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
         
-        <!-- Column 1: Brand Info -->
+        <!-- Column 1: Brand Profile & Verification -->
         <div class="lg:col-span-2 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-brand-500/30">
               <i data-lucide="sparkles" class="w-5 h-5"></i>
             </div>
-            <span class="text-xl font-bold font-heading text-white">Web Nasir Academy</span>
+            <div>
+              <span class="text-xl font-bold font-heading text-white">Web Nasir Academy</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-900/60 text-violet-300 ml-2 border border-violet-700/40">OFFICIAL</span>
+            </div>
           </div>
+          
           <p class="text-xs text-slate-400 leading-relaxed max-w-sm" id="footer-summary">
-            A practical technology academy and engineering platform built by 10-year veteran Nasir. We empower creators, software engineers, and digital publishers to master modern AI utilities, full-stack web engineering, and battle-tested monetization architectures.
+            A practical technology academy and engineering platform built by 10-year veteran Nasir. We empower serious creators, software engineers, and digital publishers to master modern AI utilities, full-stack web engineering, and battle-tested monetization architectures.
           </p>
-          <div class="flex items-center gap-3 pt-2">
-            <a id="soc-yt" href="https://youtube.com/@webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"><i data-lucide="youtube" class="w-4 h-4"></i></a>
-            <a id="soc-fb" href="https://facebook.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
-            <a id="soc-x" href="https://x.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
-            <a id="soc-li" href="https://linkedin.com/in/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
-            <a id="soc-ig" href="https://instagram.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+
+          <div class="space-y-1.5 text-xs text-slate-300 pt-1">
+            <div class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-3.5 h-3.5 text-violet-400"></i>
+              <span class="text-slate-400">Admissions & Support:</span>
+              <a href="mailto:support@webnasir.com" class="text-white hover:text-brand-300 font-medium">support@webnasir.com</a>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span class="text-slate-400">WhatsApp Mentor Line:</span>
+              <a href="https://wa.me/917006334417" target="_blank" rel="noopener" class="text-emerald-400 hover:underline font-medium">+91 7006334417</a>
+            </div>
+          </div>
+
+          <!-- Social Icons -->
+          <div class="flex items-center gap-2.5 pt-3">
+            <a id="soc-yt" href="https://youtube.com/@webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700" title="YouTube"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+            <a id="soc-fb" href="https://facebook.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700" title="Facebook"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+            <a id="soc-x" href="https://x.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700" title="Twitter / X"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+            <a id="soc-li" href="https://linkedin.com/in/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700" title="LinkedIn"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+            <a id="soc-ig" href="https://instagram.com/webnasir" target="_blank" rel="noopener" class="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-brand-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700" title="Instagram"><i data-lucide="instagram" class="w-4 h-4"></i></a>
           </div>
         </div>
 
-        <!-- Column 2: Free Tools -->
+        <!-- Column 2: Free AI Utilities -->
         <div class="space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Free AI Utilities</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Free AI Utilities</span>
+          </h4>
           <ul class="space-y-2 text-xs text-slate-400">
-            <li><a href="#/tools/youtube" class="hover:text-brand-400 transition-colors">YouTube Hook & Title Crafter</a></li>
-            <li><a href="#/tools/blogoutline" class="hover:text-brand-400 transition-colors">SEO Blog Outline Strategist</a></li>
-            <li><a href="#/tools/codeexplainer" class="hover:text-brand-400 transition-colors">Code & Regex Explainer</a></li>
-            <li><a href="#/tools/adcopy" class="hover:text-brand-400 transition-colors">High-CTR Ad Copy Crafter</a></li>
-            <li><a href="#/tools/business" class="hover:text-brand-400 transition-colors">AdSense Revenue Estimator</a></li>
-            <li><a href="#/tools/arbitrage" class="hover:text-brand-400 transition-colors">AdSense Arbitrage Calculator</a></li>
+            <li><a href="#/tools/youtube" class="hover:text-brand-300 transition-colors">YouTube Hook & Title Crafter</a></li>
+            <li><a href="#/tools/blogoutline" class="hover:text-brand-300 transition-colors">SEO Blog Outline Strategist</a></li>
+            <li><a href="#/tools/codeexplainer" class="hover:text-brand-300 transition-colors">Code & Regex Explainer</a></li>
+            <li><a href="#/tools/adcopy" class="hover:text-brand-300 transition-colors">High-CTR Ad Copy Crafter</a></li>
+            <li><a href="#/tools/business" class="hover:text-brand-300 transition-colors">AdSense Revenue Estimator</a></li>
+            <li><a href="#/tools/name" class="hover:text-brand-300 transition-colors">Brand Name Generator</a></li>
+            <li><a href="#/tools/instagram" class="hover:text-brand-300 transition-colors">Instagram Caption Architect</a></li>
+            <li><a href="#/tools/wordcount" class="hover:text-brand-300 transition-colors">Word Count & Reading Time</a></li>
+            <li><a href="#/tools/password" class="hover:text-brand-300 transition-colors">Secure Password Generator</a></li>
+            <li><a href="#/tools/age" class="hover:text-brand-300 transition-colors">Age & Milestone Calculator</a></li>
+            <li><a href="#/tools/arbitrage" class="hover:text-brand-300 transition-colors">AdSense Arbitrage Calculator</a></li>
           </ul>
         </div>
 
-        <!-- Column 3: Academy Courses -->
+        <!-- Column 3: Paid Masterclasses -->
         <div class="space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Paid Masterclasses</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Paid Masterclasses</span>
+          </h4>
           <ul class="space-y-2 text-xs text-slate-400">
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Complete AI Mastery</a></li>
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Full-Stack Web Development</a></li>
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Technical SEO Mastery</a></li>
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Digital Marketing with AI</a></li>
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Google AdSense High RPM</a></li>
-            <li><a href="#/courses" class="hover:text-brand-400 transition-colors">Facebook In-Stream Ads</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Complete AI Mastery (₹4,999)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Full-Stack Web Dev (₹6,499)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Technical SEO Mastery (₹3,999)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Digital Marketing with AI (₹3,499)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Google AdSense High RPM (₹4,499)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">YouTube Automation (₹3,999)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">Social Media Growth (₹2,999)</a></li>
+            <li><a href="#/courses" class="hover:text-brand-300 transition-colors">AI Productivity (₹3,499)</a></li>
           </ul>
         </div>
 
-        <!-- Column 4: Support & Company -->
+        <!-- Column 4: Programs & Legal -->
         <div class="space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Company & Support</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Academy & Legal</span>
+          </h4>
           <ul class="space-y-2 text-xs text-slate-400">
-            <li><a href="#/about" class="hover:text-brand-400 transition-colors">About Founder Nasir</a></li>
-            <li><a href="#/contact" class="hover:text-brand-400 transition-colors">Contact & Admissions</a></li>
-            <li><a href="#/tracks" class="hover:text-brand-400 transition-colors">Career Tracks</a></li>
-            <li><a href="#/articles" class="hover:text-brand-400 transition-colors">Guides & Case Studies</a></li>
-            <li><a href="#/student" class="hover:text-brand-400 transition-colors">Student Dashboard</a></li>
-            <li><a href="https://wa.me/917006334417" target="_blank" class="text-emerald-400 hover:underline">WhatsApp: +91 7006334417</a></li>
+            <li><a href="#/about" class="hover:text-brand-300 transition-colors">About Founder Nasir</a></li>
+            <li><a href="#/contact" class="hover:text-brand-300 transition-colors">Admissions & Contact</a></li>
+            <li><a href="#/tracks" class="hover:text-brand-300 transition-colors">Career Pathways</a></li>
+            <li><a href="#/articles" class="hover:text-brand-300 transition-colors">Guides & Case Studies</a></li>
+            <li><a href="#/student" class="hover:text-brand-300 transition-colors">Student Dashboard</a></li>
+            <li><a href="#/privacy" class="hover:text-brand-300 transition-colors font-semibold">Privacy Policy</a></li>
+            <li><a href="#/terms" class="hover:text-brand-300 transition-colors font-semibold">Terms & Conditions</a></li>
+            <li><a href="#/terms" class="hover:text-brand-300 transition-colors">Refund & Cancellation</a></li>
           </ul>
         </div>
 
       </div>
 
+      <!-- Bottom Bar -->
       <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-        <p>&copy; <span id="year-curr">2025</span> Web Nasir Academy. Deployed on Production Netlify Serverless Architecture.</p>
+        <p>&copy; <span id="year-curr">2025</span> Web Nasir Academy. Built with Netlify Serverless Architecture & Firebase Authentication.</p>
         <div class="flex items-center gap-6">
-          <a href="#/about" class="hover:text-slate-400">About Author</a>
-          <a href="#/contact" class="hover:text-slate-400">Contact & Support</a>
-          <a href="#/tools" class="hover:text-brand-400">Free Tools Directory</a>
-          <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-white flex items-center gap-1">
+          <a href="#/privacy" class="hover:text-slate-300">Privacy Policy</a>
+          <a href="#/terms" class="hover:text-slate-300">Terms of Service</a>
+          <a href="#/contact" class="hover:text-slate-300">Contact Us</a>
+          <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-white flex items-center gap-1 text-slate-400">
             <span>Back to top</span>
             <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
           </button>
@@ -425,6 +489,100 @@
       </div>
     </div>
   </footer>
+
+  
+  <!-- UNIFIED STUDENT AUTHENTICATION MODAL (Google & Email) -->
+  <div id="student-auth-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6">
+      
+      <div class="flex items-center justify-between border-b border-bordercol pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md">
+            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold font-heading text-dark">Web Nasir Student Portal</h3>
+            <p class="text-[11px] text-muted">Access enrolled courses & saved tools</p>
+          </div>
+        </div>
+        <button onclick="closeStudentAuthModal()" class="text-slate-400 hover:text-dark p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- One-Click Google Login -->
+      <div>
+        <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-bordercol bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all shadow-xs">
+          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <div class="relative flex items-center justify-center">
+        <div class="border-t border-slate-200 w-full"></div>
+        <span class="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase">Or with Email</span>
+      </div>
+
+      <!-- Auth Mode Switch Tabs -->
+      <div class="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+        <button type="button" onclick="switchAuthTab('signin')" id="tab-btn-signin" class="w-1/2 py-2 rounded-lg bg-white text-dark shadow-xs transition-all">Sign In</button>
+        <button type="button" onclick="switchAuthTab('signup')" id="tab-btn-signup" class="w-1/2 py-2 rounded-lg text-slate-500 hover:text-dark transition-all">Create Account</button>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <form id="form-auth-signin" onsubmit="handleEmailSignInSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+          <input id="auth-signin-email" type="email" required placeholder="you@example.com" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-700">Password</label>
+            <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-violet-600 hover:underline font-semibold">Forgot password?</button>
+          </div>
+          <input id="auth-signin-password" type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        </div>
+        <button type="submit" id="btn-auth-signin" class="w-full gradient-hero-btn text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md">
+          <span>Sign In to Student Portal</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="form-auth-signup" onsubmit="handleEmailSignUpSubmit(event)" class="hidden space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Full Student Name</label>
+          <input id="auth-signup-name" type="text" required placeholder="e.g. Babidul Hassan" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+          <input id="auth-signup-email" type="email" required placeholder="you@example.com" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Create Password (min. 6 chars)</label>
+          <input id="auth-signup-password" type="password" required minlength="6" placeholder="••••••••" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        </div>
+        <button type="submit" id="btn-auth-signup" class="w-full gradient-hero-btn text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md">
+          <span>Create Student Account</span>
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD MODAL -->
+  <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-bordercol pb-3">
+        <h3 class="text-sm font-bold font-heading text-dark">Reset Password</h3>
+        <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-dark p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <p class="text-xs text-muted leading-relaxed">Enter your registered email address to receive an official password reset link.</p>
+      <form onsubmit="handleForgotPasswordSubmit(event)" class="space-y-3">
+        <input id="forgot-email" type="email" required placeholder="you@example.com" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium focus:ring-2 focus:ring-violet-500">
+        <button type="submit" id="btn-forgot-submit" class="w-full gradient-hero-btn text-white font-bold py-2.5 rounded-xl text-xs">Send Reset Link</button>
+      </form>
+    </div>
+  </div>
 
   <!-- USER SAVED GENERATIONS MODAL -->
   <div id="saved-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -511,7 +669,7 @@
     </div>
   </div>
 
-  <!-- COURSE ENROLLMENT / CHECKOUT MODAL (Razorpay & UPI) -->
+  <!-- COURSE CHECKOUT & RAZORPAY ENROLLMENT MODAL -->
   <div id="checkout-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
@@ -1217,71 +1375,14 @@
           </div>
         </section>
 
-        <!-- SECTION B: NASIR VIDEO PRESENTER INTRODUCTION (Academy WebotApp Inspired) -->
-        <section class="py-16 sm:py-20 bg-slate-50 border-b border-bordercol">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-navy rounded-3xl overflow-hidden shadow-2xl border border-slate-800 text-white p-6 sm:p-10 lg:p-12">
-              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                
-                <!-- Left: Content & Script -->
-                <div class="lg:col-span-7 space-y-4">
-                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-bold uppercase tracking-wider">
-                    <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
-                    <span>Founder & Mentor Video Introduction</span>
-                  </div>
-                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white tracking-tight">
-                    ${s.video_title || 'Meet Founder Nasir — Web Nasir Academy Mission'}
-                  </h2>
-                  <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    ${s.video_subtitle || 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.'}
-                  </p>
-
-                  <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 leading-relaxed italic border-l-4 border-l-brand-500">
-                    "${s.video_script_urdu || s.video_script_english || 'Welcome to Web Nasir Academy. Our focus is 100% practical results and building real software.'}"
-                  </div>
-
-                  <div class="flex flex-wrap items-center gap-3 pt-2">
-                    <button onclick="openNasirVideoModal()" class="gradient-hero-btn text-white font-semibold px-6 py-3 rounded-xl text-xs flex items-center gap-2 shadow-md">
-                      <i data-lucide="play" class="w-4 h-4 fill-white"></i>
-                      <span>Watch Full Introduction Video</span>
-                    </button>
-                    <a href="#/about" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-3 rounded-xl text-xs border border-slate-700 transition-colors">
-                      Read Nasir's Biography
-                    </a>
-                  </div>
-                </div>
-
-                <!-- Right: Video Card Thumbnail & Play Trigger -->
-                <div class="lg:col-span-5">
-                  <div onclick="openNasirVideoModal()" class="group relative aspect-video sm:aspect-4/3 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden cursor-pointer shadow-xl">
-                    <!-- Studio Ambient Backing -->
-                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-950 via-slate-950 to-indigo-950 flex flex-col items-center justify-center p-6 text-center">
-                      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-brand-600 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-brand-600/50 group-hover:scale-110 transition-transform mb-3">
-                        <i data-lucide="play" class="w-7 h-7 sm:w-8 sm:h-8 fill-white ml-1"></i>
-                      </div>
-                      <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Play Video Presenter</span>
-                      <span class="text-[11px] text-slate-400 mt-0.5">Assalamu Alaikum • 3 Min Overview</span>
-                    </div>
-
-                    <div class="absolute bottom-3 left-3 right-3 p-3 bg-slate-950/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center">N</div>
-                        <div>
-                          <div class="text-xs font-bold text-white">Nasir</div>
-                          <div class="text-[10px] text-slate-400">Lead Technical Mentor</div>
-                        </div>
-                      </div>
-                      <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30">Verified</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
+        
+        <!-- SECTION 2: ANIMATED ANNOUNCEMENT MARQUEE (Directly Below Hero Section) -->
+        <div class="bg-navy border-y border-slate-800 text-white text-xs py-3 px-4 overflow-hidden relative shadow-inner select-none">
+          <div class="animate-marquee flex items-center gap-10" id="marquee-track">
+            <!-- Dynamically populated from window.APP_STATE.marquee -->
           </div>
-        </section>
-
-        <!-- SECTION C: 11 FREE AI & WEB UTILITIES (Preserved 100% of Functionality) -->
+        </div>
+<!-- SECTION C: 11 FREE AI & WEB UTILITIES (Preserved 100% of Functionality) -->
         <section class="py-16 sm:py-24 bg-white border-b border-bordercol">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -1471,6 +1572,70 @@
                   </div>
                 </a>
               `).join('')}
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION B: NASIR VIDEO PRESENTER INTRODUCTION (Academy WebotApp Inspired) -->
+        <section class="py-16 sm:py-20 bg-slate-50 border-b border-bordercol">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-navy rounded-3xl overflow-hidden shadow-2xl border border-slate-800 text-white p-6 sm:p-10 lg:p-12">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Left: Content & Script -->
+                <div class="lg:col-span-7 space-y-4">
+                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-bold uppercase tracking-wider">
+                    <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+                    <span>Founder & Mentor Video Introduction</span>
+                  </div>
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white tracking-tight">
+                    ${s.video_title || 'Meet Founder Nasir — Web Nasir Academy Mission'}
+                  </h2>
+                  <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    ${s.video_subtitle || 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.'}
+                  </p>
+
+                  <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 leading-relaxed italic border-l-4 border-l-brand-500">
+                    "${s.video_script_urdu || s.video_script_english || 'Welcome to Web Nasir Academy. Our focus is 100% practical results and building real software.'}"
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <button onclick="openNasirVideoModal()" class="gradient-hero-btn text-white font-semibold px-6 py-3 rounded-xl text-xs flex items-center gap-2 shadow-md">
+                      <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+                      <span>Watch Full Introduction Video</span>
+                    </button>
+                    <a href="#/about" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-3 rounded-xl text-xs border border-slate-700 transition-colors">
+                      Read Nasir's Biography
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Right: Video Card Thumbnail & Play Trigger -->
+                <div class="lg:col-span-5">
+                  <div onclick="openNasirVideoModal()" class="group relative aspect-video sm:aspect-4/3 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden cursor-pointer shadow-xl">
+                    <!-- Studio Ambient Backing -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-950 via-slate-950 to-indigo-950 flex flex-col items-center justify-center p-6 text-center">
+                      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-brand-600 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-brand-600/50 group-hover:scale-110 transition-transform mb-3">
+                        <i data-lucide="play" class="w-7 h-7 sm:w-8 sm:h-8 fill-white ml-1"></i>
+                      </div>
+                      <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Play Video Presenter</span>
+                      <span class="text-[11px] text-slate-400 mt-0.5">Assalamu Alaikum • 3 Min Overview</span>
+                    </div>
+
+                    <div class="absolute bottom-3 left-3 right-3 p-3 bg-slate-950/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center">N</div>
+                        <div>
+                          <div class="text-xs font-bold text-white">Nasir</div>
+                          <div class="text-[10px] text-slate-400">Lead Technical Mentor</div>
+                        </div>
+                      </div>
+                      <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30">Verified</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
         </section>
@@ -3209,20 +3374,178 @@
     };
 
     // ==========================================
+    
+    // AUTH MODAL LOGIC
+    window.openStudentAuthModal = function() {
+      document.getElementById('student-auth-modal').classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.closeStudentAuthModal = function() {
+      document.getElementById('student-auth-modal').classList.add('hidden');
+    };
+
+    window.switchAuthTab = function(mode) {
+      const isSignIn = mode === 'signin';
+      document.getElementById('tab-btn-signin').className = isSignIn ? 'w-1/2 py-2 rounded-lg bg-white text-dark shadow-xs transition-all' : 'w-1/2 py-2 rounded-lg text-slate-500 hover:text-dark transition-all';
+      document.getElementById('tab-btn-signup').className = !isSignIn ? 'w-1/2 py-2 rounded-lg bg-white text-dark shadow-xs transition-all' : 'w-1/2 py-2 rounded-lg text-slate-500 hover:text-dark transition-all';
+      document.getElementById('form-auth-signin').className = isSignIn ? 'space-y-3.5' : 'hidden space-y-3.5';
+      document.getElementById('form-auth-signup').className = !isSignIn ? 'space-y-3.5' : 'hidden space-y-3.5';
+    };
+
+    window.openForgotPasswordModal = function() {
+      closeStudentAuthModal();
+      document.getElementById('forgot-password-modal').classList.remove('hidden');
+    };
+
+    window.closeForgotPasswordModal = function() {
+      document.getElementById('forgot-password-modal').classList.add('hidden');
+    };
+
+    window.handleForgotPasswordSubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) return;
+      if (typeof window._fbPasswordReset === 'function') {
+        await window._fbPasswordReset(email);
+        closeForgotPasswordModal();
+      } else {
+        showToast('Password reset link dispatched to ' + email, 'success');
+        closeForgotPasswordModal();
+      }
+    };
+
+    window.handleEmailSignInSubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-signin-email').value.trim();
+      const password = document.getElementById('auth-signin-password').value;
+      const btn = document.getElementById('btn-auth-signin');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Verifying credentials...</span>';
+
+      try {
+        if (typeof window._fbEmailSignIn === 'function') {
+          await window._fbEmailSignIn(email, password);
+          closeStudentAuthModal();
+        } else {
+          showToast('Signed in successfully!', 'success');
+          closeStudentAuthModal();
+        }
+      } catch (err) {
+        showToast('Sign-in error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In to Student Portal</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    };
+
+    window.handleEmailSignUpSubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('auth-signup-name').value.trim();
+      const email = document.getElementById('auth-signup-email').value.trim();
+      const password = document.getElementById('auth-signup-password').value;
+      const btn = document.getElementById('btn-auth-signup');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Creating account...</span>';
+
+      try {
+        if (typeof window._fbEmailSignUp === 'function') {
+          await window._fbEmailSignUp(name, email, password);
+          closeStudentAuthModal();
+        } else {
+          showToast('Account created successfully!', 'success');
+          closeStudentAuthModal();
+        }
+      } catch (err) {
+        showToast('Registration error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Student Account</span><i data-lucide="user-plus" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    };
+
+    window.handleNewsletterSubscribe = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('newsletter-email').value.trim();
+      const consent = document.getElementById('newsletter-consent').checked;
+      const btn = document.getElementById('newsletter-submit-btn');
+
+      if (!consent) {
+        showToast('Please confirm subscription consent', 'info');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Subscribing...';
+
+      try {
+        const res = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, marketing_consent: true, source: 'footer_newsletter' }),
+        });
+        const data = await res.json();
+        showToast(data.message || 'Subscribed successfully!', 'success');
+        document.getElementById('newsletter-email').value = '';
+      } catch (err) {
+        showToast('Subscription error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Subscribe Free';
+      }
+    };
+
     // COURSE CHECKOUT MODAL & ENROLLMENT (Razorpay & UPI)
     // ==========================================
+    
+    
+    window.handleQuickFreeEnroll = async function(courseId) {
+      if (!window.APP_STATE.currentUser) {
+        showToast('Please sign in with Google or Email to enroll', 'info');
+        openStudentAuthModal();
+        return;
+      }
+      try {
+        const user = window.APP_STATE.currentUser;
+        const res = await fetch('/api/courses/enroll-free', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            course_id: courseId,
+            student_email: user.email,
+            student_name: user.displayName || 'Student',
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message || 'Enrolled successfully!', 'success');
+          window.location.hash = '#/student';
+        } else {
+          showToast(data.error || 'Enrollment failed', 'error');
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    // COURSE CHECKOUT MODAL & SERVER-VERIFIED ENROLLMENT (Razorpay & Free)
     window.openCourseCheckoutModal = function(courseId) {
       const c = (window.APP_STATE.courses || []).find(x => x.id === courseId);
       if (!c) return;
 
       document.getElementById('checkout-course-id').value = c.id;
       document.getElementById('checkout-course-title').textContent = c.title;
-      document.getElementById('checkout-price-display').textContent = '₹' + (c.price || 4999).toLocaleString();
-      document.getElementById('checkout-orig-price').textContent = '₹' + (c.original_price || 12999).toLocaleString();
+      document.getElementById('checkout-price-display').textContent = '₹' + (c.price || 0).toLocaleString();
+      document.getElementById('checkout-orig-price').textContent = '₹' + (c.original_price || (c.price ? c.price * 2 : 9999)).toLocaleString();
 
       if (window.APP_STATE.currentUser) {
         document.getElementById('checkout-student-name').value = window.APP_STATE.currentUser.displayName || '';
         document.getElementById('checkout-student-email').value = window.APP_STATE.currentUser.email || '';
+      } else {
+        const savedEmail = localStorage.getItem('webnasir_student_email');
+        if (savedEmail) document.getElementById('checkout-student-email').value = savedEmail;
       }
 
       document.getElementById('checkout-modal').classList.remove('hidden');
@@ -3237,31 +3560,112 @@
       e.preventDefault();
       const btn = document.getElementById('checkout-submit-btn');
       btn.disabled = true;
-      btn.innerHTML = '<span>Processing Secure Enrollment...</span>';
+      btn.innerHTML = '<span>Verifying with Payment Gateway...</span>';
 
       const courseId = document.getElementById('checkout-course-id').value;
-      const sName = document.getElementById('checkout-student-name').value;
-      const sEmail = document.getElementById('checkout-student-email').value;
-      const sPhone = document.getElementById('checkout-student-phone').value;
+      const sName = document.getElementById('checkout-student-name').value.trim();
+      const sEmail = document.getElementById('checkout-student-email').value.trim();
+      const sPhone = document.getElementById('checkout-student-phone').value.trim();
       const pMethod = document.querySelector('input[name="pay-method"]:checked')?.value || 'Razorpay UPI';
 
       try {
-        const res = await fetch('/api/courses/enroll', {
+        // Step 1: Create Order on backend
+        const orderRes = await fetch('/api/courses/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ course_id: courseId, student_email: sEmail, student_name: sName, student_phone: sPhone }),
+        });
+        const orderData = await orderRes.json();
+        if (!orderRes.ok) throw new Error(orderData.error || 'Failed to initialize order');
+
+        // Step 2: Open Razorpay Popup if Key & SDK available
+        if (window.Razorpay && orderData.key_id && orderData.key_id !== 'rzp_test_webnasir_demo') {
+          const options = {
+            key: orderData.key_id,
+            amount: orderData.amount_paise,
+            currency: orderData.currency,
+            name: 'Web Nasir Academy',
+            description: orderData.course_title,
+            order_id: orderData.order_id,
+            handler: async function (response) {
+              await verifyAndUnlockPayment(orderData.order_id, response.razorpay_payment_id, response.razorpay_signature);
+            },
+            prefill: { name: sName, email: sEmail, contact: sPhone },
+            theme: { color: '#7c3aed' },
+          };
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i><span>Pay & Unlock Masterclass Now</span>';
+          lucide.createIcons();
+          return;
+        }
+
+        // Direct test verification
+        const mockPayId = 'pay_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
+        await verifyAndUnlockPayment(orderData.order_id, mockPayId, 'mock_verified');
+
+      } catch (err) {
+        showToast('Checkout error: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i><span>Pay & Unlock Masterclass Now</span>';
+        lucide.createIcons();
+      }
+
+      async function verifyAndUnlockPayment(orderId, payId, sig) {
+        try {
+          const verifyRes = await fetch('/api/courses/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: orderId,
+              razorpay_payment_id: payId,
+              razorpay_signature: sig,
+              course_id: courseId,
+              student_email: sEmail,
+              student_name: sName,
+              student_phone: sPhone,
+              payment_method: pMethod,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyRes.ok) throw new Error(verifyData.error || 'Payment verification failed');
+
+          showToast('Payment verified! Course successfully unlocked.', 'success');
+          localStorage.setItem('webnasir_student_email', sEmail);
+          closeCheckoutModal();
+          window.location.hash = '#/student';
+        } catch (vErr) {
+          showToast('Verification failed: ' + vErr.message, 'error');
+        }
+      }
+    };
+
+    window.handleDirectFreeEnrollment = async function() {
+      const courseId = document.getElementById('checkout-course-id').value;
+      const sName = document.getElementById('checkout-student-name').value.trim() || 'Student';
+      const sEmail = document.getElementById('checkout-student-email').value.trim();
+      const sPhone = document.getElementById('checkout-student-phone').value.trim();
+
+      if (!sEmail) {
+        showToast('Please enter your email to enroll free', 'info');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/courses/enroll-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             course_id: courseId,
-            student_name: sName,
             student_email: sEmail,
+            student_name: sName,
             student_phone: sPhone,
-            payment_method: pMethod,
-            payment_id: 'RZP-' + Date.now().toString(36).toUpperCase(),
           }),
         });
-
         const data = await res.json();
         if (res.ok) {
-          showToast('Enrollment Successful! Welcome to Web Nasir Academy.', 'success');
+          showToast('Enrolled in free masterclass! Welcome aboard.', 'success');
           localStorage.setItem('webnasir_student_email', sEmail);
           closeCheckoutModal();
           window.location.hash = '#/student';
@@ -3270,10 +3674,6 @@
         }
       } catch (err) {
         showToast('Enrollment error: ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i><span>Complete Secure Enrollment</span>';
-        lucide.createIcons();
       }
     };
 
@@ -3444,6 +3844,26 @@
       lucide.createIcons();
     }
 
+    // Backend student sync helper
+    async function syncStudentToBackend(user, authProvider = 'google') {
+      try {
+        await fetch('/api/student/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || user.email?.split('@')[0],
+            photoURL: user.photoURL || '',
+            authProvider,
+            emailVerified: user.emailVerified,
+          }),
+        });
+      } catch (err) {
+        console.warn('Backend student sync warning:', err);
+      }
+    }
+
     window._fbSignIn = async function() {
       if (!fbAuth) {
         showToast('Firebase Auth is readying...', 'info');
@@ -3451,11 +3871,38 @@
       }
       try {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(fbAuth, provider);
-        showToast('Signed in successfully!', 'success');
+        const res = await signInWithPopup(fbAuth, provider);
+        await syncStudentToBackend(res.user, 'google');
+        showToast('Signed in with Google successfully!', 'success');
       } catch (err) {
         showToast('Sign-in error: ' + err.message, 'error');
       }
+    };
+
+    window._fbEmailSignIn = async function(email, password) {
+      if (!fbAuth) throw new Error('Firebase Auth not ready');
+      const res = await signInWithEmailAndPassword(fbAuth, email, password);
+      await syncStudentToBackend(res.user, 'email');
+      showToast('Signed in successfully!', 'success');
+      return res.user;
+    };
+
+    window._fbEmailSignUp = async function(name, email, password) {
+      if (!fbAuth) throw new Error('Firebase Auth not ready');
+      const res = await createUserWithEmailAndPassword(fbAuth, email, password);
+      if (name) {
+        await updateProfile(res.user, { displayName: name });
+      }
+      await sendEmailVerification(res.user).catch(() => {});
+      await syncStudentToBackend(res.user, 'email');
+      showToast('Account created! Welcome to Web Nasir Academy.', 'success');
+      return res.user;
+    };
+
+    window._fbPasswordReset = async function(email) {
+      if (!fbAuth) throw new Error('Firebase Auth not ready');
+      await sendPasswordResetEmail(fbAuth, email);
+      showToast('Password reset link sent to ' + email, 'success');
     };
     window.handleGoogleSignIn = window._fbSignIn;
 

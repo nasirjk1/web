@@ -41,6 +41,13 @@ service cloud.firestore {
         allow update: if isValidId(generationId) && isOwner(userId);
         allow delete: if isValidId(generationId) && isOwner(userId);
       }
+
+      // User's enrolled courses and lesson progress
+      match /enrolled_courses/{courseId} {
+        allow get, list: if isValidId(courseId) && isOwner(userId);
+        allow create, update: if isValidId(courseId) && isOwner(userId);
+        allow delete: if isValidId(courseId) && (isOwner(userId) || isAdmin());
+      }
     }
 
     // Custom tools directory: Public read, admin write

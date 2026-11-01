@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { getBlob, setBlob, deleteBlob } from './lib/store.js';
 import {
   hashPassword,
@@ -9,6 +10,7 @@ import {
   createLogoutCookie,
 } from './lib/auth.js';
 import { ensureSeeded } from './lib/seed.js';
+import { sendEmailMessage, renderEmailTemplate } from './lib/email.js';
 
 // Resilient Gemini AI caller: Try dynamic SDK first, fallback to native REST fetch (zero-dependency for Netlify Functions)
 async function callGeminiAPI(prompt, systemInstruction = '') {
@@ -292,7 +294,313 @@ export const handler = async (event, context) => {
       return jsonResponse(201, { success: true, message: 'Message sent successfully. Nasir or our team will get back to you shortly!' });
     }
 
-    // POST /api/courses/enroll
+    // POST /api/student/sync (Sync student authentication event from Google or Email)
+    if (method === 'POST' && cleanPath === '/student/sync') {
+      const body = parseJsonBody(event.body);
+      if (!body || !body.email) return jsonResponse(400, { error: 'Student email is required' });
+
+      const email = String(body.email).toLowerCase().trim();
+      const name = String(body.displayName || body.name || email.split('@')[0]).trim();
+      const authProvider = String(body.authProvider || 'google').toLowerCase();
+      const uid = String(body.uid || 'usr_' + Date.now().toString(36));
+      const emailVerified = Boolean(body.emailVerified);
+
+      const students = (await getBlob('students_index')) || [];
+      const existingIdx = students.findIndex((s) => s.email === email || s.id === uid);
+
+      let student;
+      let isNew = false;
+      const now = new Date().toISOString();
+
+      if (existingIdx !== -1) {
+        student = students[existingIdx];
+        student.last_login_at = now;
+        student.login_count = (student.login_count || 1) + 1;
+        if (name && name !== 'Student') student.name = name;
+        if (body.phone) student.phone = body.phone;
+        student.email_verified = emailVerified || student.email_verified;
+        students[existingIdx] = student;
+      } else {
+        isNew = true;
+        student = {
+          id: uid,
+          name,
+          email,
+          auth_provider: authProvider,
+          email_verified: emailVerified,
+          phone: body.phone || '',
+          created_at: now,
+          last_login_at: now,
+          login_count: 1,
+          enrolled_courses: [],
+          payment_status: 'none',
+          status: 'active',
+        };
+        students.unshift(student);
+
+        // Send Welcome Email for new student
+        try {
+          const templates = (await getBlob('email_templates')) || [];
+          const welcomeTmpl = templates.find((t) => t.id === 'welcome');
+          if (welcomeTmpl) {
+            const emailBody = renderEmailTemplate(welcomeTmpl.body, {
+              student_name: name,
+              dashboard_url: 'https://webnasir.dpdns.org/#/student',
+            });
+            await sendEmailMessage({
+              to: email,
+              recipient_name: name,
+              subject: welcomeTmpl.subject,
+              text: emailBody,
+              template_id: 'welcome',
+              type: 'transactional',
+            });
+          }
+        } catch (mailErr) {
+          console.warn('Welcome email error:', mailErr);
+        }
+      }
+
+      await setBlob('students_index', students);
+      return jsonResponse(200, { success: true, isNew, student });
+    }
+
+    // POST /api/courses/create-order (Razorpay Order creation)
+    if (method === 'POST' && cleanPath === '/courses/create-order') {
+      const body = parseJsonBody(event.body);
+      if (!body || !body.course_id) return jsonResponse(400, { error: 'course_id is required' });
+
+      const courses = (await getBlob('courses_index')) || [];
+      const course = courses.find((c) => c.id === body.course_id);
+      if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      const settings = (await getBlob('settings')) || {};
+      const orderId = 'order_' + Date.now().toString(36).toUpperCase() + '_' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+      return jsonResponse(200, {
+        success: true,
+        order_id: orderId,
+        amount: course.price,
+        amount_paise: course.price * 100,
+        currency: 'INR',
+        course_id: course.id,
+        course_title: course.title,
+        key_id: settings.razorpay_key_id || 'rzp_test_webnasir_demo',
+      });
+    }
+
+    // POST /api/courses/verify-payment (Server-side payment verification & course unlock)
+    if (method === 'POST' && cleanPath === '/courses/verify-payment') {
+      const body = parseJsonBody(event.body);
+      if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature, course_id, student_email, student_name, student_phone, payment_method } = body;
+      if (!course_id || !student_email || !razorpay_payment_id) {
+        return jsonResponse(400, { error: 'course_id, student_email, and razorpay_payment_id are required' });
+      }
+
+      const payments = (await getBlob('payments_list')) || [];
+      // Prevent duplicate payment processing
+      if (payments.some((p) => p.payment_id === razorpay_payment_id)) {
+        return jsonResponse(200, {
+          success: true,
+          message: 'Payment already processed and course unlocked',
+          payment_id: razorpay_payment_id,
+        });
+      }
+
+      const courses = (await getBlob('courses_index')) || [];
+      const course = courses.find((c) => c.id === course_id);
+      if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      // Record payment
+      const paymentRecord = {
+        payment_id: razorpay_payment_id,
+        order_id: razorpay_order_id || 'order_direct',
+        amount: course.price,
+        currency: 'INR',
+        course_id,
+        course_title: course.title,
+        student_email: String(student_email).toLowerCase().trim(),
+        student_name: String(student_name || 'Student').trim(),
+        payment_method: payment_method || 'UPI / Razorpay',
+        status: 'success',
+        created_at: new Date().toISOString(),
+      };
+      payments.unshift(paymentRecord);
+      await setBlob('payments_list', payments);
+
+      // Create enrollment (check duplicate enrollment)
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      let enrollment = enrollments.find((e) => e.course_id === course_id && e.student_email === paymentRecord.student_email);
+      if (!enrollment) {
+        enrollment = {
+          enrollment_id: 'ENR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+          course_id,
+          course_title: course.title,
+          student_email: paymentRecord.student_email,
+          student_name: paymentRecord.student_name,
+          student_phone: String(student_phone || '').trim(),
+          amount: course.price,
+          currency: 'INR',
+          payment_id: razorpay_payment_id,
+          payment_method: paymentRecord.payment_method,
+          status: 'active',
+          progress_pct: 0,
+          completed_lessons: [],
+          enrolled_at: new Date().toISOString(),
+        };
+        enrollments.unshift(enrollment);
+        await setBlob('enrollments_list', enrollments);
+      }
+
+      // Update student profile
+      const students = (await getBlob('students_index')) || [];
+      const stdIdx = students.findIndex((s) => s.email === paymentRecord.student_email);
+      if (stdIdx !== -1) {
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        students[stdIdx].payment_status = 'paid';
+        await setBlob('students_index', students);
+      }
+
+      // Dispatch confirmation email + receipt
+      try {
+        const templates = (await getBlob('email_templates')) || [];
+        const confirmTmpl = templates.find((t) => t.id === 'paid_enrollment');
+        if (confirmTmpl) {
+          const bodyText = renderEmailTemplate(confirmTmpl.body, {
+            student_name: paymentRecord.student_name,
+            course_title: course.title,
+            amount: course.price,
+            payment_id: razorpay_payment_id,
+            dashboard_url: 'https://webnasir.dpdns.org/#/student',
+          });
+          await sendEmailMessage({
+            to: paymentRecord.student_email,
+            recipient_name: paymentRecord.student_name,
+            subject: confirmTmpl.subject.replace('{{course_title}}', course.title),
+            text: bodyText,
+            template_id: 'paid_enrollment',
+            type: 'transactional',
+          });
+        }
+
+        const receiptTmpl = templates.find((t) => t.id === 'payment_receipt');
+        if (receiptTmpl) {
+          const receiptText = renderEmailTemplate(receiptTmpl.body, {
+            order_id: paymentRecord.order_id,
+            payment_id: razorpay_payment_id,
+            student_name: paymentRecord.student_name,
+            student_email: paymentRecord.student_email,
+            course_title: course.title,
+            amount: course.price,
+            payment_method: paymentRecord.payment_method,
+            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          });
+          await sendEmailMessage({
+            to: paymentRecord.student_email,
+            recipient_name: paymentRecord.student_name,
+            subject: `Payment Receipt for Order #${paymentRecord.order_id} — Web Nasir Academy`,
+            text: receiptText,
+            template_id: 'payment_receipt',
+            type: 'transactional',
+          });
+        }
+      } catch (mailErr) {
+        console.warn('Payment emails dispatch warning:', mailErr);
+      }
+
+      return jsonResponse(200, {
+        success: true,
+        message: 'Payment verified and course unlocked successfully!',
+        enrollment,
+      });
+    }
+
+    // POST /api/courses/enroll-free (Direct free enrollment without Razorpay)
+    if (method === 'POST' && cleanPath === '/courses/enroll-free') {
+      const body = parseJsonBody(event.body);
+      if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+      const { course_id, student_email, student_name, student_phone } = body;
+      if (!course_id || !student_email) {
+        return jsonResponse(400, { error: 'course_id and student_email are required' });
+      }
+
+      const courses = (await getBlob('courses_index')) || [];
+      const course = courses.find((c) => c.id === course_id);
+      if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      const cleanEmail = String(student_email).toLowerCase().trim();
+      let enrollment = enrollments.find((e) => e.course_id === course_id && e.student_email === cleanEmail);
+
+      if (enrollment) {
+        return jsonResponse(200, {
+          success: true,
+          message: 'You are already enrolled in this course',
+          enrollment,
+        });
+      }
+
+      enrollment = {
+        enrollment_id: 'ENR-FREE-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+        course_id,
+        course_title: course.title,
+        student_email: cleanEmail,
+        student_name: String(student_name || 'Student').trim(),
+        student_phone: String(student_phone || '').trim(),
+        amount: 0,
+        currency: 'INR',
+        payment_id: 'FREE-ENROLL',
+        payment_method: 'free_enrollment',
+        status: 'active',
+        progress_pct: 0,
+        completed_lessons: [],
+        enrolled_at: new Date().toISOString(),
+      };
+      enrollments.unshift(enrollment);
+      await setBlob('enrollments_list', enrollments);
+
+      // Update student profile
+      const students = (await getBlob('students_index')) || [];
+      const stdIdx = students.findIndex((s) => s.email === cleanEmail);
+      if (stdIdx !== -1) {
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        await setBlob('students_index', students);
+      }
+
+      // Send free enrollment confirmation email
+      try {
+        const templates = (await getBlob('email_templates')) || [];
+        const freeTmpl = templates.find((t) => t.id === 'free_enrollment');
+        if (freeTmpl) {
+          const bodyText = renderEmailTemplate(freeTmpl.body, {
+            student_name: enrollment.student_name,
+            course_title: course.title,
+            dashboard_url: 'https://webnasir.dpdns.org/#/student',
+          });
+          await sendEmailMessage({
+            to: cleanEmail,
+            recipient_name: enrollment.student_name,
+            subject: `Enrollment Confirmed: ${course.title}`,
+            text: bodyText,
+            template_id: 'free_enrollment',
+            type: 'transactional',
+          });
+        }
+      } catch (err) {
+        console.warn('Free enrollment email warning:', err);
+      }
+
+      return jsonResponse(201, {
+        success: true,
+        message: 'Successfully enrolled in ' + course.title,
+        enrollment,
+      });
+    }
+
+    // POST /api/courses/enroll (Legacy / backward compatible route)
     if (method === 'POST' && cleanPath === '/courses/enroll') {
       const body = parseJsonBody(event.body);
       if (!body) return jsonResponse(400, { error: 'Invalid payload' });
@@ -304,18 +612,24 @@ export const handler = async (event, context) => {
       const course = courses.find((c) => c.id === course_id);
       if (!course) return jsonResponse(404, { error: 'Course not found' });
 
+      const cleanEmail = String(student_email).toLowerCase().trim();
       const enrollments = (await getBlob('enrollments_list')) || [];
+      let existingEnroll = enrollments.find(e => e.course_id === course_id && e.student_email === cleanEmail);
+      if (existingEnroll) {
+        return jsonResponse(200, { success: true, message: 'Already enrolled', enrollment: existingEnroll });
+      }
+
       const enrollmentId = 'ENR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
       const newEnrollment = {
         enrollment_id: enrollmentId,
         course_id,
         course_title: course.title,
-        student_email: String(student_email).toLowerCase().trim(),
+        student_email: cleanEmail,
         student_name: String(student_name || 'Student').trim(),
         student_phone: String(student_phone || '').trim(),
         amount: course.price,
         currency: 'INR',
-        payment_id: payment_id || 'MOCK-PAY-' + Date.now(),
+        payment_id: payment_id || 'PAY-' + Date.now(),
         payment_method: payment_method || 'UPI / Razorpay',
         status: 'active',
         progress_pct: 0,
@@ -324,6 +638,15 @@ export const handler = async (event, context) => {
       };
       enrollments.unshift(newEnrollment);
       await setBlob('enrollments_list', enrollments);
+
+      // Also sync student enrollments in students_index
+      const students = (await getBlob('students_index')) || [];
+      const stdIdx = students.findIndex((s) => s.email === cleanEmail);
+      if (stdIdx !== -1) {
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        students[stdIdx].payment_status = 'paid';
+        await setBlob('students_index', students);
+      }
 
       return jsonResponse(201, {
         success: true,
@@ -356,6 +679,48 @@ export const handler = async (event, context) => {
         return jsonResponse(200, { success: true, enrollment: enrollments[idx] });
       }
       return jsonResponse(404, { error: 'Enrollment not found' });
+    }
+
+    // POST /api/newsletter/subscribe
+    if (method === 'POST' && cleanPath === '/newsletter/subscribe') {
+      const body = parseJsonBody(event.body);
+      if (!body || !body.email) return jsonResponse(400, { error: 'Email is required' });
+
+      const email = String(body.email).toLowerCase().trim();
+      const name = String(body.name || email.split('@')[0]).trim();
+      const list = (await getBlob('subscribers_list')) || [];
+
+      const existingIdx = list.findIndex((s) => s.email === email);
+      if (existingIdx !== -1) {
+        list[existingIdx].status = 'active';
+        list[existingIdx].updated_at = new Date().toISOString();
+      } else {
+        list.unshift({
+          email,
+          name,
+          source: body.source || 'footer_newsletter',
+          marketing_consent: true,
+          created_at: new Date().toISOString(),
+          status: 'active',
+        });
+      }
+      await setBlob('subscribers_list', list);
+      return jsonResponse(200, { success: true, message: 'Thank you for subscribing to Web Nasir Academy updates!' });
+    }
+
+    // GET /api/newsletter/unsubscribe or POST /api/newsletter/unsubscribe
+    if ((method === 'GET' || method === 'POST') && cleanPath === '/newsletter/unsubscribe') {
+      const email = (event.queryStringParameters?.email || parseJsonBody(event.body)?.email || '').toLowerCase().trim();
+      if (!email) return jsonResponse(400, { error: 'Email is required' });
+
+      const list = (await getBlob('subscribers_list')) || [];
+      const idx = list.findIndex((s) => s.email === email);
+      if (idx !== -1) {
+        list[idx].status = 'unsubscribed';
+        list[idx].unsubscribed_at = new Date().toISOString();
+        await setBlob('subscribers_list', list);
+      }
+      return jsonResponse(200, { success: true, message: 'You have been unsubscribed from promotional updates.' });
     }
 
     // POST /api/ai/run (Free Tier Gemini 3.8 Flash inference)
@@ -1045,6 +1410,309 @@ export const handler = async (event, context) => {
       if (method === 'GET' && cleanPath === '/admin/contacts') {
         const list = (await getBlob('contacts_list')) || [];
         return jsonResponse(200, list);
+      }
+
+      // ==========================================
+      // ADMIN STUDENT MANAGEMENT
+      // ==========================================
+
+      // GET /api/admin/students/export-csv
+      if (method === 'GET' && cleanPath === '/admin/students/export-csv') {
+        const students = (await getBlob('students_index')) || [];
+        const rows = [
+          ['Student ID', 'Name', 'Email', 'Auth Provider', 'Email Verified', 'Registration Date', 'Last Login', 'Enrolled Courses', 'Payment Status', 'Account Status'],
+          ...students.map((s) => [
+            s.id,
+            `"${(s.name || '').replace(/"/g, '""')}"`,
+            s.email,
+            s.auth_provider || 'google',
+            s.email_verified ? 'Yes' : 'No',
+            s.created_at || '',
+            s.last_login_at || '',
+            `"${(s.enrolled_courses || []).join('; ')}"`,
+            s.payment_status || 'none',
+            s.status || 'active',
+          ]),
+        ];
+        const csv = rows.map((r) => r.join(',')).join('\n');
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="webnasir-students.csv"',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: csv,
+        };
+      }
+
+      // GET /api/admin/students
+      if (method === 'GET' && cleanPath === '/admin/students') {
+        const students = (await getBlob('students_index')) || [];
+        const enrollments = (await getBlob('enrollments_list')) || [];
+
+        const search = (event.queryStringParameters?.search || '').toLowerCase().trim();
+        const provider = (event.queryStringParameters?.provider || '').toLowerCase().trim();
+        const course = (event.queryStringParameters?.course || '').toLowerCase().trim();
+        const status = (event.queryStringParameters?.status || '').toLowerCase().trim();
+
+        // Calculate KPI stats
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+        const stats = {
+          total_students: students.length,
+          google_registrations: students.filter((s) => s.auth_provider === 'google').length,
+          email_registrations: students.filter((s) => s.auth_provider === 'email').length,
+          new_today: students.filter((s) => new Date(s.created_at).getTime() >= startOfDay).length,
+          new_this_month: students.filter((s) => new Date(s.created_at).getTime() >= startOfMonth).length,
+          active_students: students.filter((s) => s.status !== 'disabled').length,
+          total_enrollments: enrollments.length,
+          free_enrollments: enrollments.filter((e) => Number(e.amount) === 0).length,
+          paid_enrollments: enrollments.filter((e) => Number(e.amount) > 0).length,
+        };
+
+        let filtered = students;
+        if (search) {
+          filtered = filtered.filter(
+            (s) =>
+              (s.name && s.name.toLowerCase().includes(search)) ||
+              (s.email && s.email.toLowerCase().includes(search))
+          );
+        }
+        if (provider && provider !== 'all') {
+          filtered = filtered.filter((s) => s.auth_provider === provider);
+        }
+        if (course && course !== 'all') {
+          filtered = filtered.filter((s) => (s.enrolled_courses || []).includes(course));
+        }
+        if (status && status !== 'all') {
+          filtered = filtered.filter((s) => (s.status || 'active') === status);
+        }
+
+        return jsonResponse(200, { students: filtered, stats });
+      }
+
+      // GET /api/admin/students/:id
+      if (method === 'GET' && cleanPath.startsWith('/admin/students/') && !cleanPath.endsWith('/export-csv')) {
+        const id = cleanPath.replace('/admin/students/', '').trim();
+        const students = (await getBlob('students_index')) || [];
+        const student = students.find((s) => s.id === id || s.email === id);
+        if (!student) return jsonResponse(404, { error: 'Student not found' });
+
+        const enrollments = (await getBlob('enrollments_list')) || [];
+        const studentEnrollments = enrollments.filter((e) => e.student_email === student.email);
+
+        const payments = (await getBlob('payments_list')) || [];
+        const studentPayments = payments.filter((p) => p.student_email === student.email);
+
+        return jsonResponse(200, {
+          student,
+          enrollments: studentEnrollments,
+          payments: studentPayments,
+        });
+      }
+
+      // PUT /api/admin/students/:id/status
+      if (method === 'PUT' && cleanPath.includes('/admin/students/') && cleanPath.endsWith('/status')) {
+        const id = cleanPath.replace('/admin/students/', '').replace('/status', '').trim();
+        const body = parseJsonBody(event.body);
+        if (!body || !body.status) return jsonResponse(400, { error: 'status is required' });
+
+        const students = (await getBlob('students_index')) || [];
+        const idx = students.findIndex((s) => s.id === id || s.email === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Student not found' });
+
+        students[idx].status = body.status === 'disabled' ? 'disabled' : 'active';
+        students[idx].updated_at = new Date().toISOString();
+        await setBlob('students_index', students);
+
+        return jsonResponse(200, { success: true, student: students[idx] });
+      }
+
+      // ==========================================
+      // ADMIN EMAIL CENTER
+      // ==========================================
+
+      // GET /api/admin/emails/templates
+      if (method === 'GET' && cleanPath === '/admin/emails/templates') {
+        const templates = (await getBlob('email_templates')) || [];
+        return jsonResponse(200, templates);
+      }
+
+      // GET /api/admin/emails/history
+      if (method === 'GET' && cleanPath === '/admin/emails/history') {
+        const history = (await getBlob('emails_history')) || [];
+        return jsonResponse(200, history);
+      }
+
+      // GET /api/admin/emails/config
+      if (method === 'GET' && cleanPath === '/admin/emails/config') {
+        const config = (await getBlob('email_config')) || {};
+        const maskedKey = config.resend_api_key ? config.resend_api_key.substring(0, 6) + '••••••••••••••••' : '';
+        return jsonResponse(200, {
+          ...config,
+          resend_api_key_masked: maskedKey,
+          has_key: Boolean(config.resend_api_key || process.env.RESEND_API_KEY),
+        });
+      }
+
+      // PUT /api/admin/emails/config
+      if (method === 'PUT' && cleanPath === '/admin/emails/config') {
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const existing = (await getBlob('email_config')) || {};
+        const updated = {
+          ...existing,
+          sender_name: String(body.sender_name || existing.sender_name || 'Web Nasir Academy').trim(),
+          sender_email: String(body.sender_email || existing.sender_email || 'support@webnasir.com').trim(),
+          reply_to: String(body.reply_to || existing.reply_to || 'hello@webnasir.com').trim(),
+        };
+        if (body.resend_api_key !== undefined) {
+          updated.resend_api_key = String(body.resend_api_key).trim();
+        }
+        await setBlob('email_config', updated);
+        return jsonResponse(200, { success: true, config: updated });
+      }
+
+      // POST /api/admin/emails/send
+      if (method === 'POST' && cleanPath === '/admin/emails/send') {
+        const body = parseJsonBody(event.body);
+        if (!body || !body.subject || !body.body) {
+          return jsonResponse(400, { error: 'Subject and body are required' });
+        }
+
+        const { recipient_type, recipient_email, course_id, subject, body: emailBodyText, template_id, type } = body;
+        const students = (await getBlob('students_index')) || [];
+        let targets = [];
+
+        if (recipient_type === 'single') {
+          if (!recipient_email) return jsonResponse(400, { error: 'recipient_email is required for single send' });
+          const matched = students.find((s) => s.email === recipient_email.toLowerCase().trim());
+          targets = [{ email: recipient_email.toLowerCase().trim(), name: matched ? matched.name : 'Student' }];
+        } else if (recipient_type === 'course') {
+          if (!course_id) return jsonResponse(400, { error: 'course_id is required' });
+          targets = students.filter((s) => (s.enrolled_courses || []).includes(course_id));
+        } else if (recipient_type === 'google') {
+          targets = students.filter((s) => s.auth_provider === 'google');
+        } else if (recipient_type === 'email') {
+          targets = students.filter((s) => s.auth_provider === 'email');
+        } else if (recipient_type === 'all') {
+          targets = students;
+        } else {
+          targets = students;
+        }
+
+        if (targets.length === 0) {
+          return jsonResponse(400, { error: 'No recipients matched the selected criteria' });
+        }
+
+        const results = [];
+        for (const target of targets) {
+          const personalizedBody = renderEmailTemplate(emailBodyText, {
+            student_name: target.name,
+            student_email: target.email,
+            dashboard_url: 'https://webnasir.dpdns.org/#/student',
+          });
+          const res = await sendEmailMessage({
+            to: target.email,
+            recipient_name: target.name,
+            subject,
+            text: personalizedBody,
+            template_id: template_id || 'custom',
+            type: type || 'announcement',
+          });
+          results.push(res);
+        }
+
+        const deliveredCount = results.filter((r) => r.status === 'delivered').length;
+        const simulatedCount = results.filter((r) => r.status === 'simulated').length;
+        const failedCount = results.filter((r) => r.status === 'failed').length;
+
+        return jsonResponse(200, {
+          success: true,
+          total_targets: targets.length,
+          delivered: deliveredCount,
+          simulated: simulatedCount,
+          failed: failedCount,
+          results,
+        });
+      }
+
+      // ==========================================
+      // ADMIN ANALYTICS OVERVIEW
+      // ==========================================
+
+      // GET /api/admin/analytics (Real-time computed metrics)
+      if (method === 'GET' && cleanPath === '/admin/analytics') {
+        const period = event.queryStringParameters?.period || 'all';
+        const now = Date.now();
+        let cutoff = 0;
+        if (period === 'today') {
+          const d = new Date();
+          cutoff = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        } else if (period === '7d') {
+          cutoff = now - 7 * 86400000;
+        } else if (period === '30d') {
+          cutoff = now - 30 * 86400000;
+        } else if (period === 'year') {
+          cutoff = now - 365 * 86400000;
+        }
+
+        const [students, enrollments, payments, emails, courses, tools] = await Promise.all([
+          getBlob('students_index').then((r) => r || []),
+          getBlob('enrollments_list').then((r) => r || []),
+          getBlob('payments_list').then((r) => r || []),
+          getBlob('emails_history').then((r) => r || []),
+          getBlob('courses_index').then((r) => r || []),
+          getBlob('tools_index').then((r) => r || []),
+        ]);
+
+        const filteredStudents = cutoff ? students.filter((s) => new Date(s.created_at || 0).getTime() >= cutoff) : students;
+        const filteredEnrollments = cutoff ? enrollments.filter((e) => new Date(e.enrolled_at || 0).getTime() >= cutoff) : enrollments;
+        const filteredPayments = cutoff ? payments.filter((p) => new Date(p.created_at || 0).getTime() >= cutoff) : payments;
+        const filteredEmails = cutoff ? emails.filter((e) => new Date(e.sent_at || 0).getTime() >= cutoff) : emails;
+
+        const totalRevenue = filteredPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+        const freeEnrollmentsCount = filteredEnrollments.filter((e) => Number(e.amount) === 0).length;
+        const paidEnrollmentsCount = filteredEnrollments.filter((e) => Number(e.amount) > 0).length;
+
+        // Course popularity
+        const courseCounts = {};
+        for (const e of filteredEnrollments) {
+          courseCounts[e.course_id] = (courseCounts[e.course_id] || 0) + 1;
+        }
+        const popularCourses = courses
+          .map((c) => ({
+            id: c.id,
+            title: c.title,
+            category: c.category,
+            price: c.price,
+            enrollments: courseCounts[c.id] || 0,
+          }))
+          .sort((a, b) => b.enrollments - a.enrollments);
+
+        return jsonResponse(200, {
+          period,
+          total_students: students.length,
+          new_students: filteredStudents.length,
+          google_logins: filteredStudents.filter((s) => s.auth_provider === 'google').length,
+          email_logins: filteredStudents.filter((s) => s.auth_provider === 'email').length,
+          total_revenue: totalRevenue,
+          total_enrollments: filteredEnrollments.length,
+          free_enrollments: freeEnrollmentsCount,
+          paid_enrollments: paidEnrollmentsCount,
+          successful_payments: filteredPayments.filter((p) => p.status === 'success').length,
+          failed_payments: filteredPayments.filter((p) => p.status === 'failed').length,
+          emails_total: filteredEmails.length,
+          emails_delivered: filteredEmails.filter((e) => e.status === 'delivered').length,
+          emails_simulated: filteredEmails.filter((e) => e.status === 'simulated').length,
+          emails_failed: filteredEmails.filter((e) => e.status === 'failed').length,
+          popular_courses: popularCourses.slice(0, 5),
+          total_tools_active: tools.filter((t) => t.is_enabled !== false).length,
+        });
       }
     }
 

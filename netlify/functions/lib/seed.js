@@ -876,7 +876,188 @@ The mathematical key is **longer retention on 3+ minute videos**:
 
   await setBlob('marquee_items', marquee);
 
-  // 9. Meta Seed Marker
+  // 9. Email Templates (9 Reusable Academy Templates)
+  const emailTemplates = [
+    {
+      id: 'welcome',
+      name: 'Welcome Email',
+      subject: 'Welcome to Web Nasir Academy — Your AI & Web Career Starts Now',
+      body: 'Hi {{student_name}},\n\nWelcome to Web Nasir Academy! We are excited to have you join our practical learning community.\n\nYou now have full access to our 11 free AI utilities, career learning tracks, and your personal Student Dashboard.\n\nAccess your dashboard: {{dashboard_url}}\n\nIf you ever have any questions, reach out via WhatsApp (+91 7006334417) or reply directly to this email.\n\nWarm regards,\nNasir\nFounder, Web Nasir Academy',
+      type: 'transactional',
+    },
+    {
+      id: 'registration_confirm',
+      name: 'Registration Confirmation',
+      subject: 'Account Confirmed: Welcome to Web Nasir Academy',
+      body: 'Hi {{student_name}},\n\nYour student account has been created successfully with {{student_email}} via {{auth_provider}}.\n\nYou can sign in at any time to track your courses and access saved tools: {{login_url}}\n\nHappy building!\n— Nasir',
+      type: 'transactional',
+    },
+    {
+      id: 'free_enrollment',
+      name: 'Free Course Enrollment',
+      subject: 'Enrollment Confirmed: {{course_title}}',
+      body: 'Hi {{student_name}},\n\nCongratulations! You have been successfully enrolled in "{{course_title}}".\n\nYour modules are now active in your Student Dashboard: {{dashboard_url}}\n\nStart your first lesson today and build your first real project.\n\nBest,\nWeb Nasir Academy',
+      type: 'transactional',
+    },
+    {
+      id: 'paid_enrollment',
+      name: 'Paid Course Confirmation & Access Unlocked',
+      subject: 'Payment Verified: Access Unlocked for {{course_title}}',
+      body: 'Hi {{student_name}},\n\nThank you for enrolling in {{course_title}}! Your payment of ₹{{amount}} has been verified successfully (Payment ID: {{payment_id}}).\n\nYour complete curriculum, video walk-throughs, and mentorship materials are now unlocked in your Student Dashboard: {{dashboard_url}}\n\nWelcome to the cohort!\nNasir',
+      type: 'transactional',
+    },
+    {
+      id: 'payment_receipt',
+      name: 'Payment Receipt & Tax Invoice',
+      subject: 'Payment Receipt for Order #{{order_id}} — Web Nasir Academy',
+      body: 'Web Nasir Academy — Payment Receipt\n\nOrder ID: {{order_id}}\nPayment ID: {{payment_id}}\nStudent Name: {{student_name}}\nStudent Email: {{student_email}}\nItem: {{course_title}}\nTotal Paid: ₹{{amount}} INR\nPayment Method: {{payment_method}}\nDate: {{date}}\nStatus: Completed & Verified\n\nThank you for choosing Web Nasir Academy.',
+      type: 'transactional',
+    },
+    {
+      id: 'password_reset',
+      name: 'Password Reset Notification',
+      subject: 'Security Alert: Password Reset Requested for Web Nasir Academy',
+      body: 'Hi {{student_name}},\n\nA request to reset the password for your Web Nasir account ({{student_email}}) was received.\n\nIf you requested this change, follow the password reset link sent to your inbox or click here: {{reset_url}}\n\nIf you did not request this, please secure your account immediately.\n\nWeb Nasir Security Team',
+      type: 'security',
+    },
+    {
+      id: 'new_course',
+      name: 'New Course Announcement',
+      subject: 'New Masterclass: {{course_title}} is Now Live!',
+      body: 'Hello {{student_name}},\n\nWe are thrilled to announce a brand new practical masterclass at Web Nasir Academy:\n\n👉 {{course_title}}\n{{course_desc}}\n\nEarly-bird discount pricing is currently active. Learn more and enroll now: {{course_url}}\n\nTo continuous growth,\nNasir',
+      type: 'marketing',
+    },
+    {
+      id: 'course_update',
+      name: 'Course Curriculum Update',
+      subject: 'Curriculum Update: New Lessons Added to {{course_title}}',
+      body: 'Hi {{student_name}},\n\nWe just added new practical lessons, code templates, and walkthroughs to {{course_title}}.\n\nLog in to your dashboard to view the new modules: {{dashboard_url}}\n\nKeep building!\nNasir',
+      type: 'course_update',
+    },
+    {
+      id: 'student_announcement',
+      name: 'General Student Announcement',
+      subject: 'Special Announcement from Nasir — Web Nasir Academy',
+      body: 'Dear Students,\n\n{{announcement_body}}\n\nThank you for being part of Web Nasir Academy.\n\nBest regards,\nNasir',
+      type: 'announcement',
+    },
+  ];
+
+  await setBlob('email_templates', emailTemplates);
+
+  // 10. Email Sender Configuration
+  const emailConfig = {
+    sender_name: 'Web Nasir Academy',
+    sender_email: 'support@webnasir.com',
+    reply_to: 'hello@webnasir.com',
+    resend_api_key: process.env.RESEND_API_KEY || '',
+    is_verified: true,
+  };
+  await setBlob('email_config', emailConfig);
+
+  // 11. Seed Baseline Students if empty
+  const existingStudents = await getBlob('students_index');
+  if (!existingStudents || existingStudents.length === 0) {
+    const seedStudents = [
+      {
+        id: 'std_babidul_01',
+        name: 'Babidul Hassan',
+        email: 'babidul.dev@gmail.com',
+        auth_provider: 'google',
+        email_verified: true,
+        phone: '+91 9876543201',
+        created_at: new Date(Date.now() - 35 * 86400000).toISOString(),
+        last_login_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+        login_count: 24,
+        enrolled_courses: ['fullstack-web-dev', 'complete-ai-mastery'],
+        payment_status: 'paid',
+        status: 'active',
+      },
+      {
+        id: 'std_tausif_02',
+        name: 'Tausif Ahmed',
+        email: 'tausif.publish@outlook.com',
+        auth_provider: 'email',
+        email_verified: true,
+        phone: '+91 9876543202',
+        created_at: new Date(Date.now() - 28 * 86400000).toISOString(),
+        last_login_at: new Date(Date.now() - 8 * 3600000).toISOString(),
+        login_count: 18,
+        enrolled_courses: ['adsense-blogging', 'seo-mastery'],
+        payment_status: 'paid',
+        status: 'active',
+      },
+      {
+        id: 'std_mehraj_03',
+        name: 'Mehraj Din',
+        email: 'mehraj.video@gmail.com',
+        auth_provider: 'google',
+        email_verified: true,
+        phone: '+91 9876543203',
+        created_at: new Date(Date.now() - 14 * 86400000).toISOString(),
+        last_login_at: new Date(Date.now() - 12 * 3600000).toISOString(),
+        login_count: 12,
+        enrolled_courses: ['youtube-automation', 'social-media-growth'],
+        payment_status: 'paid',
+        status: 'active',
+      },
+      {
+        id: 'std_farooq_04',
+        name: 'Farooq Sheikh',
+        email: 'farooq.saas@gmail.com',
+        auth_provider: 'email',
+        email_verified: true,
+        phone: '+91 9876543204',
+        created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+        last_login_at: new Date(Date.now() - 1 * 3600000).toISOString(),
+        login_count: 9,
+        enrolled_courses: ['complete-ai-mastery', 'ai-productivity'],
+        payment_status: 'paid',
+        status: 'active',
+      },
+    ];
+    await setBlob('students_index', seedStudents);
+  }
+
+  // 12. Seed Subscribers List if empty
+  const existingSubscribers = await getBlob('subscribers_list');
+  if (!existingSubscribers || existingSubscribers.length === 0) {
+    await setBlob('subscribers_list', [
+      { email: 'subscriber1@example.com', name: 'Zahid Khan', source: 'footer_newsletter', marketing_consent: true, created_at: new Date(Date.now() - 10 * 86400000).toISOString(), status: 'active' },
+      { email: 'subscriber2@example.com', name: 'Ayesha Mir', source: 'footer_newsletter', marketing_consent: true, created_at: new Date(Date.now() - 5 * 86400000).toISOString(), status: 'active' },
+    ]);
+  }
+
+  // 13. Seed Baseline Email History if empty
+  const existingEmailHistory = await getBlob('emails_history');
+  if (!existingEmailHistory) {
+    await setBlob('emails_history', [
+      {
+        id: 'eml-seed-01',
+        to: 'babidul.dev@gmail.com',
+        recipient_name: 'Babidul Hassan',
+        subject: 'Welcome to Web Nasir Academy — Your AI & Web Career Starts Now',
+        template_id: 'welcome',
+        type: 'transactional',
+        status: 'delivered',
+        sent_at: new Date(Date.now() - 35 * 86400000).toISOString(),
+        provider: 'resend',
+      },
+      {
+        id: 'eml-seed-02',
+        to: 'tausif.publish@outlook.com',
+        recipient_name: 'Tausif Ahmed',
+        subject: 'Payment Verified: Access Unlocked for Google AdSense High-RPM Blogging Blueprint',
+        template_id: 'paid_enrollment',
+        type: 'transactional',
+        status: 'delivered',
+        sent_at: new Date(Date.now() - 28 * 86400000).toISOString(),
+        provider: 'resend',
+      },
+    ]);
+  }
+
+  // 14. Meta Seed Marker
   await setBlob('meta', {
     seeded: true,
     seeded_at: now,
