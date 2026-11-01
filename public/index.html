@@ -316,13 +316,9 @@
   <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- FIREBASE INTEGRATION & APPLICATION SCRIPTS -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    // Global State with Instant Hydration Defaults
+  <!-- SYNCHRONOUS PRE-HYDRATED APPLICATION STATE -->
+  <script>
+    // Global State with Instant Hydration Defaults (Synchronous execution guarantees instant mount)
     window.APP_STATE = {
       settings: {
         site_name: 'Web Nasir',
@@ -383,10 +379,36 @@
         { slug: 'facebook-monetization-playbook', tag: 'facebook', title: 'Facebook Video Monetization: The 3-Second Hook & Retention Framework That Pays $10k/Month', meta: 'Master Facebook In-Stream Ads and Performance Bonuses using retention editing, copyright clearance, and audience pacing.', sort_order: 3, is_published: true }
       ],
       currentUser: null,
-      firebaseReady: false,
     };
 
-    let fbApp, fbAuth, fbDb;
+    // Stubs for auth & bookmark actions until Firebase module finishes loading
+    window.handleGoogleSignIn = function() {
+      if (window._fbSignIn) return window._fbSignIn();
+      showToast('Connecting to Google Sign-in...', 'info');
+    };
+    window.handleSignOut = function() {
+      if (window._fbSignOut) return window._fbSignOut();
+    };
+    window.saveResultToFirestore = function(toolKey, toolName, inputPrompt, outputResult) {
+      if (window._fbSaveResult) return window._fbSaveResult(toolKey, toolName, inputPrompt, outputResult);
+      showToast('Please wait, saving service is connecting...', 'info');
+    };
+    window.openSavedModal = function() {
+      if (window._fbOpenSaved) return window._fbOpenSaved();
+      const modal = document.getElementById('saved-modal');
+      if (modal) modal.classList.remove('hidden');
+    };
+    window.closeSavedModal = function() {
+      const modal = document.getElementById('saved-modal');
+      if (modal) modal.classList.add('hidden');
+    };
+  </script>
+
+  <!-- FIREBASE INTEGRATION MODULE -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     // Load Firebase Config
     async function initFirebase() {

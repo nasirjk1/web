@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import { getBlob, setBlob, deleteBlob } from './lib/store.js';
 import {
   hashPassword,
@@ -11,16 +10,63 @@ import {
 } from './lib/auth.js';
 import { ensureSeeded } from './lib/seed.js';
 
-let aiClient = null;
-function getGenAI() {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
+// Resilient Gemini AI caller: Try dynamic SDK first, fallback to native REST fetch (zero-dependency for Netlify Functions)
+async function callGeminiAPI(prompt, systemInstruction = '') {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  // 1. Try GoogleGenAI SDK dynamically if available in runtime
+  try {
+    const mod = await import('@google/genai');
+    if (mod && mod.GoogleGenAI) {
+      const ai = new mod.GoogleGenAI({ apiKey });
+      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+      for (const modelName of candidateModels) {
+        try {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
+          const genPromise = ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+            config: {
+              systemInstruction,
+              maxOutputTokens: 1500,
+            },
+          });
+          const response = await Promise.race([genPromise, timeoutPromise]);
+          if (response?.text) return { text: response.text, model: modelName };
+        } catch (mErr) {
+          // Continue to next model
+        }
+      }
+    }
+  } catch {
+    // SDK not bundled in Lambda runtime, proceed to native fetch
+  }
+
+  // 2. Direct Google Gemini REST API (100% native, zero dependencies, runs in all Node/Lambda/Edge environments)
+  const candidateRestModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+  for (const modelName of candidateRestModels) {
     try {
-      aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    } catch (e) {
-      console.warn('Failed to init GoogleGenAI:', e.message);
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: (systemInstruction ? systemInstruction + '\n\n' : '') + prompt }] }],
+          generationConfig: { maxOutputTokens: 1500, temperature: 0.7 }
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return { text, model: modelName };
+      }
+    } catch {
+      // Continue to next model candidate
     }
   }
-  return aiClient;
+
+  return null;
 }
 
 let currentEvent = null;
@@ -193,7 +239,6 @@ export const handler = async (event, context) => {
         return jsonResponse(400, { error: 'Input text or topic is required' });
       }
 
-      const ai = getGenAI();
       let prompt = '';
       let systemInstruction = 'You are Web Nasir, a 10-year veteran software engineer and high-income digital publishing mentor. Deliver direct, professional, high-impact results with zero fluff.';
 
@@ -210,33 +255,14 @@ export const handler = async (event, context) => {
         prompt = `Task: ${options?.custom_prompt || 'Analyze and optimize the following request'}\n\nUser Input: ${input}\n\nProvide clear, actionable results.`;
       }
 
-      if (ai) {
-        const candidateModels = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'];
-        for (const modelName of candidateModels) {
-          try {
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('AI generation timeout')), 8000)
-            );
-            const genPromise = ai.models.generateContent({
-              model: modelName,
-              contents: prompt,
-              config: {
-                systemInstruction,
-                maxOutputTokens: 1500,
-              },
-            });
-            const response = await Promise.race([genPromise, timeoutPromise]);
-            const text = response.text || 'Output generated successfully.';
-            return jsonResponse(200, {
-              success: true,
-              result: text,
-              is_ai_generated: true,
-              model: modelName,
-            }, {}, event);
-          } catch (genErr) {
-            console.warn(`Model ${modelName} unavailable (${genErr.message}), trying next candidate...`);
-          }
-        }
+      let aiResponse = await callGeminiAPI(prompt, systemInstruction);
+      if (aiResponse && aiResponse.text) {
+        return jsonResponse(200, {
+          success: true,
+          result: aiResponse.text,
+          is_ai_generated: true,
+          model: aiResponse.model,
+        }, {}, event);
       }
 
       // High-quality algorithmic fallback if GEMINI_API_KEY is not set or network fails
