@@ -229,6 +229,135 @@ export const handler = async (event, context) => {
       return jsonResponse(200, article);
     }
 
+    // GET /api/courses
+    if (method === 'GET' && cleanPath === '/courses') {
+      const courses = (await getBlob('courses_index')) || [];
+      const category = event.queryStringParameters?.category;
+      let published = courses.filter((c) => c.is_published !== false);
+      if (category && category !== 'all') {
+        published = published.filter((c) => (c.category || '').toLowerCase() === category.toLowerCase());
+      }
+      published.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      return jsonResponse(200, published);
+    }
+
+    // GET /api/courses/:id
+    if (method === 'GET' && cleanPath.startsWith('/courses/')) {
+      const id = cleanPath.replace('/courses/', '').trim();
+      if (!id) return jsonResponse(400, { error: 'Course ID is required' });
+
+      let course = await getBlob(`course:${id}`);
+      if (!course) {
+        const courses = (await getBlob('courses_index')) || [];
+        course = courses.find((c) => c.id === id);
+      }
+      if (!course) {
+        return jsonResponse(404, { error: 'Course not found' });
+      }
+      return jsonResponse(200, course);
+    }
+
+    // GET /api/testimonials
+    if (method === 'GET' && cleanPath === '/testimonials') {
+      const list = (await getBlob('testimonials_index')) || [];
+      const sorted = [...list].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      return jsonResponse(200, sorted);
+    }
+
+    // GET /api/marquee
+    if (method === 'GET' && cleanPath === '/marquee') {
+      const list = (await getBlob('marquee_items')) || [];
+      return jsonResponse(200, list);
+    }
+
+    // POST /api/contact
+    if (method === 'POST' && cleanPath === '/contact') {
+      const body = parseJsonBody(event.body);
+      if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+      const { name, email, subject, message } = body;
+      if (!name || !email || !message) {
+        return jsonResponse(400, { error: 'Name, email, and message are required' });
+      }
+      const contacts = (await getBlob('contacts_list')) || [];
+      const newSubmission = {
+        id: 'contact-' + Date.now(),
+        name: String(name).slice(0, 100),
+        email: String(email).slice(0, 150),
+        subject: String(subject || 'General Inquiry').slice(0, 200),
+        message: String(message).slice(0, 3000),
+        created_at: new Date().toISOString(),
+      };
+      contacts.unshift(newSubmission);
+      await setBlob('contacts_list', contacts.slice(0, 100));
+      return jsonResponse(201, { success: true, message: 'Message sent successfully. Nasir or our team will get back to you shortly!' });
+    }
+
+    // POST /api/courses/enroll
+    if (method === 'POST' && cleanPath === '/courses/enroll') {
+      const body = parseJsonBody(event.body);
+      if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+      const { course_id, student_email, student_name, student_phone, payment_id, payment_method } = body;
+      if (!course_id || !student_email) {
+        return jsonResponse(400, { error: 'Course ID and student email are required' });
+      }
+      const courses = (await getBlob('courses_index')) || [];
+      const course = courses.find((c) => c.id === course_id);
+      if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      const enrollmentId = 'ENR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      const newEnrollment = {
+        enrollment_id: enrollmentId,
+        course_id,
+        course_title: course.title,
+        student_email: String(student_email).toLowerCase().trim(),
+        student_name: String(student_name || 'Student').trim(),
+        student_phone: String(student_phone || '').trim(),
+        amount: course.price,
+        currency: 'INR',
+        payment_id: payment_id || 'MOCK-PAY-' + Date.now(),
+        payment_method: payment_method || 'UPI / Razorpay',
+        status: 'active',
+        progress_pct: 0,
+        completed_lessons: [],
+        enrolled_at: new Date().toISOString(),
+      };
+      enrollments.unshift(newEnrollment);
+      await setBlob('enrollments_list', enrollments);
+
+      return jsonResponse(201, {
+        success: true,
+        message: 'Successfully enrolled in ' + course.title,
+        enrollment: newEnrollment,
+      });
+    }
+
+    // GET /api/student/courses
+    if (method === 'GET' && cleanPath === '/student/courses') {
+      const email = event.queryStringParameters?.email;
+      if (!email) return jsonResponse(200, []);
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      const studentCourses = enrollments.filter((e) => e.student_email === email.toLowerCase().trim());
+      return jsonResponse(200, studentCourses);
+    }
+
+    // POST /api/student/progress
+    if (method === 'POST' && cleanPath === '/student/progress') {
+      const body = parseJsonBody(event.body);
+      if (!body || !body.enrollment_id) return jsonResponse(400, { error: 'enrollment_id is required' });
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      const idx = enrollments.findIndex((e) => e.enrollment_id === body.enrollment_id);
+      if (idx !== -1) {
+        if (body.progress_pct !== undefined) enrollments[idx].progress_pct = Math.min(100, Math.max(0, Number(body.progress_pct)));
+        if (body.lesson_id) {
+          enrollments[idx].completed_lessons = Array.from(new Set([...(enrollments[idx].completed_lessons || []), body.lesson_id]));
+        }
+        await setBlob('enrollments_list', enrollments);
+        return jsonResponse(200, { success: true, enrollment: enrollments[idx] });
+      }
+      return jsonResponse(404, { error: 'Enrollment not found' });
+    }
+
     // POST /api/ai/run (Free Tier Gemini 3.8 Flash inference)
     if (method === 'POST' && cleanPath === '/ai/run') {
       const body = parseJsonBody(event.body);
@@ -700,6 +829,19 @@ export const handler = async (event, context) => {
           'stat_projects',
           'stat_tools',
           'nasir_quote',
+          'video_title',
+          'video_subtitle',
+          'video_url',
+          'video_presenter_name',
+          'video_presenter_title',
+          'video_script_urdu',
+          'video_script_english',
+          'razorpay_enabled',
+          'razorpay_key_id',
+          'currency',
+          'currency_symbol',
+          'marquee_speed',
+          'marquee_enabled',
           'social_facebook',
           'social_x',
           'social_youtube',
@@ -724,6 +866,185 @@ export const handler = async (event, context) => {
 
         await setBlob('settings', currentSettings);
         return jsonResponse(200, { success: true, settings: currentSettings });
+      }
+
+      // ==========================================
+      // ADMIN COURSES CRUD
+      // ==========================================
+
+      // GET /api/admin/courses
+      if (method === 'GET' && cleanPath === '/admin/courses') {
+        const courses = (await getBlob('courses_index')) || [];
+        return jsonResponse(200, courses);
+      }
+
+      // POST /api/admin/courses
+      if (method === 'POST' && cleanPath === '/admin/courses') {
+        const body = parseJsonBody(event.body);
+        if (!body || !body.title) return jsonResponse(400, { error: 'Course title is required' });
+
+        const id = (body.id || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/^-|-$/g, '');
+        const courses = (await getBlob('courses_index')) || [];
+        if (courses.some((c) => c.id === id)) {
+          return jsonResponse(400, { error: `Course ID "${id}" already exists` });
+        }
+
+        const newCourse = {
+          id,
+          title: String(body.title).trim().slice(0, 150),
+          subtitle: String(body.subtitle || '').trim().slice(0, 300),
+          category: String(body.category || 'AI & Automation').trim(),
+          level: String(body.level || 'All Levels').trim(),
+          duration: String(body.duration || '6 Weeks').trim(),
+          modules_count: Number(body.modules_count) || 20,
+          price: Number(body.price) || 2999,
+          original_price: Number(body.original_price) || 7999,
+          instructor: String(body.instructor || 'Nasir').trim(),
+          instructor_title: String(body.instructor_title || 'Lead Technical Mentor').trim(),
+          badge: String(body.badge || 'Popular').trim(),
+          is_published: body.is_published !== false,
+          sort_order: Number(body.sort_order) || courses.length + 1,
+          overview: String(body.overview || '').slice(0, 2000),
+          features: Array.isArray(body.features) ? body.features : ['100% Practical Production Projects', 'Direct Code Reviews', 'Lifetime Access'],
+          curriculum: Array.isArray(body.curriculum) ? body.curriculum : []
+        };
+
+        courses.push(newCourse);
+        await setBlob('courses_index', courses);
+        await setBlob(`course:${id}`, newCourse);
+        return jsonResponse(201, { success: true, course: newCourse });
+      }
+
+      // PUT /api/admin/courses/:id
+      if (method === 'PUT' && cleanPath.startsWith('/admin/courses/')) {
+        const id = cleanPath.replace('/admin/courses/', '').trim();
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const courses = (await getBlob('courses_index')) || [];
+        const idx = courses.findIndex((c) => c.id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Course not found' });
+
+        const existing = courses[idx];
+        const updated = {
+          ...existing,
+          ...body,
+          id: existing.id,
+        };
+
+        courses[idx] = updated;
+        await setBlob('courses_index', courses);
+        await setBlob(`course:${id}`, updated);
+        return jsonResponse(200, { success: true, course: updated });
+      }
+
+      // DELETE /api/admin/courses/:id
+      if (method === 'DELETE' && cleanPath.startsWith('/admin/courses/')) {
+        const id = cleanPath.replace('/admin/courses/', '').trim();
+        const courses = (await getBlob('courses_index')) || [];
+        const filtered = courses.filter((c) => c.id !== id);
+        await setBlob('courses_index', filtered);
+        await deleteBlob(`course:${id}`);
+        return jsonResponse(200, { success: true, message: 'Course deleted successfully' });
+      }
+
+      // ==========================================
+      // ADMIN TESTIMONIALS CRUD
+      // ==========================================
+
+      // GET /api/admin/testimonials
+      if (method === 'GET' && cleanPath === '/admin/testimonials') {
+        const list = (await getBlob('testimonials_index')) || [];
+        return jsonResponse(200, list);
+      }
+
+      // POST /api/admin/testimonials
+      if (method === 'POST' && cleanPath === '/admin/testimonials') {
+        const body = parseJsonBody(event.body);
+        if (!body || !body.name || !body.content) return jsonResponse(400, { error: 'Name and content are required' });
+
+        const list = (await getBlob('testimonials_index')) || [];
+        const id = 'test-' + Date.now();
+        const newTest = {
+          id,
+          name: String(body.name).trim().slice(0, 100),
+          role: String(body.role || 'Student & Alumni').trim().slice(0, 100),
+          course: String(body.course || 'Academy Masterclass').trim().slice(0, 100),
+          rating: Number(body.rating) || 5,
+          content: String(body.content).trim().slice(0, 1000),
+          has_video: Boolean(body.has_video),
+          video_url: String(body.video_url || ''),
+          verified: body.verified !== false,
+          sort_order: Number(body.sort_order) || list.length + 1,
+        };
+
+        list.push(newTest);
+        await setBlob('testimonials_index', list);
+        return jsonResponse(201, { success: true, testimonial: newTest });
+      }
+
+      // PUT /api/admin/testimonials/:id
+      if (method === 'PUT' && cleanPath.startsWith('/admin/testimonials/')) {
+        const id = cleanPath.replace('/admin/testimonials/', '').trim();
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const list = (await getBlob('testimonials_index')) || [];
+        const idx = list.findIndex((t) => t.id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Testimonial not found' });
+
+        list[idx] = { ...list[idx], ...body, id };
+        await setBlob('testimonials_index', list);
+        return jsonResponse(200, { success: true, testimonial: list[idx] });
+      }
+
+      // DELETE /api/admin/testimonials/:id
+      if (method === 'DELETE' && cleanPath.startsWith('/admin/testimonials/')) {
+        const id = cleanPath.replace('/admin/testimonials/', '').trim();
+        const list = (await getBlob('testimonials_index')) || [];
+        const filtered = list.filter((t) => t.id !== id);
+        await setBlob('testimonials_index', filtered);
+        return jsonResponse(200, { success: true, message: 'Testimonial deleted successfully' });
+      }
+
+      // ==========================================
+      // ADMIN MARQUEE CRUD
+      // ==========================================
+
+      // GET /api/admin/marquee
+      if (method === 'GET' && cleanPath === '/admin/marquee') {
+        const list = (await getBlob('marquee_items')) || [];
+        return jsonResponse(200, list);
+      }
+
+      // PUT /api/admin/marquee
+      if (method === 'PUT' && cleanPath === '/admin/marquee') {
+        const body = parseJsonBody(event.body);
+        if (!body || !Array.isArray(body.items)) return jsonResponse(400, { error: 'items array is required' });
+
+        const sanitized = body.items.map((i) => ({
+          text: String(i.text || '').slice(0, 200),
+          link: String(i.link || '#/courses').slice(0, 100),
+        })).filter(i => i.text.length > 0);
+
+        await setBlob('marquee_items', sanitized);
+        return jsonResponse(200, { success: true, items: sanitized });
+      }
+
+      // ==========================================
+      // ADMIN ENROLLMENTS & CONTACT SUBMISSIONS
+      // ==========================================
+
+      // GET /api/admin/enrollments
+      if (method === 'GET' && cleanPath === '/admin/enrollments') {
+        const list = (await getBlob('enrollments_list')) || [];
+        return jsonResponse(200, list);
+      }
+
+      // GET /api/admin/contacts
+      if (method === 'GET' && cleanPath === '/admin/contacts') {
+        const list = (await getBlob('contacts_list')) || [];
+        return jsonResponse(200, list);
       }
     }
 

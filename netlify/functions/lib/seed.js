@@ -9,8 +9,12 @@ export async function ensureSeeded() {
   const existingSettings = await getBlob('settings');
   const existingAuth = await getBlob('auth');
 
+  const existingCourses = await getBlob('courses_index');
+  const existingTestimonials = await getBlob('testimonials_index');
+  const existingMarquee = await getBlob('marquee_items');
+
   // If already seeded and all indices are present, we don't need to re-seed
-  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth) {
+  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth && existingCourses?.length >= 8 && existingTestimonials?.length >= 4 && existingMarquee?.length >= 6) {
     return;
   }
 
@@ -26,37 +30,48 @@ export async function ensureSeeded() {
     });
   }
 
-  // 2. Settings (Expanded with Home Page Controls)
+  // 2. Settings (Expanded with Academy Video & Payment Controls)
   await setBlob('settings', {
-    site_name: 'Web Nasir',
-    tagline: 'AI & Web Income',
+    site_name: 'Web Nasir Academy',
+    tagline: 'Practical AI, Web Engineering & Digital Monetization',
     whatsapp_number: '917006334417',
     email: 'hello@webnasir.com',
     announcement_enabled: true,
     announcement_badge: 'New 2025 Edition',
-    announcement_text: 'Free AI Utilities, 10-Year AdSense High-RPM Blueprint & Facebook Monetization are live!',
-    announcement_link_text: 'Read Guides →',
-    announcement_link_url: '#/articles',
-    hero_title: 'Build Faster with AI, Earn Smarter on the Web.',
-    hero_subtitle: 'Master modern full-stack web development, automated AI utilities, and battle-tested Google AdSense & Facebook monetization strategies with 10-year engineering veteran Nasir.',
+    announcement_text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
+    announcement_link_text: 'Explore Courses →',
+    announcement_link_url: '#/courses',
+    hero_title: 'Master AI, Build Digital Skills & Create Your Online Future.',
+    hero_subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir. Access powerful free tools and professional training designed for real-world results.',
     stat_years: '10+ Yrs',
     stat_rpm: '$35+',
     stat_projects: '250+',
     stat_tools: '100% Free',
     nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
+    video_title: 'Welcome to Web Nasir Academy',
+    video_subtitle: 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.',
+    video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    video_presenter_name: 'Nasir',
+    video_presenter_title: 'Founder & Lead Technical Mentor',
+    video_script_urdu: "Assalamu Alaikum! Welcome to Web Nasir. I'm Nasir, and I've created this platform to help you learn modern digital skills, use AI tools, build websites, master SEO, and develop your online career. Whether you are using our 11 free AI utilities or enrolling in our comprehensive paid masterclasses, our focus is 100% practical results.",
+    video_script_english: "Welcome to Web Nasir Academy. I am Nasir, a senior full-stack engineer and digital publisher with over 10 years of experience. We built this platform so you can learn real-world skills, avoid theoretical fluff, deploy live software, and create sustainable online income.",
+    razorpay_enabled: true,
+    razorpay_key_id: 'rzp_test_webnasir_demo',
+    currency: 'INR',
+    currency_symbol: '₹',
     social_facebook: 'https://facebook.com/webnasir',
     social_x: 'https://x.com/webnasir',
     social_youtube: 'https://youtube.com/@webnasir',
     social_instagram: 'https://instagram.com/webnasir',
     social_linkedin: 'https://linkedin.com/in/webnasir',
-    footer_text: 'Helping developers, bloggers and creators build better websites — and earn real income from them.',
+    footer_text: 'Helping developers, creators and digital entrepreneurs build high-impact web assets and earn real online income.',
     trust_badges: [
       '10+ Years Experience',
-      '250+ Projects',
-      '150+ Guides',
-      '100% Practical',
-      'Live Client Work',
-      '4.9 ★',
+      '250+ Projects Shipped',
+      '11 Free AI Tools',
+      '100% Practical Projects',
+      'Live Mentorship',
+      '4.9 ★ Rating',
     ],
   });
 
@@ -478,11 +493,394 @@ The mathematical key is **longer retention on 3+ minute videos**:
   await setBlob(`article:${articleAdsense.slug}`, articleAdsense);
   await setBlob(`article:${articleFacebook.slug}`, articleFacebook);
 
-  // 6. Meta Seed Marker
+  // 6. Paid Courses & Masterclasses
+  const courses = [
+    {
+      id: 'complete-ai-mastery',
+      title: 'Complete AI Mastery & Automation Course',
+      subtitle: 'From prompt engineering to building and monetizing real AI micro-SaaS utilities with Gemini and Python.',
+      category: 'AI & Automation',
+      level: 'Beginner to Advanced',
+      duration: '8 Weeks',
+      modules_count: 32,
+      price: 4999,
+      original_price: 12999,
+      instructor: 'Nasir',
+      instructor_title: 'Founder & Senior Engineer',
+      badge: 'Flagship Program',
+      is_published: true,
+      sort_order: 1,
+      overview: 'A comprehensive, zero-fluff academy program teaching you how to use modern generative AI models, craft intelligent autonomous workflows, build AI utilities, and monetize prompt engineering architectures in 2025.',
+      features: [
+        '32 Step-by-step video lessons & code repositories',
+        'Build 4 production-grade AI micro-utilities',
+        'Gemini 2.5 API integration & function calling',
+        'Direct 1-on-1 weekly code review with Nasir',
+        'Lifetime access to updates & private Discord community',
+        'Official Web Nasir Academy Certificate'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: Foundations of Modern Generative AI',
+          lessons: ['AI Architecture Overview: LLMs, Tokens & Context Windows', 'Prompt Engineering: Zero-Shot, Few-Shot & Chain-of-Thought', 'Avoiding AI Hallucinations & Output Structuring']
+        },
+        {
+          module: 'Module 2: Building Web Apps with Gemini API',
+          lessons: ['API Setup, Authentication & Server-Side Security', 'Streaming Text Generation & Real-Time Parsing', 'Tool Calling & Structured JSON Schemas']
+        },
+        {
+          module: 'Module 3: Deploying Lightweight Micro-SaaS',
+          lessons: ['Frontend UX Architecture for AI Utilities', 'Serverless Functions on Netlify & Cloud Run', 'Rate Limiting, Caching & Cost Optimization']
+        },
+        {
+          module: 'Module 4: Commercialization & Real Income',
+          lessons: ['AdSense vs Paid Tier Freemium Funnels', 'Viral TikTok & YouTube Acquisition Strategies', 'Analytics, Conversion Tracking & Lifetime Customer Value']
+        }
+      ]
+    },
+    {
+      id: 'fullstack-web-dev',
+      title: 'Production Full-Stack Website Development',
+      subtitle: 'Build enterprise-grade React, Node.js, and serverless applications. Learn real deployment physics and performance tuning.',
+      category: 'Website Development',
+      level: 'Intermediate',
+      duration: '10 Weeks',
+      modules_count: 45,
+      price: 6499,
+      original_price: 15999,
+      instructor: 'Nasir',
+      instructor_title: '10+ Years Full-Stack Engineer',
+      badge: 'Career Track',
+      is_published: true,
+      sort_order: 2,
+      overview: 'Escape tutorial hell. Learn modern full-stack web engineering the way senior software engineers build in production: React 19, TypeScript, Node.js, Express, Tailwind CSS, PostgreSQL, and serverless edge delivery.',
+      features: [
+        '45 In-depth modules with production git repositories',
+        'Ship 3 commercial-grade web applications',
+        'Database architecture: SQL & Key-Value Stores',
+        'Performance optimization & 100/100 Lighthouse scores',
+        'Mock interview & portfolio architecture review',
+        'Official Web Nasir Academy Certificate'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: Modern JavaScript & TypeScript Mastery',
+          lessons: ['ESNext Asynchronous Patterns, Event Loop & Closures', 'Strict TypeScript: Interfaces, Generics & Utility Types', 'Modern Tooling: Vite, Node 20+, and Bun']
+        },
+        {
+          module: 'Module 2: Advanced React Architecture',
+          lessons: ['React 19 Hooks, Custom State Reducers & Context', 'Client-Side Routing & Zero-Race Hydration', 'High-Craft UI: Tailwind CSS & Smooth Animations']
+        },
+        {
+          module: 'Module 3: Scalable Backend & APIs',
+          lessons: ['RESTful API Design & Express Middleware', 'Secure JWT Authentication with httpOnly Cookies', 'Serverless Functions & Edge Routing']
+        },
+        {
+          module: 'Module 4: Deployment & DevOps',
+          lessons: ['Docker Containerization & Linux VPS Management', 'Nginx Reverse Proxy & Automated SSL via Let’s Encrypt', 'CI/CD Pipelines with GitHub Actions']
+        }
+      ]
+    },
+    {
+      id: 'seo-mastery',
+      title: 'Professional Technical SEO & Search Intent Mastery',
+      subtitle: 'Topical authority clusters, Core Web Vitals, programmatic content architectures, and ranking in the AI search era.',
+      category: 'SEO Mastery',
+      level: 'All Levels',
+      duration: '6 Weeks',
+      modules_count: 28,
+      price: 3999,
+      original_price: 9999,
+      instructor: 'Nasir',
+      instructor_title: 'Digital Publisher & SEO Veteran',
+      badge: 'High ROI',
+      is_published: true,
+      sort_order: 3,
+      overview: 'Algorithms change, but user search intent and technical excellence always win. Master technical SEO, site speed physics, schema structured data, internal linking clusters, and intent-targeted content frameworks.',
+      features: [
+        '28 Hands-on modules with live site audits',
+        'Real-world case studies ranking in Google US/UK',
+        'Topical clustering template & keyword spreadsheets',
+        'Core Web Vitals remediation checklist',
+        'Direct feedback on your target website domain'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: Search Intent & Semantic Search Physics',
+          lessons: ['Navigational, Informational, Commercial & Transactional Intent', 'Keyword Research Beyond Search Volume: CPC & SERP Difficulty', 'Topical Authority Clusters vs One-Off Blog Posts']
+        },
+        {
+          module: 'Module 2: Technical Architecture & Core Web Vitals',
+          lessons: ['LCP, INP & CLS Optimization for Next-Gen Rankings', 'Crawl Budget, Canonicalization & XML Sitemaps', 'JSON-LD Schema Markup: Articles, FAQ & Breadcrumbs']
+        },
+        {
+          module: 'Module 3: Link Architecture & Authority Building',
+          lessons: ['Internal Linking Physics: Flowing PageRank to High-RPM URLs', 'Ethical White-Hat Outreach & Resource Link Acquisition', 'Surviving Google Core Algorithm Updates']
+        }
+      ]
+    },
+    {
+      id: 'digital-marketing-ai',
+      title: 'Digital Marketing & Performance Ads with AI',
+      subtitle: 'High-converting Meta, Google, and TikTok ad architectures, AI copy generation, funnel optimization, and conversion tracking.',
+      category: 'Digital Marketing',
+      level: 'Beginner to Intermediate',
+      duration: '6 Weeks',
+      modules_count: 26,
+      price: 4499,
+      original_price: 11999,
+      instructor: 'Nasir',
+      instructor_title: 'Ad Operations & Funnel Mentor',
+      badge: 'In Demand',
+      is_published: true,
+      sort_order: 4,
+      overview: 'Stop burning ad budget on guesswork. Learn the rigorous quantitative frameworks behind profitable performance marketing: hook rates, hold rates, copy psychology, pixel attribution, and AI-accelerated creative testing.',
+      features: [
+        '26 Focused modules with copy-paste campaign templates',
+        'Ad creative testing spreadsheets & ROAS calculators',
+        'Meta CAPI & Google Tag Manager tracking setups',
+        'Live campaign budget pacing and scaling guidelines'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: High-Conversion Creative Strategy',
+          lessons: ['The 3-Second Visual Hook & Problem-Agitation-Solution', 'AI Ad Copy Crafting: Headlines, Angles & Objection Crushing', 'Thumbnail & Video Creative Production with Free AI Tools']
+        },
+        {
+          module: 'Module 2: Meta Ads Infrastructure',
+          lessons: ['Business Manager, Pixel & Conversions API (CAPI) Setup', 'CBO vs ABO: Budget Scaling Systems That Don’t Break', 'Retargeting Funnels & Lookalike Audience Calibration']
+        },
+        {
+          module: 'Module 3: Analytics, Attribution & Profitability',
+          lessons: ['Blended ROAS vs Platform Reported Metrics', 'Landing Page Conversion Rate Optimization (CRO)', 'Unit Economics & Customer Acquisition Cost (CAC)']
+        }
+      ]
+    },
+    {
+      id: 'adsense-blogging',
+      title: 'Blogging & Google AdSense High-RPM Mastery',
+      subtitle: 'From $2 to $35+ RPM: ad layout engineering, high-tier GEO targeting, keyword arbitrage, and viewability tuning.',
+      category: 'Monetization',
+      level: 'Intermediate to Advanced',
+      duration: '8 Weeks',
+      modules_count: 36,
+      price: 5999,
+      original_price: 14999,
+      instructor: 'Nasir',
+      instructor_title: '10-Year AdSense Veteran',
+      badge: 'Nasir Signature',
+      is_published: true,
+      sort_order: 5,
+      overview: 'The definitive blueprint extracted directly from Nasir’s decade-long publishing operations. Learn how ad networks actually value impressions, how to design high-CTR layout heatmaps, and how to acquire high-CPC tier-1 traffic safely.',
+      features: [
+        '36 Comprehensive lessons covering real AdSense dashboards',
+        'The exact sticky sidebar & in-article physics script',
+        'Google AdSense Policy compliance & invalid traffic safeguards',
+        'Arbitrage traffic profitability spreadsheets',
+        'Direct 1-on-1 ad layout audit with Nasir'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: Ad Exchange Mechanics & RPM Drivers',
+          lessons: ['RPM vs eCPM vs CPC: Understanding How Publishers Get Paid', 'Why Tier-1 GEO Traffic (US, UK, CA, AU) Pays 10x More', 'Google MCM, Header Bidding & AdSense Auto Ads vs Manual Slots']
+        },
+        {
+          module: 'Module 2: High-RPM Layout Engineering',
+          lessons: ['Viewability Physics: Achieving 70%+ Active View', 'Sticky Sidebar & Anchor Ads Without Violating Policies', 'Native In-Feed Ad Formats That Match Editorial Content']
+        },
+        {
+          module: 'Module 3: Traffic Acquisition & Arbitrage Physics',
+          lessons: ['Paid Traffic Arbitrage: Buying at $0.05, Selling at $0.15', 'Facebook Viral Distribution to AdSense Content', 'Preventing Policy Violations, Two-Click Penalties & Ad Limits']
+        }
+      ]
+    },
+    {
+      id: 'youtube-automation',
+      title: 'YouTube Automation & High-CTR Content Creation',
+      subtitle: 'Create high-retention faceless channels using AI scripting, voice synthesis, thumbnail CTR science, and monetized pacing.',
+      category: 'AI Creators',
+      level: 'Beginner to Pro',
+      duration: '5 Weeks',
+      modules_count: 22,
+      price: 3499,
+      original_price: 8999,
+      instructor: 'Nasir',
+      instructor_title: 'Digital Creator Mentor',
+      badge: 'Trending',
+      is_published: true,
+      sort_order: 6,
+      overview: 'Build sustainable automated channels without showing your face. Master niche selection, retention scripting, AI voice generation, thumbnail contrast physics, and YouTube algorithmic monetization.',
+      features: [
+        '22 Video modules covering end-to-end automation pipelines',
+        'AI prompt templates for viral storytelling & cliffhangers',
+        'Photoshop & Canva thumbnail psd templates',
+        'Monetization checklist for AdSense, Sponsors & Affiliates'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: High-RPM Niche Selection',
+          lessons: ['Finance, Tech, Luxury & History: High-CPC YouTube Niches', 'Competitor Gap Analysis & Audience Demand Research', 'Channel Branding & Visual Identity Setup']
+        },
+        {
+          module: 'Module 2: AI Scripting & Production Workflow',
+          lessons: ['Retention Scriptwriting: The First 30 Seconds Rule', 'AI Voice Synthesis & Natural Pacing Audio Editing', 'B-Roll Sourcing, Stock Footage & Fair Use Guidelines']
+        },
+        {
+          module: 'Module 3: CTR Science & Long-Term Channel Growth',
+          lessons: ['Thumbnail Design: Facial Contrast, Text Hierarchy & Color Psychology', 'Title Frameworks: Curiosity Gaps vs Direct Answers', 'Community Tab Engagement & Multi-Stream Monetization']
+        }
+      ]
+    },
+    {
+      id: 'social-media-growth',
+      title: 'Social Media Growth & Facebook In-Stream Monetization',
+      subtitle: 'Break into Facebook In-Stream Ads and Performance Bonuses using retention editing, copyright clearance, and audience pacing.',
+      category: 'Social Media Growth',
+      level: 'All Levels',
+      duration: '5 Weeks',
+      modules_count: 20,
+      price: 3999,
+      original_price: 9999,
+      instructor: 'Nasir',
+      instructor_title: 'Social Publishing Specialist',
+      badge: 'Fast Track',
+      is_published: true,
+      sort_order: 7,
+      overview: 'Facebook is currently paying some of the highest video RPMs in digital history. Learn how to hit the 60,000 eligible minutes milestone, maintain clean page quality, and turn video views into regular monthly payouts.',
+      features: [
+        '20 Targeted lessons on Facebook Creator Studio & Payouts',
+        'Viral pacing video templates for Premiere Pro & CapCut',
+        'Copyright clearance & Rights Manager compliance rules',
+        'Page setup, Professional Mode & Group engagement tactics'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: The Facebook In-Stream Algorithm',
+          lessons: ['How Meta Distributes Long-Form Videos (3+ Minutes)', 'Hitting 5k Followers & 60k Minutes in Under 30 Days', 'Original Content Guidelines & Avoiding Limited Originality of Content (LOC)']
+        },
+        {
+          module: 'Module 2: Viral Video Editing Psychology',
+          lessons: ['The First 3-Second Visual Hook That Prevents Scrolling', 'Pattern Interrupts Every 8-12 Seconds for Maximum Retention', 'Adding Subtitles, Sound Effects & Emotional Music Stems']
+        },
+        {
+          module: 'Module 3: Payouts, Tax Documents & Multi-Page Scaling',
+          lessons: ['Setting Up Bank Accounts, Swift Codes & US Tax Forms', 'Building A Network of Monetized Facebook Pages', 'Reels Play Bonus Program Integration']
+        }
+      ]
+    },
+    {
+      id: 'ai-productivity',
+      title: 'AI Automation & Productivity for Entrepreneurs',
+      subtitle: 'Automate business workflows with Zapier, Make, webhook orchestration, and custom AI agents that eliminate manual labor.',
+      category: 'AI & Automation',
+      level: 'Intermediate',
+      duration: '4 Weeks',
+      modules_count: 18,
+      price: 2999,
+      original_price: 7999,
+      instructor: 'Nasir',
+      instructor_title: 'Full-Stack & Systems Engineer',
+      badge: 'Productivity',
+      is_published: true,
+      sort_order: 8,
+      overview: 'Stop doing repetitive manual tasks. Learn how to connect webhooks, automate email triage, generate social assets autonomously, and build internal tools that save 20+ hours every single week.',
+      features: [
+        '18 Hands-on tutorials with importable automation blueprints',
+        'Integrations with Google Sheets, Slack, Gmail, and Airtable',
+        'Custom Webhooks & REST API trigger configurations',
+        'Zero-code to low-code enterprise automation pipelines'
+      ],
+      curriculum: [
+        {
+          module: 'Module 1: Visual Automation Architecture',
+          lessons: ['Make.com vs Zapier: Cost, Architecture & Scalability', 'Triggers, Routers, Filters & Aggregators', 'Error Handling, Fallback Alerts & Data Formatting']
+        },
+        {
+          module: 'Module 2: AI-Powered Autonomous Pipelines',
+          lessons: ['Connecting Gemini API to Automated Content Queues', 'Automated Customer Support Triaging & Drafting', 'Social Media Auto-Publishing with AI Captioning']
+        }
+      ]
+    }
+  ];
+
+  await setBlob('courses_index', courses);
+  for (const c of courses) {
+    await setBlob(`course:${c.id}`, c);
+  }
+
+  // 7. Student Reviews & Mentee Testimonials
+  const testimonials = [
+    {
+      id: 'test-1',
+      name: 'Babidul Hassan',
+      role: 'Full-Stack Developer & Agency Builder',
+      course: 'Production Full-Stack Web Development',
+      rating: 5,
+      content: 'Learning from Nasir was a complete turning point. Instead of theoretical university slides, we built actual deployable apps with real databases, authentication, and clean Tailwind styling. Within two months of graduating, I landed my first international client project.',
+      avatar: '',
+      has_video: true,
+      video_url: 'https://img.youtube.com/vi/JUp4ITFlRI8/maxresdefault.jpg',
+      verified: true,
+      sort_order: 1,
+    },
+    {
+      id: 'test-2',
+      name: 'Tausif Ahmed',
+      role: 'Content Creator & AdSense Publisher',
+      course: 'Blogging & Google AdSense High-RPM Mastery',
+      rating: 5,
+      content: 'Before Web Nasir, my blog was stuck at a depressing $1.80 RPM. Nasir audited my ad placements, taught me the sticky sidebar physics and tier-1 audience targeting. Last month my RPM crossed $28.50 on the exact same traffic. The math works!',
+      avatar: '',
+      has_video: false,
+      verified: true,
+      sort_order: 2,
+    },
+    {
+      id: 'test-3',
+      name: 'Farooq Sheikh',
+      role: 'SaaS Founder & Micro-Tool Creator',
+      course: 'Complete AI Mastery & Automation Course',
+      rating: 5,
+      content: 'The free AI tools on Web Nasir showed me how capable the platform is, so I enrolled in the AI Mastery course. Nasir explained API rate limiting, system prompts, and serverless edge functions so clearly that I launched my own micro-utility in just 3 weeks.',
+      avatar: '',
+      has_video: false,
+      verified: true,
+      sort_order: 3,
+    },
+    {
+      id: 'test-4',
+      name: 'Mehraj Din',
+      role: 'Digital Marketing & Video Producer',
+      course: 'Facebook In-Stream Monetization Playbook',
+      rating: 5,
+      content: 'The 3-second hook framework and video retention pacing shared in this academy are pure gold. We hit our 60,000 eligible minutes threshold in just 18 days on a brand-new page. Nasir is the real deal—no fake hype, just honest engineering.',
+      avatar: '',
+      has_video: true,
+      video_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      verified: true,
+      sort_order: 4,
+    }
+  ];
+
+  await setBlob('testimonials_index', testimonials);
+
+  // 8. Announcement Marquee Ticker
+  const marquee = [
+    { text: '🚀 Learn AI. Build Practical Skills. Earn Real Online Income.', link: '#/courses' },
+    { text: '⚡ Explore 11+ Free Production-Ready AI & Webmaster Utilities.', link: '#/tools' },
+    { text: '🎓 Web Nasir Academy — 100% Practical Project-Driven Masterclasses.', link: '#/courses' },
+    { text: '📈 Master High-RPM Google AdSense & Algorithmic SEO Systems.', link: '#/articles' },
+    { text: '💻 Build and Ship Live Commercial Projects with 10-Year Veteran Nasir.', link: '#/about' },
+    { text: '🌐 Career Tracks: AI Specialist, Full-Stack Web Developer, SEO Architect.', link: '#/topics' },
+  ];
+
+  await setBlob('marquee_items', marquee);
+
+  // 9. Meta Seed Marker
   await setBlob('meta', {
     seeded: true,
     seeded_at: now,
   });
 
-  console.log('Web Nasir extended seeding completed.');
+  console.log('Web Nasir Academy extended seeding completed.');
 }
