@@ -15,11 +15,26 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Global CORS middleware
 app.use((req, res, next) => {
-  const origin = (req.headers.origin as string) || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  const reqOrigin = req.headers.origin || req.headers.referer;
+  let origin = '';
+  if (reqOrigin) {
+    try {
+      origin = new URL(reqOrigin as string).origin;
+    } catch {
+      origin = reqOrigin as string;
+    }
+  }
+
+  if (origin && origin !== '*') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
@@ -54,7 +69,12 @@ app.all(['/api', '/api/*', '/.netlify/functions/api', '/.netlify/functions/api/*
     if (response.headers) {
       for (const [key, value] of Object.entries(response.headers)) {
         if (value !== undefined) {
-          res.setHeader(key, value as string);
+          if (key.toLowerCase() === 'access-control-allow-origin' && value === '*' && req.headers.origin) {
+            res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+          } else {
+            res.setHeader(key, value as string);
+          }
         }
       }
     }

@@ -63,7 +63,7 @@ export function extractTokenFromEvent(event) {
   const headers = event.headers || {};
 
   // Check Cookie header (case-insensitive)
-  const cookieHeader = headers.cookie || headers.Cookie;
+  const cookieHeader = headers.cookie || headers.Cookie || headers.COOKIE;
   if (cookieHeader) {
     const parsed = parseCookies(cookieHeader);
     if (parsed[TOKEN_NAME]) {
@@ -71,10 +71,21 @@ export function extractTokenFromEvent(event) {
     }
   }
 
-  // Also support Authorization: Bearer <token> fallback
-  const authHeader = headers.authorization || headers.Authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  // Support Authorization: Bearer <token> (case-insensitive)
+  const authHeader = headers.authorization || headers.Authorization || headers.AUTHORIZATION;
+  if (authHeader && authHeader.slice(0, 7).toLowerCase() === 'bearer ') {
     return authHeader.substring(7).trim();
+  }
+
+  // Support x-access-token or token header
+  const customHeader = headers['x-access-token'] || headers['X-Access-Token'] || headers.token || headers.Token;
+  if (customHeader) {
+    return customHeader.trim();
+  }
+
+  // Support query parameter fallback (e.g. ?token=...)
+  if (event.queryStringParameters?.token) {
+    return event.queryStringParameters.token.trim();
   }
 
   return null;

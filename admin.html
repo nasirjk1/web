@@ -663,10 +663,26 @@
       const token = localStorage.getItem('webnasir_admin_token') || sessionStorage.getItem('webnasir_admin_token');
       const headers = { 
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        'Accept': 'application/json',
+        ...(token ? { 
+          'Authorization': `Bearer ${token}`,
+          'X-Access-Token': token 
+        } : {}),
         ...(options.headers || {}) 
       };
-      const res = await fetch('/api' + url, { credentials: 'include', ...options, headers });
+
+      let res;
+      try {
+        res = await fetch('/api' + url, { credentials: 'include', ...options, headers });
+      } catch (err) {
+        // If credentials: 'include' was rejected by browser (e.g. cross-origin iframe partitioned cookie policy), retry with credentials: 'omit' using Bearer token
+        try {
+          res = await fetch('/api' + url, { credentials: 'omit', ...options, headers });
+        } catch (retryErr) {
+          throw new Error('Connection error: ' + (retryErr.message || 'Unable to connect to server'));
+        }
+      }
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 401 && !url.includes('/login')) {

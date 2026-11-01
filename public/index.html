@@ -322,12 +322,66 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-    // Global State
+    // Global State with Instant Hydration Defaults
     window.APP_STATE = {
-      settings: null,
-      topics: [],
-      tools: [],
-      articles: [],
+      settings: {
+        site_name: 'Web Nasir',
+        tagline: 'AI & Web Income',
+        whatsapp_number: '917006334417',
+        email: 'hello@webnasir.com',
+        announcement_enabled: true,
+        announcement_badge: 'New 2025 Edition',
+        announcement_text: 'Free AI Utilities, 10-Year AdSense High-RPM Blueprint & Facebook Monetization are live!',
+        announcement_link_text: 'Read Guides →',
+        announcement_link_url: '#/articles',
+        hero_title: 'Build Faster with AI, Earn Smarter on the Web.',
+        hero_subtitle: 'Master modern full-stack web development, automated AI utilities, and battle-tested Google AdSense & Facebook monetization strategies with 10-year engineering veteran Nasir.',
+        stat_years: '10+ Yrs',
+        stat_rpm: '$35+',
+        stat_projects: '250+',
+        stat_tools: '100% Free',
+        nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
+        social_facebook: 'https://facebook.com/webnasir',
+        social_x: 'https://x.com/webnasir',
+        social_youtube: 'https://youtube.com/@webnasir',
+        social_instagram: 'https://instagram.com/webnasir',
+        social_linkedin: 'https://linkedin.com/in/webnasir',
+        footer_text: 'Helping developers, bloggers and creators build better websites — and earn real income from them.',
+        trust_badges: [
+          '10+ Years Experience',
+          '250+ Projects',
+          '150+ Guides',
+          '100% Practical',
+          'Live Client Work',
+          '4.9 ★'
+        ],
+      },
+      topics: [
+        { key: 'ai', name: 'AI & Automation Tools', description: 'Ship lightweight AI micro-SaaS utilities, automated workflows, and high-utility prompt apps that solve real user problems.', icon: 'sparkles', link: '#/articles?tag=ai', sort_order: 1 },
+        { key: 'webdev', name: 'Modern Web Engineering', description: 'Production-ready full-stack architecture, high-performance static builds, Jamstack, serverless, and clean UI engineering.', icon: 'code', link: '#/articles?tag=webdev', sort_order: 2 },
+        { key: 'adsense', name: 'Google AdSense & High RPM', description: 'Data-driven ad placement, high-tier GEO targeting, keyword arbitrage, and viewability tuning to maximize your RPM.', icon: 'dollar-sign', link: '#/articles?tag=adsense', sort_order: 3 },
+        { key: 'facebook', name: 'Facebook Video & Reels Monetization', description: 'Break into In-Stream ads, Facebook Reels bonuses, virality frameworks, retention editing, and rights manager compliance.', icon: 'share-2', link: '#/articles?tag=facebook', sort_order: 4 },
+        { key: 'blogging', name: 'SEO & Content Publishing', description: 'Topical authority clusters, intent-first search optimization, programmatic content scaling, and Core Web Vitals.', icon: 'book-open', link: '#/articles?tag=blogging', sort_order: 5 },
+        { key: 'earning', name: 'Digital Products & Micro-Income', description: 'Turn your utility websites into recurring cash flow using affiliate partnerships, premium tiers, and niche newsletters.', icon: 'trending-up', link: '#/articles?tag=earning', sort_order: 6 }
+      ],
+      tools: [
+        { key: 'youtube', name: 'AI Viral YouTube Title & Hook Crafter', description: 'Generate high-CTR click-worthy YouTube titles, retention intro hooks, and visual thumbnail concepts using Gemini AI.', category: 'AI Creators', badge: 'AI Powered', tool_type: 'ai_youtube', icon: 'video', is_enabled: true, sort_order: 1 },
+        { key: 'blogoutline', name: 'AI SEO Blog Outline & Keyword Strategist', description: 'Produce intent-first article structures, H2/H3 hierarchies, and high-CPC target keyword clusters in seconds.', category: 'SEO & Content', badge: 'AI Powered', tool_type: 'ai_blog', icon: 'file-text', is_enabled: true, sort_order: 2 },
+        { key: 'codeexplainer', name: 'AI Code, Regex & Script Explainer', description: 'Break down complex JavaScript, Python, SQL queries, or regular expressions with plain English explanations and fixes.', category: 'AI Creators', badge: 'AI Powered', tool_type: 'ai_code', icon: 'code', is_enabled: true, sort_order: 3 },
+        { key: 'adcopy', name: 'AI AdSense & Social Ad Copy Generator', description: 'Generate high-converting headlines, primary ad copy, and psychological call-to-actions tailored for web traffic.', category: 'Monetization', badge: 'AI Powered', tool_type: 'ai_adcopy', icon: 'sparkles', is_enabled: true, sort_order: 4 },
+        { key: 'business', name: 'AdSense & Website Revenue Estimator', description: 'Project daily, monthly, and yearly income based on niche traffic, RPM, ad impressions, and click-through rates.', category: 'Monetization', badge: 'Interactive Calc', tool_type: 'client_business', icon: 'dollar-sign', is_enabled: true, sort_order: 5 },
+        { key: 'name', name: 'AI Brand & Domain Name Generator', description: 'Generate catchy, brandable tech and business names with instant domain availability hints and marketing vibe scoring.', category: 'AI Creators', badge: 'Branding Tool', tool_type: 'client_name', icon: 'sparkles', is_enabled: true, sort_order: 6 },
+        { key: 'instagram', name: 'Social Media Viral Caption & Tag Generator', description: 'Craft high-engagement Instagram, TikTok, and Facebook captions paired with tri-tier low/mid/high competition hashtags.', category: 'SEO & Content', badge: 'Growth Tool', tool_type: 'client_instagram', icon: 'hash', is_enabled: true, sort_order: 7 },
+        { key: 'wordcount', name: 'Pro Content SEO & Word Density Analyzer', description: 'Inspect word count, character count, estimated reading & speaking time, readability grades, and keyword density for SEO.', category: 'SEO & Content', badge: 'SEO Utility', tool_type: 'client_wordcount', icon: 'file-text', is_enabled: true, sort_order: 8 },
+        { key: 'password', name: 'Military-Grade Password & Passphrase Generator', description: 'Create cryptographically strong passwords or memorable passphrase chains with real-time entropy strength analysis.', category: 'Calculators', badge: 'Security Tool', tool_type: 'client_password', icon: 'shield-check', is_enabled: true, sort_order: 9 },
+        { key: 'age', name: 'Exact Age & Date Milestone Calculator', description: 'Calculate your exact age down to days, hours, and minutes, upcoming milestone birthdays, and astrological insights.', category: 'Calculators', badge: 'Date Utility', tool_type: 'client_age', icon: 'calendar', is_enabled: true, sort_order: 10 },
+        { key: 'arbitrage', name: 'AdSense Arbitrage & Traffic Profitability Calculator', description: 'Simulate paid ad acquisition cost vs AdSense revenue return, net profit margins, and campaign ROI percentage.', category: 'Monetization', badge: 'Arbitrage Tool', tool_type: 'client_arbitrage', icon: 'trending-up', is_enabled: true, sort_order: 11 }
+      ],
+      articles: [
+        { slug: 'ai-tools-monetization', tag: 'ai', title: 'How to Build and Monetize AI Micro-SaaS Tools in 2025: A 10-Year Developer Blueprint', meta: 'Step-by-step framework to conceptualize, ship, and monetize lightweight AI utility websites without massive infrastructure bills.', sort_order: 1, is_published: true },
+        { slug: 'adsense-high-rpm-guide', tag: 'adsense', title: 'From $2 to $35 RPM: Engineering High-Income Google AdSense Architectures', meta: 'Detailed breakdown of ad layout engineering, high-tier GEO audience acquisition, sticky ad placement physics, and Core Web Vitals optimization.', sort_order: 2, is_published: true },
+        { slug: 'facebook-monetization-playbook', tag: 'facebook', title: 'Facebook Video Monetization: The 3-Second Hook & Retention Framework That Pays $10k/Month', meta: 'Master Facebook In-Stream Ads and Performance Bonuses using retention editing, copyright clearance, and audience pacing.', sort_order: 3, is_published: true }
+      ],
       currentUser: null,
       firebaseReady: false,
     };
@@ -578,57 +632,97 @@
       }
     }
 
-    async function initAppData() {
-      document.getElementById('year-curr').textContent = new Date().getFullYear();
+    function applySettingsUI(settings) {
+      if (!settings) return;
+      if (document.getElementById('nav-brand-name')) document.getElementById('nav-brand-name').textContent = settings.site_name || 'Web Nasir';
+      if (document.getElementById('nav-tagline')) document.getElementById('nav-tagline').textContent = settings.tagline || 'AI & Web Income';
       
-      const [settings, topics, tools, articles] = await Promise.all([
-        apiFetch('/settings'),
-        apiFetch('/topics'),
-        apiFetch('/tools'),
-        apiFetch('/articles'),
-      ]);
-
-      if (settings) {
-        window.APP_STATE.settings = settings;
-        document.getElementById('nav-brand-name').textContent = settings.site_name || 'Web Nasir';
-        document.getElementById('nav-tagline').textContent = settings.tagline || 'AI & Web Income';
-        
-        // Announcement bar settings
+      // Announcement bar settings
+      const annBar = document.getElementById('top-announcement-bar');
+      if (annBar) {
         if (settings.announcement_enabled === false) {
-          document.getElementById('top-announcement-bar').classList.add('hidden');
+          annBar.classList.add('hidden');
         } else {
-          document.getElementById('top-announcement-bar').classList.remove('hidden');
+          annBar.classList.remove('hidden');
           if (settings.announcement_badge) document.getElementById('announcement-badge').textContent = settings.announcement_badge + ':';
           if (settings.announcement_text) document.getElementById('announcement-text').textContent = settings.announcement_text;
           if (settings.announcement_link_text) document.getElementById('announcement-link').textContent = settings.announcement_link_text;
           if (settings.announcement_link_url) document.getElementById('announcement-link').href = settings.announcement_link_url;
         }
-
-        if (settings.whatsapp_number) {
-          const cleanNum = settings.whatsapp_number.replace(/[^0-9]/g, '');
-          document.getElementById('whatsapp-float-link').href = `https://wa.me/${cleanNum}?text=Hi%20Nasir,%20I%20visited%20Web%20Nasir%20and%20would%20like%20to%20connect!`;
-          document.getElementById('footer-phone').textContent = `+${cleanNum}`;
-        }
-        if (settings.email) {
-          document.getElementById('footer-email').textContent = settings.email;
-          document.getElementById('footer-email').href = `mailto:${settings.email}`;
-        }
-        if (settings.footer_text) {
-          document.getElementById('footer-summary').textContent = settings.footer_text;
-        }
-        if (settings.social_facebook) document.getElementById('soc-fb').href = settings.social_facebook;
-        if (settings.social_x) document.getElementById('soc-x').href = settings.social_x;
-        if (settings.social_youtube) document.getElementById('soc-yt').href = settings.social_youtube;
-        if (settings.social_instagram) document.getElementById('soc-ig').href = settings.social_instagram;
-        if (settings.social_linkedin) document.getElementById('soc-li').href = settings.social_linkedin;
       }
 
-      if (topics) window.APP_STATE.topics = topics;
-      if (tools) window.APP_STATE.tools = tools;
-      if (articles) window.APP_STATE.articles = articles;
+      if (settings.whatsapp_number) {
+        const cleanNum = settings.whatsapp_number.replace(/[^0-9]/g, '');
+        const waLink = document.getElementById('whatsapp-float-link');
+        if (waLink) waLink.href = `https://wa.me/${cleanNum}?text=Hi%20Nasir,%20I%20visited%20Web%20Nasir%20and%20would%20like%20to%20connect!`;
+        const fPhone = document.getElementById('footer-phone');
+        if (fPhone) fPhone.textContent = `+${cleanNum}`;
+      }
+      if (settings.email) {
+        const fEmail = document.getElementById('footer-email');
+        if (fEmail) {
+          fEmail.textContent = settings.email;
+          fEmail.href = `mailto:${settings.email}`;
+        }
+      }
+      if (settings.footer_text) {
+        const fSummary = document.getElementById('footer-summary');
+        if (fSummary) fSummary.textContent = settings.footer_text;
+      }
+      if (settings.social_facebook && document.getElementById('soc-fb')) document.getElementById('soc-fb').href = settings.social_facebook;
+      if (settings.social_x && document.getElementById('soc-x')) document.getElementById('soc-x').href = settings.social_x;
+      if (settings.social_youtube && document.getElementById('soc-yt')) document.getElementById('soc-yt').href = settings.social_youtube;
+      if (settings.social_instagram && document.getElementById('soc-ig')) document.getElementById('soc-ig').href = settings.social_instagram;
+      if (settings.social_linkedin && document.getElementById('soc-li')) document.getElementById('soc-li').href = settings.social_linkedin;
+    }
 
+    async function initAppData() {
+      const yearEl = document.getElementById('year-curr');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+      // 1. Immediate instant render using pre-hydrated production state
+      applySettingsUI(window.APP_STATE.settings);
       window.addEventListener('hashchange', router);
       router();
+
+      // 2. Background sync with backend / Netlify Blobs store
+      try {
+        const [settings, topics, tools, articles] = await Promise.all([
+          apiFetch('/settings'),
+          apiFetch('/topics'),
+          apiFetch('/tools'),
+          apiFetch('/articles'),
+        ]);
+
+        let hasUpdates = false;
+
+        if (settings && Object.keys(settings).length > 0) {
+          window.APP_STATE.settings = { ...window.APP_STATE.settings, ...settings };
+          applySettingsUI(window.APP_STATE.settings);
+          hasUpdates = true;
+        }
+
+        if (Array.isArray(topics) && topics.length > 0) {
+          window.APP_STATE.topics = topics;
+          hasUpdates = true;
+        }
+
+        if (Array.isArray(tools) && tools.length > 0) {
+          window.APP_STATE.tools = tools;
+          hasUpdates = true;
+        }
+
+        if (Array.isArray(articles) && articles.length > 0) {
+          window.APP_STATE.articles = articles;
+          hasUpdates = true;
+        }
+
+        if (hasUpdates) {
+          router();
+        }
+      } catch (err) {
+        console.warn('Background sync note:', err.message);
+      }
     }
 
     async function router() {
@@ -768,13 +862,18 @@
               <button onclick="filterHomeTools('all')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm" data-cat="all">All Utilities (${tools.length})</button>
               <button onclick="filterHomeTools('AI Creators')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="AI Creators">AI Creators</button>
               <button onclick="filterHomeTools('Monetization')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="Monetization">Monetization</button>
-              <button onclick="filterHomeTools('SEO & Copy')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="SEO & Copy">SEO & Content</button>
+              <button onclick="filterHomeTools('SEO & Content')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="SEO & Content">SEO & Content</button>
               <button onclick="filterHomeTools('Calculators')" class="home-tool-tab px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-bordercol hover:bg-slate-50" data-cat="Calculators">Calculators</button>
             </div>
 
             <!-- Tools Tiles Grid -->
             <div id="home-tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               ${tools.map(t => renderToolTileHtml(t)).join('')}
+            </div>
+
+            <div id="home-tools-empty" class="hidden text-center py-12 text-slate-500 text-sm">
+              <p class="font-medium">No tools found matching this category.</p>
+              <button onclick="filterHomeTools('all')" class="mt-2 text-xs font-bold text-brand-600 hover:underline">View All Utilities (${tools.length})</button>
             </div>
 
             <div class="mt-12 text-center">
@@ -1016,13 +1115,26 @@
         }
       });
 
+      let visible = 0;
       document.querySelectorAll('.tool-tile').forEach(tile => {
-        if (category === 'all' || tile.dataset.category === category) {
+        const cat = (tile.dataset.category || '').toLowerCase();
+        const target = category.toLowerCase();
+        const match = target === 'all' || 
+          cat === target ||
+          (target === 'seo & content' && (cat === 'seo & copy' || cat === 'seo & content'));
+
+        if (match) {
           tile.style.display = '';
+          visible++;
         } else {
           tile.style.display = 'none';
         }
       });
+
+      const emptyNotice = document.getElementById('home-tools-empty');
+      if (emptyNotice) {
+        emptyNotice.classList.toggle('hidden', visible > 0);
+      }
     };
 
     function getToolIcon(key) {
@@ -1037,6 +1149,7 @@
         case 'instagram': return 'hash';
         case 'password': return 'shield-check';
         case 'wordcount': return 'file-text';
+        case 'arbitrage': return 'trending-up';
         default: return 'tool';
       }
     }
@@ -1349,6 +1462,9 @@
           break;
         case 'wordcount':
           mountWordCounter(target);
+          break;
+        case 'arbitrage':
+          mountArbitrageCalculator(target);
           break;
         default:
           mountCustomAiTool(target, tool);
@@ -1882,6 +1998,127 @@
       document.getElementById('stat-words').textContent = words;
       document.getElementById('stat-chars').textContent = text.length;
       document.getElementById('stat-read').textContent = Math.ceil(words / 200) + ' min';
+    };
+
+    // --- TOOL 11: ADSENSE ARBITRAGE & TRAFFIC PROFITABILITY CALCULATOR ---
+    function mountArbitrageCalculator(el) {
+      el.innerHTML = `
+        <div class="max-w-3xl mx-auto">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="trending-up" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AdSense Arbitrage & ROI Calculator</h2>
+            <p class="text-xs text-muted mt-1">Simulate paid traffic acquisition costs against AdSense revenue yield, net margins, and campaign ROI.</p>
+          </div>
+
+          <div class="bg-surface p-6 sm:p-8 rounded-3xl border border-bordercol mb-8 space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-xs font-bold uppercase text-slate-700">Paid Clicks / Visitors</label>
+                  <span id="arb-clicks-val" class="text-xs font-bold text-brand-700">10,000</span>
+                </div>
+                <input id="arb-clicks" type="range" min="1000" max="100000" step="1000" value="10000" oninput="calculateArbitrageNow()" class="w-full accent-brand-600 cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-xs font-bold uppercase text-slate-700">Cost Per Click (CPC) Paid ($)</label>
+                  <span id="arb-cpc-val" class="text-xs font-bold text-brand-700">$0.04</span>
+                </div>
+                <input id="arb-cpc" type="range" min="0.01" max="0.50" step="0.01" value="0.04" oninput="calculateArbitrageNow()" class="w-full accent-brand-600 cursor-pointer">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-xs font-bold uppercase text-slate-700">Expected Page RPM ($)</label>
+                  <span id="arb-rpm-val" class="text-xs font-bold text-brand-700">$22.00</span>
+                </div>
+                <input id="arb-rpm" type="range" min="5" max="80" step="1" value="22" oninput="calculateArbitrageNow()" class="w-full accent-brand-600 cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-xs font-bold uppercase text-slate-700">Pages Per Visitor (Depth)</label>
+                  <span id="arb-depth-val" class="text-xs font-bold text-brand-700">1.8 pages</span>
+                </div>
+                <input id="arb-depth" type="range" min="1.0" max="4.0" step="0.1" value="1.8" oninput="calculateArbitrageNow()" class="w-full accent-brand-600 cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <div id="arb-results" class="space-y-4"></div>
+        </div>
+      `;
+      calculateArbitrageNow();
+    }
+
+    window.calculateArbitrageNow = function() {
+      const clicks = Number(document.getElementById('arb-clicks').value);
+      const cpc = Number(document.getElementById('arb-cpc').value);
+      const rpm = Number(document.getElementById('arb-rpm').value);
+      const depth = Number(document.getElementById('arb-depth').value);
+
+      document.getElementById('arb-clicks-val').textContent = clicks.toLocaleString();
+      document.getElementById('arb-cpc-val').textContent = '$' + cpc.toFixed(2);
+      document.getElementById('arb-rpm-val').textContent = '$' + rpm.toFixed(2);
+      document.getElementById('arb-depth-val').textContent = depth.toFixed(1) + ' pages';
+
+      const totalAdSpend = clicks * cpc;
+      const totalPageviews = clicks * depth;
+      const grossRevenue = (totalPageviews / 1000) * rpm;
+      const netProfit = grossRevenue - totalAdSpend;
+      const roi = totalAdSpend > 0 ? (netProfit / totalAdSpend) * 100 : 0;
+      const isProfitable = netProfit > 0;
+
+      const resultsEl = document.getElementById('arb-results');
+      if (!resultsEl) return;
+      resultsEl.innerHTML = `
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div class="bg-surface p-4 rounded-2xl border border-bordercol">
+            <span class="text-[11px] font-bold uppercase text-muted">Total Ad Spend</span>
+            <div class="text-xl font-extrabold font-heading text-slate-800 mt-1">$${totalAdSpend.toFixed(2)}</div>
+          </div>
+          <div class="bg-surface p-4 rounded-2xl border border-bordercol">
+            <span class="text-[11px] font-bold uppercase text-muted">Total Pageviews</span>
+            <div class="text-xl font-extrabold font-heading text-slate-800 mt-1">${Math.round(totalPageviews).toLocaleString()}</div>
+          </div>
+          <div class="bg-surface p-4 rounded-2xl border border-bordercol">
+            <span class="text-[11px] font-bold uppercase text-muted">Gross AdSense</span>
+            <div class="text-xl font-extrabold font-heading text-brand-700 mt-1">$${grossRevenue.toFixed(2)}</div>
+          </div>
+          <div class="${isProfitable ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800'} p-4 rounded-2xl border">
+            <span class="text-[11px] font-bold uppercase ${isProfitable ? 'text-emerald-700' : 'text-rose-700'}">Net Profit</span>
+            <div class="text-xl font-extrabold font-heading mt-1">${isProfitable ? '+' : ''}$${netProfit.toFixed(2)}</div>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl ${isProfitable ? 'bg-emerald-50/70 border border-emerald-200' : 'bg-amber-50 border border-amber-200'} flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${isProfitable ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}">
+                ${isProfitable ? 'PROFITABLE ARBITRAGE' : 'NEGATIVE MARGIN'}
+              </span>
+              <span class="text-xs font-bold font-heading ${isProfitable ? 'text-emerald-900' : 'text-amber-900'}">
+                ROI: ${roi.toFixed(1)}%
+              </span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1.5">
+              ${isProfitable 
+                ? `Every $1 spent on traffic generates $${((grossRevenue/totalAdSpend) || 1).toFixed(2)} from Google AdSense.` 
+                : 'Traffic cost exceeds AdSense return. Reduce CPC or increase pagination/RPM.'}
+            </p>
+          </div>
+          <button onclick="saveResultToFirestore('arbitrage', 'AdSense Arbitrage Calculator', '${clicks} clicks @ $${cpc.toFixed(2)} CPC, $${rpm.toFixed(2)} RPM', 'Total Spend: $${totalAdSpend.toFixed(2)}\\nPageviews: ${Math.round(totalPageviews)}\\nAdSense Revenue: $${grossRevenue.toFixed(2)}\\nNet Profit: $${netProfit.toFixed(2)} (ROI: ${roi.toFixed(1)}%)')" class="flex-shrink-0 gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+            <span>Save to Account</span>
+          </button>
+        </div>
+      `;
+      lucide.createIcons();
     };
 
     // Topics, About, Contact

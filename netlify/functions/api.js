@@ -23,18 +23,39 @@ function getGenAI() {
   return aiClient;
 }
 
+let currentEvent = null;
+
 function getCorsHeaders(event) {
-  const origin = event?.headers?.origin || event?.headers?.Origin || '*';
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept',
+  const evt = event || currentEvent;
+  const reqOrigin = evt?.headers?.origin || evt?.headers?.Origin || evt?.headers?.referer || evt?.headers?.Referer;
+  let origin = '*';
+  if (reqOrigin && reqOrigin !== '*') {
+    try {
+      origin = new URL(reqOrigin).origin;
+    } catch {
+      origin = reqOrigin;
+    }
+  }
+
+  const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+    'Vary': 'Origin',
   };
+
+  if (origin && origin !== '*') {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  } else {
+    headers['Access-Control-Allow-Origin'] = '*';
+  }
+
+  return headers;
 }
 
 function jsonResponse(statusCode, data, headers = {}, event = null) {
-  const cors = getCorsHeaders(event);
+  const evt = event || currentEvent;
+  const cors = getCorsHeaders(evt);
   return {
     statusCode,
     headers: {
@@ -59,6 +80,7 @@ function parseJsonBody(body) {
 
 export const handler = async (event, context) => {
   try {
+    currentEvent = event;
     const method = (event.httpMethod || event.method || 'GET').toUpperCase();
 
     // Handle CORS OPTIONS preflight immediately

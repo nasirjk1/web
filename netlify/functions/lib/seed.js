@@ -3,19 +3,28 @@ import { hashPassword } from './auth.js';
 
 export async function ensureSeeded() {
   const meta = await getBlob('meta');
-  if (meta && meta.seeded === true) {
+  const existingTools = await getBlob('tools_index');
+  const existingTopics = await getBlob('topics_index');
+  const existingArticles = await getBlob('articles_index');
+  const existingSettings = await getBlob('settings');
+  const existingAuth = await getBlob('auth');
+
+  // If already seeded and all indices are present, we don't need to re-seed
+  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth) {
     return;
   }
 
-  console.log('Seeding initial data for Web Nasir...');
+  console.log('Seeding initial data for Web Nasir (all collections verification)...');
 
   // 1. Admin Authentication
-  const defaultPasswordHash = await hashPassword('admin123');
-  await setBlob('auth', {
-    username: 'admin',
-    password_hash: defaultPasswordHash,
-    must_change_password: true,
-  });
+  if (!existingAuth) {
+    const defaultPasswordHash = await hashPassword('admin123');
+    await setBlob('auth', {
+      username: 'admin',
+      password_hash: defaultPasswordHash,
+      must_change_password: true,
+    });
+  }
 
   // 2. Settings (Expanded with Home Page Controls)
   await setBlob('settings', {
@@ -121,7 +130,7 @@ export async function ensureSeeded() {
       key: 'blogoutline',
       name: 'AI SEO Blog Outline & Keyword Strategist',
       description: 'Produce intent-first article structures, H2/H3 hierarchies, and high-CPC target keyword clusters in seconds.',
-      category: 'SEO & Copy',
+      category: 'SEO & Content',
       badge: 'AI Powered',
       tool_type: 'ai_blog',
       icon: 'file-text',
@@ -176,7 +185,7 @@ export async function ensureSeeded() {
       key: 'instagram',
       name: 'Social Media Viral Caption & Tag Generator',
       description: 'Craft high-engagement Instagram, TikTok, and Facebook captions paired with tri-tier low/mid/high competition hashtags.',
-      category: 'SEO & Copy',
+      category: 'SEO & Content',
       badge: 'Growth Tool',
       tool_type: 'client_instagram',
       icon: 'hash',
@@ -187,7 +196,7 @@ export async function ensureSeeded() {
       key: 'wordcount',
       name: 'Pro Content SEO & Word Density Analyzer',
       description: 'Inspect word count, character count, estimated reading & speaking time, readability grades, and keyword density for SEO.',
-      category: 'SEO & Copy',
+      category: 'SEO & Content',
       badge: 'SEO Utility',
       tool_type: 'client_wordcount',
       icon: 'file-text',
@@ -215,6 +224,17 @@ export async function ensureSeeded() {
       icon: 'calendar',
       is_enabled: true,
       sort_order: 10,
+    },
+    {
+      key: 'arbitrage',
+      name: 'AdSense Arbitrage & Traffic Profitability Calculator',
+      description: 'Simulate paid ad acquisition cost vs AdSense revenue return, net profit margins, and campaign ROI percentage.',
+      category: 'Monetization',
+      badge: 'Arbitrage Tool',
+      tool_type: 'client_arbitrage',
+      icon: 'trending-up',
+      is_enabled: true,
+      sort_order: 11,
     },
   ];
   await setBlob('tools_index', tools);
