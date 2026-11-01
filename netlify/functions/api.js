@@ -157,7 +157,10 @@ export const handler = async (event, context) => {
 
       if (ai) {
         try {
-          const response = await ai.models.generateContent({
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('AI generation timeout')), 4000)
+          );
+          const genPromise = ai.models.generateContent({
             model: 'gemini-3.8-flash',
             contents: prompt,
             config: {
@@ -165,10 +168,11 @@ export const handler = async (event, context) => {
               maxOutputTokens: 1500,
             },
           });
+          const response = await Promise.race([genPromise, timeoutPromise]);
           const text = response.text || 'Output generated successfully.';
           return jsonResponse(200, { success: true, result: text });
         } catch (genErr) {
-          console.warn('Gemini API call failed, using intelligent template generator:', genErr.message);
+          console.warn('Gemini API call skipped or timed out, using template generator:', genErr.message);
         }
       }
 
