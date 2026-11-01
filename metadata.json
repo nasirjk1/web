@@ -1,0 +1,6 @@
+{
+  "name": "Web Nasir - AI & Web Income",
+  "description": "Production-ready website and admin dashboard for Web Nasir featuring AI tools, web monetization guides, and Netlify-native serverless architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

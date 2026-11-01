@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unmatched documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "muharim6@gmail.com" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Users collection: Private PII isolation
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if false; // Strict PII protection
+      allow create, update: if isValidId(userId) && isOwner(userId);
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+
+      // User's private saved generations and bookmarks
+      match /saved_generations/{generationId} {
+        allow get, list: if isValidId(generationId) && isOwner(userId);
+        allow create: if isValidId(generationId) && isOwner(userId);
+        allow update: if isValidId(generationId) && isOwner(userId);
+        allow delete: if isValidId(generationId) && isOwner(userId);
+      }
+    }
+
+    // Custom tools directory: Public read, admin write
+    match /custom_tools/{toolId} {
+      allow read: if isValidId(toolId);
+      allow write: if isValidId(toolId) && isAdmin();
+    }
+  }
+}

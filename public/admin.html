@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Web Nasir</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            },
+            dark: '#0f172a',
+            muted: '#64748b',
+            surface: '#f8fafc',
+            bordercol: '#e2e8f0',
+          },
+          fontFamily: {
+            heading: ['Poppins', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #0f172a;
+      background-color: #f8fafc;
+    }
+    h1, h2, h3, h4, h5, h6, .font-heading {
+      font-family: 'Poppins', sans-serif;
+    }
+    .gradient-btn {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      box-shadow: 0 4px 12px 0 rgba(124, 58, 237, 0.25);
+      transition: all 0.2s ease;
+    }
+    .gradient-btn:hover {
+      box-shadow: 0 6px 16px 0 rgba(124, 58, 237, 0.4);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- AUTH CHECK LOADER -->
+  <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <div class="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="mt-4 text-sm font-medium text-slate-500">Checking admin authorization...</p>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 1. LOGIN SCREEN -->
+  <!-- ======================================================== -->
+  <div id="login-section" class="hidden min-h-screen flex items-center justify-center p-4 bg-surface">
+    <div class="max-w-md w-full bg-white rounded-3xl border border-bordercol p-8 sm:p-10 shadow-xl">
+      <div class="text-center mb-8">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-700 to-brand-500 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
+          <i data-lucide="shield" class="w-7 h-7"></i>
+        </div>
+        <h1 class="text-2xl font-bold font-heading text-dark">Web Nasir Admin</h1>
+        <p class="text-xs text-muted mt-1">Direct private admin access</p>
+      </div>
+
+      <!-- Default Credentials Banner -->
+      <div class="mb-6 p-4 rounded-2xl bg-brand-50 border border-brand-200 text-xs text-brand-900 leading-relaxed">
+        <div class="flex items-center gap-1.5 font-bold mb-1">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-brand-700"></i>
+          <span>System Credentials</span>
+        </div>
+        <div>Username: <strong class="font-mono">admin</strong></div>
+        <div>Password: <strong class="font-mono">admin123</strong></div>
+        <div class="text-[10px] text-brand-600 mt-1 italic">* Password change is required on initial login.</div>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Username</label>
+          <input id="login-username" type="text" required value="admin" class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Password</label>
+          <input id="login-password" type="password" required value="admin123" class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+        </div>
+        <button type="submit" id="login-btn" class="w-full gradient-btn text-white font-semibold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
+          <span>Sign In to Dashboard</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <a href="/" class="text-xs text-slate-500 hover:text-brand-600">&larr; Return to Public Website</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 2. ADMIN DASHBOARD APP -->
+  <!-- ======================================================== -->
+  <div id="dashboard-section" class="hidden min-h-screen flex flex-col">
+    
+    <header class="bg-white border-b border-bordercol sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <span class="text-base font-bold font-heading text-dark">Web Nasir</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 ml-1.5">ADMIN</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <a href="/" target="_blank" class="text-xs font-semibold text-slate-600 hover:text-brand-600 flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">View Live Site</span>
+          </a>
+          <button onclick="handleLogout()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 flex items-center gap-1 transition-all">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Subnav Tabs -->
+    <div class="bg-white border-b border-bordercol">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-6 overflow-x-auto text-sm font-semibold text-slate-600 py-3" id="admin-tabs">
+          <button onclick="switchTab('overview')" class="tab-btn pb-1 text-brand-600 border-b-2 border-brand-600 flex items-center gap-2 whitespace-nowrap" data-tab="overview">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Overview</span>
+          </button>
+          <button onclick="switchTab('home-settings')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="home-settings">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            <span>Home Page Settings</span>
+          </button>
+          <button onclick="switchTab('tools')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="tools">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Free AI Tools Manager</span>
+          </button>
+          <button onclick="switchTab('articles')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="articles">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Articles & Guides</span>
+          </button>
+          <button onclick="switchTab('topics')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="topics">
+            <i data-lucide="tags" class="w-4 h-4"></i>
+            <span>Topics Taxonomy</span>
+          </button>
+          <button onclick="switchTab('security')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="security">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            <span>Security & Password</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Alert Banner If Must Change Password -->
+    <div id="password-alert-banner" class="hidden bg-amber-500 text-white px-4 py-3 text-sm font-medium shadow-md">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
+          <span>Security Notice: You are currently using the default seeded password ("admin123"). Please change it now.</span>
+        </div>
+        <button onclick="switchTab('security')" class="underline font-bold text-xs bg-amber-600 px-3 py-1 rounded-lg hover:bg-amber-700">
+          Update Password &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+      <!-- TAB 1: OVERVIEW -->
+      <section id="tab-overview" class="tab-panel space-y-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">Platform Dashboard</h2>
+            <p class="text-sm text-muted">Manage all Web Nasir settings, free AI tools, articles, and home page sections.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start">
+            <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add Free AI Tool</span>
+            </button>
+            <button onclick="openNewArticleModal()" class="bg-white hover:bg-slate-50 text-dark border border-bordercol text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-xs">
+              <i data-lucide="file-plus" class="w-4 h-4 text-brand-600"></i>
+              <span>New Guide</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted mb-2">Total Free Tools</div>
+            <div id="metric-tools-count" class="text-3xl font-extrabold font-heading text-brand-600">--</div>
+            <div class="text-xs text-emerald-600 font-semibold mt-1">Manageable & Expandable</div>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted mb-2">Published Guides</div>
+            <div id="metric-articles-count" class="text-3xl font-extrabold font-heading text-dark">--</div>
+            <div class="text-xs text-muted mt-1">Live in Netlify Blobs</div>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted mb-2">Topic Tracks</div>
+            <div id="metric-topics-count" class="text-3xl font-extrabold font-heading text-dark">--</div>
+            <div class="text-xs text-muted mt-1">AI, AdSense, Facebook, etc.</div>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted mb-2">Security & System</div>
+            <div class="text-xl font-bold font-heading text-emerald-600 flex items-center gap-1.5 mt-1">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Online & Serverless</span>
+            </div>
+            <div class="text-xs text-muted mt-2">Firebase + Netlify Blobs</div>
+          </div>
+        </div>
+
+        <!-- Recent Items Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold font-heading text-dark">Live Free AI Tools</h3>
+              <button onclick="switchTab('tools')" class="text-xs font-semibold text-brand-600 hover:underline">Manage All &rarr;</button>
+            </div>
+            <div id="overview-tools-list" class="divide-y divide-slate-100 text-sm">
+              <p class="text-muted text-xs py-4">Loading tools...</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold font-heading text-dark">Recent Guides</h3>
+              <button onclick="switchTab('articles')" class="text-xs font-semibold text-brand-600 hover:underline">Manage All &rarr;</button>
+            </div>
+            <div id="overview-articles-list" class="divide-y divide-slate-100 text-sm">
+              <p class="text-muted text-xs py-4">Loading guides...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: HOME PAGE SETTINGS -->
+      <section id="tab-home-settings" class="tab-panel hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold font-heading text-dark">Home Page Configuration & Sections</h2>
+          <p class="text-sm text-muted">Customize the public home page announcement bar, hero section, metrics, and author details.</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-3xl border border-bordercol shadow-xs max-w-4xl">
+          <form onsubmit="handleSaveSettings(event)" class="space-y-6">
+            
+            <!-- Announcement Bar Settings -->
+            <div class="p-5 rounded-2xl bg-surface border border-bordercol space-y-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-dark flex items-center gap-1.5">
+                  <i data-lucide="bell" class="w-4 h-4 text-brand-600"></i>
+                  <span>Top Announcement Bar</span>
+                </h4>
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+                  <input id="setting-announcement_enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                  <span>Show Announcement Bar</span>
+                </label>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Badge Text</label>
+                  <input id="setting-announcement_badge" type="text" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl text-xs font-medium">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Link Text & URL</label>
+                  <div class="flex gap-2">
+                    <input id="setting-announcement_link_text" type="text" placeholder="Read Guides →" class="w-1/2 px-3 py-2 bg-white border border-bordercol rounded-xl text-xs">
+                    <input id="setting-announcement_link_url" type="text" placeholder="#/articles" class="w-1/2 px-3 py-2 bg-white border border-bordercol rounded-xl text-xs font-mono">
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Announcement Message</label>
+                <input id="setting-announcement_text" type="text" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl text-xs font-medium">
+              </div>
+            </div>
+
+            <!-- Hero Section -->
+            <div class="space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-dark">Hero Section Content</h4>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Hero Headline</label>
+                <input id="setting-hero_title" type="text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Hero Subtitle</label>
+                <textarea id="setting-hero_subtitle" rows="3" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium leading-relaxed"></textarea>
+              </div>
+            </div>
+
+            <!-- Home Page Stats -->
+            <div class="p-5 rounded-2xl bg-surface border border-bordercol space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-dark">Home Page 4 Metrics Bar</h4>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-600 mb-1">Stat 1 (Experience)</label>
+                  <input id="setting-stat_years" type="text" placeholder="10+ Yrs" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl font-bold">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 mb-1">Stat 2 (Top RPM)</label>
+                  <input id="setting-stat_rpm" type="text" placeholder="$35+" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl font-bold">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 mb-1">Stat 3 (Deployments)</label>
+                  <input id="setting-stat_projects" type="text" placeholder="250+" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl font-bold">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 mb-1">Stat 4 (Tools Label)</label>
+                  <input id="setting-stat_tools" type="text" placeholder="100% Free" class="w-full px-3 py-2 bg-white border border-bordercol rounded-xl font-bold">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nasir Bio Highlight Quote</label>
+              <textarea id="setting-nasir_quote" rows="3" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium leading-relaxed"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Trust Badges Strip (Comma Separated)</label>
+              <input id="setting-trust_badges" type="text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+            </div>
+
+            <!-- General Branding -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Site Name</label>
+                <input id="setting-site_name" type="text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Tagline</label>
+                <input id="setting-tagline" type="text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">WhatsApp Number (e.g. 917006334417)</label>
+                <input id="setting-whatsapp" type="text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Support Email</label>
+                <input id="setting-email" type="email" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Footer Summary Text</label>
+              <textarea id="setting-footer_text" rows="2" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium"></textarea>
+            </div>
+
+            <div class="pt-4">
+              <button type="submit" class="gradient-btn text-white font-semibold px-8 py-3.5 rounded-xl text-sm shadow-md">
+                Save All Home Page & Site Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 3: FREE AI TOOLS MANAGER -->
+      <section id="tab-tools" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">Free AI & Web Utilities Manager</h2>
+            <p class="text-sm text-muted">Easily add new free AI tools, edit categories, customize prompts, and toggle visibility.</p>
+          </div>
+          <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 self-start shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add New Free Tool</span>
+          </button>
+        </div>
+
+        <div id="tools-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Dynamically populated tool cards -->
+        </div>
+      </section>
+
+      <!-- TAB 4: ARTICLES MANAGER -->
+      <section id="tab-articles" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">Articles & Technical Guides</h2>
+            <p class="text-sm text-muted">Create, edit, publish, and delete full markdown guides.</p>
+          </div>
+          <button onclick="openNewArticleModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 self-start">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>New Guide</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-bordercol shadow-xs overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-surface border-b border-bordercol text-xs font-bold uppercase tracking-wider text-slate-600">
+                <tr>
+                  <th class="py-3.5 px-6">Guide Title</th>
+                  <th class="py-3.5 px-4">Tag</th>
+                  <th class="py-3.5 px-4">Slug</th>
+                  <th class="py-3.5 px-4">Status</th>
+                  <th class="py-3.5 px-4">Order</th>
+                  <th class="py-3.5 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="articles-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="py-8 text-center text-muted text-xs">Loading articles...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: TOPICS TAXONOMY -->
+      <section id="tab-topics" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">Topics Taxonomy</h2>
+            <p class="text-sm text-muted">Manage the educational and monetization tracks.</p>
+          </div>
+          <button onclick="openNewTopicModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 self-start">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add New Topic</span>
+          </button>
+        </div>
+
+        <div id="topics-manager-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      </section>
+
+      <!-- TAB 6: SECURITY & PASSWORD -->
+      <section id="tab-security" class="tab-panel hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold font-heading text-dark">Security & Password Management</h2>
+          <p class="text-sm text-muted">Update your admin credentials securely. Passwords are hashed with bcrypt.</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl border border-bordercol shadow-xs max-w-xl">
+          <form onsubmit="handleChangePassword(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Current Password</label>
+              <input id="pwd-current" type="password" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">New Password (Min 8 Characters)</label>
+              <input id="pwd-next" type="password" minlength="8" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Confirm New Password</label>
+              <input id="pwd-confirm" type="password" minlength="8" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+            </div>
+            <div class="pt-2">
+              <button type="submit" class="gradient-btn text-white font-semibold py-3 px-6 rounded-xl text-sm shadow-md">
+                Update Admin Password
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ADD / EDIT FREE AI TOOL -->
+  <!-- ======================================================== -->
+  <div id="tool-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
+        <h3 id="tool-modal-title" class="text-lg font-bold font-heading text-dark">Add New Free AI Tool</h3>
+        <button onclick="closeToolModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveToolForm(event)" class="space-y-4">
+        <input type="hidden" id="edit-tool-is-new" value="true">
+        
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Name</label>
+          <input id="modal-tool-name" oninput="autoGenToolKey()" type="text" required placeholder="e.g. AI Resume Bullet Crafter" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Key / Slug</label>
+            <input id="modal-tool-key" type="text" required placeholder="resume-bullets" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category</label>
+            <select id="modal-tool-category" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+              <option value="AI Creators">AI Creators</option>
+              <option value="Monetization">Monetization</option>
+              <option value="SEO & Copy">SEO & Copy</option>
+              <option value="Calculators">Calculators</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Description</label>
+          <textarea id="modal-tool-desc" rows="2" required placeholder="Short summary of what this free tool computes or generates..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Badge Label</label>
+            <input id="modal-tool-badge" type="text" value="Free AI" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Lucide Icon</label>
+            <input id="modal-tool-icon" type="text" value="sparkles" placeholder="sparkles, code, video, file-text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Type</label>
+          <select id="modal-tool-type" onchange="toggleCustomPromptField()" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+            <option value="custom_ai">Custom AI Prompt Tool (Gemini 3.8 Flash Free)</option>
+            <option value="ai_youtube">Built-in: YouTube Titles & Hooks</option>
+            <option value="ai_blog">Built-in: SEO Blog Outline</option>
+            <option value="ai_code">Built-in: Code & Regex Explainer</option>
+            <option value="ai_adcopy">Built-in: Ad Copy Generator</option>
+            <option value="client_business">Built-in: Revenue Calculator</option>
+            <option value="client_password">Built-in: Password Generator</option>
+          </select>
+        </div>
+
+        <div id="modal-prompt-container">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Custom Prompt Instruction</label>
+          <textarea id="modal-tool-prompt" rows="3" placeholder="e.g. Generate 5 high-converting bullet points for a tech job resume based on the user's input." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 items-center pt-1">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
+            <input id="modal-tool-order" type="number" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+          <div class="pt-4">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+              <input id="modal-tool-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span>Active / Enabled</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
+          <button type="button" onclick="closeToolModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Tool</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ARTICLE EDITOR MODAL -->
+  <div id="article-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
+        <h3 id="article-modal-title" class="text-xl font-bold font-heading text-dark">New Technical Guide</h3>
+        <button onclick="closeArticleModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveArticle(event)" class="space-y-4">
+        <input type="hidden" id="edit-article-is-new" value="true">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Guide Title</label>
+          <input id="article-field-title" oninput="autoGenerateSlug()" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Slug</label>
+            <input id="article-field-slug" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tag / Category</label>
+            <input id="article-field-tag" type="text" required placeholder="ai, adsense, facebook..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Meta Summary</label>
+          <textarea id="article-field-meta" rows="2" maxlength="300" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4 items-center">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
+            <input id="article-field-order" type="number" value="1" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+          <div class="pt-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input id="article-field-published" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span class="text-xs font-semibold text-slate-700">Published</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Full Article Body (Markdown)</label>
+          <textarea id="article-field-body" rows="12" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-xs font-mono leading-relaxed"></textarea>
+        </div>
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
+          <button type="button" onclick="closeArticleModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Article</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    window.ADMIN = {
+      me: null,
+      articles: [],
+      tools: [],
+      topics: [],
+      settings: {},
+    };
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-slate-900';
+      toast.className = `${bg} text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    async function req(url, options = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      const res = await fetch('/api' + url, { credentials: 'same-origin', ...options, headers });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Server error ' + res.status);
+      return data;
+    }
+
+    async function checkAuth() {
+      try {
+        const me = await req('/admin/me');
+        if (me && me.authenticated) {
+          window.ADMIN.me = me;
+          showDashboard(me);
+          return;
+        }
+      } catch (err) {}
+      showLogin();
+    }
+
+    function showLogin() {
+      document.getElementById('loading-overlay').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function showDashboard(me) {
+      document.getElementById('loading-overlay').classList.add('hidden');
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.remove('hidden');
+
+      if (me.must_change_password) {
+        document.getElementById('password-alert-banner').classList.remove('hidden');
+      } else {
+        document.getElementById('password-alert-banner').classList.add('hidden');
+      }
+
+      loadAllAdminData();
+      lucide.createIcons();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('login-username').value;
+      const p = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Signing in...</span>`;
+
+      try {
+        const res = await req('/admin/login', {
+          method: 'POST',
+          body: JSON.stringify({ username: u, password: p }),
+        });
+        showToast('Login successful!', 'success');
+        window.ADMIN.me = res;
+        showDashboard(res);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = `<span>Sign In to Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await req('/admin/logout', { method: 'POST' });
+        showToast('Logged out successfully', 'info');
+      } catch (err) {}
+      window.location.reload();
+    }
+
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
+        } else {
+          btn.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
+        }
+      });
+
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+      const active = document.getElementById('tab-' + tabName);
+      if (active) active.classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    async function loadAllAdminData() {
+      try {
+        const [articles, tools, topics, settings] = await Promise.all([
+          req('/admin/articles'),
+          req('/admin/tools'),
+          req('/admin/topics'),
+          req('/admin/settings'),
+        ]);
+
+        window.ADMIN.articles = articles || [];
+        window.ADMIN.tools = tools || [];
+        window.ADMIN.topics = topics || [];
+        window.ADMIN.settings = settings || {};
+
+        renderOverview();
+        renderArticlesTable();
+        renderToolsManager();
+        renderTopicsManager();
+        populateSettingsForm();
+      } catch (err) {
+        showToast('Error loading admin state: ' + err.message, 'error');
+      }
+    }
+
+    function renderOverview() {
+      document.getElementById('metric-tools-count').textContent = window.ADMIN.tools.length;
+      document.getElementById('metric-articles-count').textContent = window.ADMIN.articles.length;
+      document.getElementById('metric-topics-count').textContent = window.ADMIN.topics.length;
+
+      document.getElementById('overview-tools-list').innerHTML = window.ADMIN.tools.slice(0, 5).map(t => `
+        <div class="py-2.5 flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-dark">${t.name}</span>
+            <span class="text-[10px] text-muted block">${t.category || 'Utility'}</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded ${t.is_enabled !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+            ${t.is_enabled !== false ? 'Active' : 'Disabled'}
+          </span>
+        </div>
+      `).join('');
+
+      document.getElementById('overview-articles-list').innerHTML = window.ADMIN.articles.slice(0, 4).map(a => `
+        <div class="py-3 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-dark text-xs">${a.title}</div>
+            <div class="text-[11px] text-muted">${a.tag} · ${a.slug}</div>
+          </div>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${a.is_published !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+            ${a.is_published !== false ? 'Published' : 'Draft'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    // TOOLS MANAGER
+    function renderToolsManager() {
+      const container = document.getElementById('tools-manager-list');
+      container.innerHTML = window.ADMIN.tools.map(t => `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">[${t.key}]</span>
+              <span class="text-sm font-bold text-dark">${t.name}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
+                <input type="checkbox" ${t.is_enabled !== false ? 'checked' : ''} onchange="toggleTool('${t.key}', this.checked)" class="w-4 h-4 text-brand-600 rounded">
+                <span>${t.is_enabled !== false ? 'Enabled' : 'Disabled'}</span>
+              </label>
+              <button onclick="deleteTool('${t.key}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">Delete</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Category</label>
+              <input id="tool-cat-${t.key}" type="text" value="${t.category || 'AI Creators'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Badge</label>
+              <input id="tool-badge-${t.key}" type="text" value="${t.badge || 'Free Tool'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Display Title</label>
+            <input id="tool-name-${t.key}" type="text" value="${t.name}" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs font-medium">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Description</label>
+            <textarea id="tool-desc-${t.key}" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs">${t.description}</textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <div class="flex items-center gap-2">
+              <label class="text-[11px] font-bold text-slate-500">Order:</label>
+              <input id="tool-order-${t.key}" type="number" value="${t.sort_order || 1}" class="w-16 px-2 py-1 bg-surface border border-bordercol rounded text-xs text-center font-bold">
+            </div>
+            <button onclick="saveToolInfo('${t.key}')" class="text-xs font-semibold bg-dark hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    window.openNewToolModal = function() {
+      document.getElementById('modal-tool-name').value = '';
+      document.getElementById('modal-tool-key').value = '';
+      document.getElementById('modal-tool-desc').value = '';
+      document.getElementById('modal-tool-badge').value = 'AI Powered';
+      document.getElementById('modal-tool-icon').value = 'sparkles';
+      document.getElementById('modal-tool-order').value = window.ADMIN.tools.length + 1;
+      document.getElementById('tool-modal').classList.remove('hidden');
+    };
+
+    window.closeToolModal = function() {
+      document.getElementById('tool-modal').classList.add('hidden');
+    };
+
+    window.autoGenToolKey = function() {
+      const name = document.getElementById('modal-tool-name').value;
+      const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      document.getElementById('modal-tool-key').value = key;
+    };
+
+    window.toggleCustomPromptField = function() {
+      const type = document.getElementById('modal-tool-type').value;
+      const container = document.getElementById('modal-prompt-container');
+      container.style.display = type === 'custom_ai' ? '' : 'none';
+    };
+
+    window.handleSaveToolForm = async function(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('modal-tool-name').value.trim(),
+        key: document.getElementById('modal-tool-key').value.trim(),
+        category: document.getElementById('modal-tool-category').value,
+        description: document.getElementById('modal-tool-desc').value.trim(),
+        badge: document.getElementById('modal-tool-badge').value.trim(),
+        icon: document.getElementById('modal-tool-icon').value.trim(),
+        tool_type: document.getElementById('modal-tool-type').value,
+        custom_prompt: document.getElementById('modal-tool-prompt').value.trim(),
+        sort_order: Number(document.getElementById('modal-tool-order').value) || 1,
+        is_enabled: document.getElementById('modal-tool-enabled').checked,
+      };
+
+      try {
+        await req('/admin/tools', { method: 'POST', body: JSON.stringify(payload) });
+        showToast('New AI Tool created successfully!', 'success');
+        closeToolModal();
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Error creating tool: ' + err.message, 'error');
+      }
+    };
+
+    window.saveToolInfo = async function(key) {
+      const name = document.getElementById(`tool-name-${key}`).value;
+      const description = document.getElementById(`tool-desc-${key}`).value;
+      const category = document.getElementById(`tool-cat-${key}`).value;
+      const badge = document.getElementById(`tool-badge-${key}`).value;
+      const sort_order = Number(document.getElementById(`tool-order-${key}`).value);
+
+      try {
+        await req(`/admin/tools/${key}`, {
+          method: 'PUT',
+          body: JSON.stringify({ name, description, category, badge, sort_order }),
+        });
+        showToast(`Tool ${key} saved!`, 'success');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Save error: ' + err.message, 'error');
+      }
+    };
+
+    window.toggleTool = async function(key, is_enabled) {
+      try {
+        await req(`/admin/tools/${key}`, { method: 'PUT', body: JSON.stringify({ is_enabled }) });
+        showToast(`Tool status updated!`, 'success');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteTool = async function(key) {
+      if (!confirm(`Are you sure you want to delete tool "${key}"?`)) return;
+      try {
+        await req(`/admin/tools/${key}`, { method: 'DELETE' });
+        showToast('Tool deleted', 'info');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    // SETTINGS POPULATION & SAVING
+    function populateSettingsForm() {
+      const s = window.ADMIN.settings || {};
+      document.getElementById('setting-announcement_enabled').checked = s.announcement_enabled !== false;
+      document.getElementById('setting-announcement_badge').value = s.announcement_badge || 'New 2025 Edition';
+      document.getElementById('setting-announcement_text').value = s.announcement_text || '';
+      document.getElementById('setting-announcement_link_text').value = s.announcement_link_text || 'Read Guides →';
+      document.getElementById('setting-announcement_link_url').value = s.announcement_link_url || '#/articles';
+
+      document.getElementById('setting-hero_title').value = s.hero_title || '';
+      document.getElementById('setting-hero_subtitle').value = s.hero_subtitle || '';
+      document.getElementById('setting-stat_years').value = s.stat_years || '10+ Yrs';
+      document.getElementById('setting-stat_rpm').value = s.stat_rpm || '$35+';
+      document.getElementById('setting-stat_projects').value = s.stat_projects || '250+';
+      document.getElementById('setting-stat_tools').value = s.stat_tools || '100% Free';
+      document.getElementById('setting-nasir_quote').value = s.nasir_quote || '';
+
+      document.getElementById('setting-trust_badges').value = (s.trust_badges || []).join(', ');
+      document.getElementById('setting-site_name').value = s.site_name || 'Web Nasir';
+      document.getElementById('setting-tagline').value = s.tagline || 'AI & Web Income';
+      document.getElementById('setting-whatsapp').value = s.whatsapp_number || '917006334417';
+      document.getElementById('setting-email').value = s.email || 'hello@webnasir.com';
+      document.getElementById('setting-footer_text').value = s.footer_text || '';
+    }
+
+    window.handleSaveSettings = async function(e) {
+      e.preventDefault();
+      const rawBadges = document.getElementById('setting-trust_badges').value;
+      const badgesArray = rawBadges.split(',').map(b => b.trim()).filter(Boolean);
+
+      const payload = {
+        announcement_enabled: document.getElementById('setting-announcement_enabled').checked,
+        announcement_badge: document.getElementById('setting-announcement_badge').value.trim(),
+        announcement_text: document.getElementById('setting-announcement_text').value.trim(),
+        announcement_link_text: document.getElementById('setting-announcement_link_text').value.trim(),
+        announcement_link_url: document.getElementById('setting-announcement_link_url').value.trim(),
+        hero_title: document.getElementById('setting-hero_title').value.trim(),
+        hero_subtitle: document.getElementById('setting-hero_subtitle').value.trim(),
+        stat_years: document.getElementById('setting-stat_years').value.trim(),
+        stat_rpm: document.getElementById('setting-stat_rpm').value.trim(),
+        stat_projects: document.getElementById('setting-stat_projects').value.trim(),
+        stat_tools: document.getElementById('setting-stat_tools').value.trim(),
+        nasir_quote: document.getElementById('setting-nasir_quote').value.trim(),
+        trust_badges: badgesArray,
+        site_name: document.getElementById('setting-site_name').value.trim(),
+        tagline: document.getElementById('setting-tagline').value.trim(),
+        whatsapp_number: document.getElementById('setting-whatsapp').value.trim(),
+        email: document.getElementById('setting-email').value.trim(),
+        footer_text: document.getElementById('setting-footer_text').value.trim(),
+      };
+
+      try {
+        await req('/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+        showToast('All Home Page & Site Settings updated successfully!', 'success');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Error saving settings: ' + err.message, 'error');
+      }
+    };
+
+    // ARTICLES
+    function renderArticlesTable() {
+      const tbody = document.getElementById('articles-table-body');
+      if (window.ADMIN.articles.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-muted">No guides found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = window.ADMIN.articles.map(a => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-4 px-6 font-semibold text-dark max-w-xs truncate">${a.title}</td>
+          <td class="py-4 px-4 font-mono text-xs"><span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-semibold">${a.tag}</span></td>
+          <td class="py-4 px-4 font-mono text-xs text-slate-500">${a.slug}</td>
+          <td class="py-4 px-4">
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${a.is_published !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
+              ${a.is_published !== false ? 'Published' : 'Draft'}
+            </span>
+          </td>
+          <td class="py-4 px-4 text-xs font-semibold">${a.sort_order || 1}</td>
+          <td class="py-4 px-6 text-right space-x-2">
+            <button onclick="editArticle('${a.slug}')" class="text-xs font-semibold text-brand-600 hover:text-brand-800 p-1">Edit</button>
+            <button onclick="deleteArticle('${a.slug}')" class="text-xs font-semibold text-rose-600 hover:text-rose-800 p-1">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    window.openNewArticleModal = function() {
+      document.getElementById('edit-article-is-new').value = 'true';
+      document.getElementById('article-field-title').value = '';
+      document.getElementById('article-field-slug').value = '';
+      document.getElementById('article-field-tag').value = 'ai';
+      document.getElementById('article-field-meta').value = '';
+      document.getElementById('article-field-body').value = '# Guide Title\n\nWrite content here...';
+      document.getElementById('article-modal').classList.remove('hidden');
+    };
+
+    window.closeArticleModal = function() {
+      document.getElementById('article-modal').classList.add('hidden');
+    };
+
+    window.autoGenerateSlug = function() {
+      if (document.getElementById('edit-article-is-new').value === 'true') {
+        const title = document.getElementById('article-field-title').value;
+        document.getElementById('article-field-slug').value = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      }
+    };
+
+    window.editArticle = async function(slug) {
+      try {
+        const full = await req(`/articles/${slug}`);
+        document.getElementById('edit-article-is-new').value = 'false';
+        document.getElementById('article-field-title').value = full.title || '';
+        document.getElementById('article-field-slug').value = full.slug || '';
+        document.getElementById('article-field-tag').value = full.tag || '';
+        document.getElementById('article-field-meta').value = full.meta || '';
+        document.getElementById('article-field-body').value = full.body || '';
+        document.getElementById('article-modal').classList.remove('hidden');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.handleSaveArticle = async function(e) {
+      e.preventDefault();
+      const isNew = document.getElementById('edit-article-is-new').value === 'true';
+      const slug = document.getElementById('article-field-slug').value.trim();
+      const payload = {
+        slug,
+        title: document.getElementById('article-field-title').value.trim(),
+        tag: document.getElementById('article-field-tag').value.trim(),
+        meta: document.getElementById('article-field-meta').value.trim(),
+        body: document.getElementById('article-field-body').value,
+        sort_order: Number(document.getElementById('article-field-order').value) || 1,
+        is_published: document.getElementById('article-field-published').checked,
+      };
+
+      try {
+        if (isNew) {
+          await req('/admin/articles', { method: 'POST', body: JSON.stringify(payload) });
+        } else {
+          await req(`/admin/articles/${slug}`, { method: 'PUT', body: JSON.stringify(payload) });
+        }
+        showToast('Article saved!', 'success');
+        closeArticleModal();
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Save error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteArticle = async function(slug) {
+      if (!confirm(`Delete article "${slug}"?`)) return;
+      try {
+        await req(`/admin/articles/${slug}`, { method: 'DELETE' });
+        showToast('Article deleted', 'info');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    // TOPICS
+    function renderTopicsManager() {
+      document.getElementById('topics-manager-grid').innerHTML = window.ADMIN.topics.map(t => `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">${t.key}</span>
+            <button onclick="deleteTopic('${t.key}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold">Delete</button>
+          </div>
+          <h4 class="text-base font-bold text-dark mb-1">${t.name}</h4>
+          <p class="text-xs text-muted mb-4">${t.description}</p>
+        </div>
+      `).join('');
+    }
+
+    window.deleteTopic = async function(key) {
+      if (!confirm(`Delete topic "${key}"?`)) return;
+      try {
+        await req(`/admin/topics/${key}`, { method: 'DELETE' });
+        showToast('Topic deleted', 'info');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    // PASSWORD
+    window.handleChangePassword = async function(e) {
+      e.preventDefault();
+      const current = document.getElementById('pwd-current').value;
+      const next = document.getElementById('pwd-next').value;
+      const confirm = document.getElementById('pwd-confirm').value;
+
+      if (next !== confirm) { showToast('New passwords do not match!', 'error'); return; }
+      if (next.length < 8) { showToast('Password must be at least 8 characters long!', 'error'); return; }
+
+      try {
+        await req('/admin/password', { method: 'POST', body: JSON.stringify({ current, next }) });
+        showToast('Password updated successfully!', 'success');
+        document.getElementById('password-alert-banner').classList.add('hidden');
+        document.getElementById('pwd-current').value = '';
+        document.getElementById('pwd-next').value = '';
+        document.getElementById('pwd-confirm').value = '';
+      } catch (err) {
+        showToast('Password update error: ' + err.message, 'error');
+      }
+    };
+
+    checkAuth();
+  </script>
+</body>
+</html>

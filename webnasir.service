@@ -1,0 +1,19 @@
+[Unit]
+Description=Web Nasir Production Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/web-nasir
+ExecStart=/usr/bin/npx tsx /var/www/web-nasir/server.ts
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=webnasir
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target

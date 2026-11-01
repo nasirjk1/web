@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents an authenticated user on Web Nasir",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The Firebase Auth user UID" },
+        "email": { "type": "string", "description": "The user's email address" },
+        "displayName": { "type": "string", "description": "The user's display name" },
+        "photoURL": { "type": "string", "description": "The user's avatar image URL" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    },
+    "SavedGeneration": {
+      "title": "SavedGeneration",
+      "description": "A saved AI output, calculation, or bookmark created by the user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "toolKey": { "type": "string" },
+        "toolName": { "type": "string" },
+        "inputPrompt": { "type": "string", "maxLength": 5000 },
+        "outputResult": { "type": "string", "maxLength": 20000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "toolKey", "outputResult"]
+    },
+    "CustomTool": {
+      "title": "CustomTool",
+      "description": "A dynamic free AI tool configured by the admin",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 512 },
+        "icon": { "type": "string", "maxLength": 64 },
+        "category": { "type": "string", "maxLength": 64 },
+        "tool_type": { "type": "string", "maxLength": 64 },
+        "is_enabled": { "type": "boolean" },
+        "sort_order": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["key", "name", "description"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document owned by the user"
+    },
+    "/users/{userId}/saved_generations/{generationId}": {
+      "schema": "SavedGeneration",
+      "description": "Private history of saved AI generations and tool calculations"
+    },
+    "/custom_tools/{toolId}": {
+      "schema": "CustomTool",
+      "description": "Public directory of tools manageable by admin"
+    }
+  }
+}

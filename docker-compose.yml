@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  webnasir:
+    build: .
+    container_name: webnasir-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=webnasir-production-secret-key-replace-with-your-own
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      - ./data:/app/.netlify-blobs-data
