@@ -2201,12 +2201,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-heading text-dark">Free AI & Web Utilities Manager</h2>
-            <p class="text-sm text-muted">Easily add new free AI tools, edit categories, customize prompts, and toggle visibility.</p>
+            <p class="text-sm text-muted">Manage all 11+ free AI tools: edit names, descriptions, icons, categories, badges, prompts, input/output formats, featured status, SEO slugs, and sort order.</p>
           </div>
-          <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 self-start shadow-sm">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Add New Free Tool</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2 self-start">
+            <button onclick="saveAllToolsManager(false)" class="px-4 py-2.5 rounded-xl bg-dark hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-2 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save All Tool Changes</span>
+            </button>
+            <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add New Free Tool</span>
+            </button>
+          </div>
         </div>
 
         <div id="tools-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2302,7 +2308,7 @@
   <!-- MODAL: ADD / EDIT FREE AI TOOL -->
   <!-- ======================================================== -->
   <div id="tool-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
       <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
         <h3 id="tool-modal-title" class="text-lg font-bold font-heading text-dark">Add New Free AI Tool</h3>
         <button onclick="closeToolModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -2310,78 +2316,107 @@
 
       <form onsubmit="handleSaveToolForm(event)" class="space-y-4">
         <input type="hidden" id="edit-tool-is-new" value="true">
+        <input type="hidden" id="edit-tool-original-key" value="">
         
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Name</label>
-          <input id="modal-tool-name" oninput="autoGenToolKey()" type="text" required placeholder="e.g. AI Resume Bullet Crafter" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Name *</label>
+            <input id="modal-tool-name" oninput="autoGenToolKey()" type="text" required placeholder="e.g. AI Resume Bullet Crafter" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category *</label>
+            <input id="modal-tool-category" list="tool-category-suggestions" type="text" required value="AI Creators" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+            <datalist id="tool-category-suggestions">
+              <option value="AI Creators">
+              <option value="SEO & Content">
+              <option value="Monetization">
+              <option value="Calculators">
+            </datalist>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Key / Slug</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Permanent Tool Key / ID</label>
             <input id="modal-tool-key" type="text" required placeholder="resume-bullets" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category</label>
-            <select id="modal-tool-category" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
-              <option value="AI Creators">AI Creators</option>
-              <option value="Monetization">Monetization</option>
-              <option value="SEO & Copy">SEO & Copy</option>
-              <option value="Calculators">Calculators</option>
-            </select>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">SEO URL Slug (#/tools/:slug)</label>
+            <input id="modal-tool-slug" type="text" placeholder="resume-bullets" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Description</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Description *</label>
           <textarea id="modal-tool-desc" rows="2" required placeholder="Short summary of what this free tool computes or generates..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs"></textarea>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Badge Label</label>
-            <input id="modal-tool-badge" type="text" value="Free AI" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
+            <input id="modal-tool-badge" type="text" value="AI Powered" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Lucide Icon</label>
             <input id="modal-tool-icon" type="text" value="sparkles" placeholder="sparkles, code, video, file-text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
           </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Engine Type</label>
+            <select id="modal-tool-type" onchange="toggleCustomPromptField()" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+              <option value="custom_ai">Custom AI Prompt Tool (Gemini Flash)</option>
+              <option value="ai_youtube">Built-in: YouTube Titles & Hooks</option>
+              <option value="ai_blog">Built-in: SEO Blog Outline</option>
+              <option value="ai_code">Built-in: Code & Regex Explainer</option>
+              <option value="ai_adcopy">Built-in: Ad Copy Generator</option>
+              <option value="client_business">Built-in: Revenue Calculator</option>
+              <option value="client_name">Built-in: Brand Name Generator</option>
+              <option value="client_instagram">Built-in: Social Caption Generator</option>
+              <option value="client_wordcount">Built-in: Word Density Analyzer</option>
+              <option value="client_password">Built-in: Password Generator</option>
+              <option value="client_age">Built-in: Exact Age Calculator</option>
+              <option value="client_arbitrage">Built-in: Arbitrage Calculator</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Type</label>
-          <select id="modal-tool-type" onchange="toggleCustomPromptField()" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
-            <option value="custom_ai">Custom AI Prompt Tool (Gemini 3.8 Flash Free)</option>
-            <option value="ai_youtube">Built-in: YouTube Titles & Hooks</option>
-            <option value="ai_blog">Built-in: SEO Blog Outline</option>
-            <option value="ai_code">Built-in: Code & Regex Explainer</option>
-            <option value="ai_adcopy">Built-in: Ad Copy Generator</option>
-            <option value="client_business">Built-in: Revenue Calculator</option>
-            <option value="client_password">Built-in: Password Generator</option>
-          </select>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Input Fields Specification</label>
+            <input id="modal-tool-inputs" type="text" placeholder="e.g. Video Topic, Target Tone" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Output Format Specification</label>
+            <input id="modal-tool-output" type="text" placeholder="e.g. Markdown (Titles, Hooks & Concepts)" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
         </div>
 
         <div id="modal-prompt-container">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Custom Prompt Instruction</label>
-          <textarea id="modal-tool-prompt" rows="3" placeholder="e.g. Generate 5 high-converting bullet points for a tech job resume based on the user's input." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs leading-relaxed"></textarea>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">AI Prompt / System Configuration</label>
+          <textarea id="modal-tool-prompt" rows="3" placeholder="e.g. Generate 5 high-converting bullet points based on the user's input..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs leading-relaxed"></textarea>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 items-center pt-1">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center pt-1">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
-            <input id="modal-tool-order" type="number" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+            <input id="modal-tool-order" type="number" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs font-bold">
           </div>
           <div class="pt-4">
             <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
               <input id="modal-tool-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
-              <span>Active / Enabled</span>
+              <span>Visible / Active</span>
+            </label>
+          </div>
+          <div class="pt-4">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+              <input id="modal-tool-featured" type="checkbox" class="w-4 h-4 text-amber-500 rounded">
+              <span>Featured Tool</span>
             </label>
           </div>
         </div>
 
         <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
           <button type="button" onclick="closeToolModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-          <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Tool</button>
+          <button id="modal-tool-submit-btn" type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Tool</button>
         </div>
       </form>
     </div>
@@ -2855,11 +2890,11 @@
 
       let res;
       try {
-        res = await fetch('/api' + url, { credentials: 'include', ...options, headers });
+        res = await fetch('/api' + url, { cache: 'no-store', credentials: 'include', ...options, headers });
       } catch (err) {
         // If credentials: 'include' was rejected by browser (e.g. cross-origin iframe partitioned cookie policy), retry with credentials: 'omit' using Bearer token
         try {
-          res = await fetch('/api' + url, { credentials: 'omit', ...options, headers });
+          res = await fetch('/api' + url, { cache: 'no-store', credentials: 'omit', ...options, headers });
         } catch (retryErr) {
           throw new Error('Connection error: ' + (retryErr.message || 'Unable to connect to server'));
         }
@@ -3776,51 +3811,99 @@
     }
 
     // TOOLS MANAGER
+    function escAttr(val) {
+      return String(val ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     function renderToolsManager() {
       const container = document.getElementById('tools-manager-list');
-      container.innerHTML = window.ADMIN.tools.map(t => `
-        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">[${t.key}]</span>
-              <span class="text-sm font-bold text-dark">${t.name}</span>
+      if (!container) return;
+      const sortedTools = [...(window.ADMIN.tools || [])].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      container.innerHTML = sortedTools.map(t => `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4" data-tool-card="${escAttr(t.key)}">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                <i data-lucide="${escAttr(t.icon || 'sparkles')}" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">[${escAttr(t.key)}]</span>
+                  ${t.is_featured ? '<span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">★ Featured</span>' : ''}
+                </div>
+                <div class="text-sm font-bold text-dark truncate mt-0.5" id="tool-card-heading-${escAttr(t.key)}">${escAttr(t.name)}</div>
+              </div>
             </div>
             <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold" title="Featured on Homepage">
+                <input id="tool-featured-${escAttr(t.key)}" type="checkbox" ${t.is_featured ? 'checked' : ''} onchange="toggleToolFeatured('${escAttr(t.key)}', this.checked)" class="w-4 h-4 text-amber-500 rounded">
+                <span>Featured</span>
+              </label>
               <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
-                <input type="checkbox" ${t.is_enabled !== false ? 'checked' : ''} onchange="toggleTool('${t.key}', this.checked)" class="w-4 h-4 text-brand-600 rounded">
+                <input id="tool-enabled-${escAttr(t.key)}" type="checkbox" ${t.is_enabled !== false ? 'checked' : ''} onchange="toggleTool('${escAttr(t.key)}', this.checked)" class="w-4 h-4 text-brand-600 rounded">
                 <span>${t.is_enabled !== false ? 'Enabled' : 'Disabled'}</span>
               </label>
-              <button onclick="deleteTool('${t.key}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">Delete</button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="block font-bold text-slate-500 mb-1">Category</label>
-              <input id="tool-cat-${t.key}" type="text" value="${t.category || 'AI Creators'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-500 mb-1">Badge</label>
-              <input id="tool-badge-${t.key}" type="text" value="${t.badge || 'Free Tool'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+              <button onclick="openEditToolModal('${escAttr(t.key)}')" class="text-brand-600 hover:text-brand-800 text-xs font-bold px-2 py-1 rounded bg-brand-50">Full Config</button>
+              <button onclick="deleteTool('${escAttr(t.key)}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">Delete</button>
             </div>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Display Title</label>
-            <input id="tool-name-${t.key}" type="text" value="${t.name}" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs font-medium">
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Display Title / Tool Name</label>
+            <input id="tool-name-${escAttr(t.key)}" type="text" value="${escAttr(t.name)}" oninput="const h=document.getElementById('tool-card-heading-${escAttr(t.key)}'); if(h) h.textContent=this.value;" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs font-bold text-dark">
           </div>
 
           <div>
             <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Description</label>
-            <textarea id="tool-desc-${t.key}" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs">${t.description}</textarea>
+            <textarea id="tool-desc-${escAttr(t.key)}" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs">${escAttr(t.description)}</textarea>
           </div>
 
-          <div class="flex items-center justify-between pt-2">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Category</label>
+              <input id="tool-cat-${escAttr(t.key)}" type="text" value="${escAttr(t.category || 'AI Creators')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Badge</label>
+              <input id="tool-badge-${escAttr(t.key)}" type="text" value="${escAttr(t.badge || 'Free Tool')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Lucide Icon</label>
+              <input id="tool-icon-${escAttr(t.key)}" type="text" value="${escAttr(t.icon || 'sparkles')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">SEO URL Slug</label>
+              <input id="tool-slug-${escAttr(t.key)}" type="text" value="${escAttr(t.seo_slug || t.key)}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg font-mono">
+            </div>
+          </div>
+
+          <details class="bg-slate-50 rounded-xl border border-slate-200 p-3 text-xs">
+            <summary class="font-bold text-slate-700 cursor-pointer select-none">Prompt Configuration, Input Fields & Output Format</summary>
+            <div class="space-y-3 mt-3 pt-2 border-t border-slate-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1">Input Fields</label>
+                  <input id="tool-inputs-${escAttr(t.key)}" type="text" value="${escAttr(t.input_fields || 'User Input')}" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1">Output Format</label>
+                  <input id="tool-output-${escAttr(t.key)}" type="text" value="${escAttr(t.output_format || 'Formatted Result')}" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-500 mb-1">AI Prompt / System Instruction</label>
+                <textarea id="tool-prompt-${escAttr(t.key)}" rows="2" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg font-mono text-[11px]">${escAttr(t.custom_prompt || '')}</textarea>
+              </div>
+            </div>
+          </details>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
             <div class="flex items-center gap-2">
               <label class="text-[11px] font-bold text-slate-500">Order:</label>
-              <input id="tool-order-${t.key}" type="number" value="${t.sort_order || 1}" class="w-16 px-2 py-1 bg-surface border border-bordercol rounded text-xs text-center font-bold">
+              <input id="tool-order-${escAttr(t.key)}" type="number" value="${t.sort_order || 1}" class="w-16 px-2 py-1 bg-surface border border-bordercol rounded text-xs text-center font-bold">
+              <a href="/#/tools/${escAttr(t.key)}" target="_blank" class="text-[11px] font-semibold text-brand-600 hover:underline ml-2">View Live ↗</a>
             </div>
-            <button onclick="saveToolInfo('${t.key}')" class="text-xs font-semibold bg-dark hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <button id="tool-save-btn-${escAttr(t.key)}" onclick="saveToolInfo('${escAttr(t.key)}')" class="text-xs font-semibold bg-dark hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors shadow-2xs">
               Save Changes
             </button>
           </div>
@@ -3830,12 +3913,52 @@
     }
 
     window.openNewToolModal = function() {
+      document.getElementById('tool-modal-title').textContent = 'Add New Free AI Tool';
+      document.getElementById('edit-tool-is-new').value = 'true';
+      document.getElementById('edit-tool-original-key').value = '';
       document.getElementById('modal-tool-name').value = '';
-      document.getElementById('modal-tool-key').value = '';
+      const keyInp = document.getElementById('modal-tool-key');
+      keyInp.value = '';
+      keyInp.readOnly = false;
+      keyInp.classList.remove('bg-slate-100', 'text-slate-500');
+      document.getElementById('modal-tool-slug').value = '';
+      document.getElementById('modal-tool-category').value = 'AI Creators';
       document.getElementById('modal-tool-desc').value = '';
       document.getElementById('modal-tool-badge').value = 'AI Powered';
       document.getElementById('modal-tool-icon').value = 'sparkles';
-      document.getElementById('modal-tool-order').value = window.ADMIN.tools.length + 1;
+      document.getElementById('modal-tool-type').value = 'custom_ai';
+      document.getElementById('modal-tool-inputs').value = 'User Topic or Input';
+      document.getElementById('modal-tool-output').value = 'Markdown Strategy Output';
+      document.getElementById('modal-tool-prompt').value = '';
+      document.getElementById('modal-tool-order').value = (window.ADMIN.tools || []).length + 1;
+      document.getElementById('modal-tool-enabled').checked = true;
+      document.getElementById('modal-tool-featured').checked = false;
+      document.getElementById('tool-modal').classList.remove('hidden');
+    };
+
+    window.openEditToolModal = function(key) {
+      const t = (window.ADMIN.tools || []).find(item => item.key === key || item.id === key);
+      if (!t) return;
+      document.getElementById('tool-modal-title').textContent = `Edit Tool: ${t.name}`;
+      document.getElementById('edit-tool-is-new').value = 'false';
+      document.getElementById('edit-tool-original-key').value = t.key;
+      document.getElementById('modal-tool-name').value = t.name || '';
+      const keyInp = document.getElementById('modal-tool-key');
+      keyInp.value = t.key;
+      keyInp.readOnly = true;
+      keyInp.classList.add('bg-slate-100', 'text-slate-500');
+      document.getElementById('modal-tool-slug').value = t.seo_slug || t.key;
+      document.getElementById('modal-tool-category').value = t.category || 'AI Creators';
+      document.getElementById('modal-tool-desc').value = t.description || '';
+      document.getElementById('modal-tool-badge').value = t.badge || 'Free Tool';
+      document.getElementById('modal-tool-icon').value = t.icon || 'sparkles';
+      document.getElementById('modal-tool-type').value = t.tool_type || 'custom_ai';
+      document.getElementById('modal-tool-inputs').value = t.input_fields || 'User Input';
+      document.getElementById('modal-tool-output').value = t.output_format || 'Formatted Result';
+      document.getElementById('modal-tool-prompt').value = t.custom_prompt || '';
+      document.getElementById('modal-tool-order').value = t.sort_order || 1;
+      document.getElementById('modal-tool-enabled').checked = t.is_enabled !== false;
+      document.getElementById('modal-tool-featured').checked = !!t.is_featured;
       document.getElementById('tool-modal').classList.remove('hidden');
     };
 
@@ -3844,66 +3967,205 @@
     };
 
     window.autoGenToolKey = function() {
+      const isNew = document.getElementById('edit-tool-is-new').value === 'true';
+      if (!isNew) return;
       const name = document.getElementById('modal-tool-name').value;
       const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       document.getElementById('modal-tool-key').value = key;
+      document.getElementById('modal-tool-slug').value = key;
     };
 
     window.toggleCustomPromptField = function() {
-      const type = document.getElementById('modal-tool-type').value;
       const container = document.getElementById('modal-prompt-container');
-      container.style.display = type === 'custom_ai' ? '' : 'none';
+      if (container) container.style.display = '';
     };
 
     window.handleSaveToolForm = async function(e) {
       e.preventDefault();
+      const isNew = document.getElementById('edit-tool-is-new').value === 'true';
+      const origKey = document.getElementById('edit-tool-original-key').value.trim();
+      const submitBtn = document.getElementById('modal-tool-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving to Database...';
+      }
+
       const payload = {
         name: document.getElementById('modal-tool-name').value.trim(),
         key: document.getElementById('modal-tool-key').value.trim(),
-        category: document.getElementById('modal-tool-category').value,
+        seo_slug: document.getElementById('modal-tool-slug').value.trim() || document.getElementById('modal-tool-key').value.trim(),
+        category: document.getElementById('modal-tool-category').value.trim(),
         description: document.getElementById('modal-tool-desc').value.trim(),
         badge: document.getElementById('modal-tool-badge').value.trim(),
-        icon: document.getElementById('modal-tool-icon').value.trim(),
+        icon: document.getElementById('modal-tool-icon').value.trim() || 'sparkles',
         tool_type: document.getElementById('modal-tool-type').value,
+        input_fields: document.getElementById('modal-tool-inputs').value.trim(),
+        output_format: document.getElementById('modal-tool-output').value.trim(),
         custom_prompt: document.getElementById('modal-tool-prompt').value.trim(),
         sort_order: Number(document.getElementById('modal-tool-order').value) || 1,
         is_enabled: document.getElementById('modal-tool-enabled').checked,
+        is_featured: document.getElementById('modal-tool-featured').checked,
       };
 
       try {
-        await req('/admin/tools', { method: 'POST', body: JSON.stringify(payload) });
-        showToast('New AI Tool created successfully!', 'success');
+        let res;
+        if (isNew) {
+          res = await req('/admin/tools', { method: 'POST', body: JSON.stringify(payload) });
+          showToast(`New AI Tool "${payload.name}" created & saved!`, 'success');
+        } else {
+          res = await req(`/admin/tools/${encodeURIComponent(origKey || payload.key)}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+          showToast(`Tool "${res.tool?.name || payload.name}" updated & persisted!`, 'success');
+        }
+        if (res && Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+          renderToolsManager();
+          renderOverview();
+        }
         closeToolModal();
-        loadAllAdminData();
+        await loadAllAdminData();
       } catch (err) {
-        showToast('Error creating tool: ' + err.message, 'error');
+        showToast('Error saving tool: ' + err.message, 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Tool';
+        }
       }
     };
 
     window.saveToolInfo = async function(key) {
-      const name = document.getElementById(`tool-name-${key}`).value;
-      const description = document.getElementById(`tool-desc-${key}`).value;
-      const category = document.getElementById(`tool-cat-${key}`).value;
-      const badge = document.getElementById(`tool-badge-${key}`).value;
-      const sort_order = Number(document.getElementById(`tool-order-${key}`).value);
+      const btn = document.getElementById(`tool-save-btn-${key}`);
+      const nameEl = document.getElementById(`tool-name-${key}`);
+      const descEl = document.getElementById(`tool-desc-${key}`);
+      const catEl = document.getElementById(`tool-cat-${key}`);
+      const badgeEl = document.getElementById(`tool-badge-${key}`);
+      const iconEl = document.getElementById(`tool-icon-${key}`);
+      const slugEl = document.getElementById(`tool-slug-${key}`);
+      const inputsEl = document.getElementById(`tool-inputs-${key}`);
+      const outputEl = document.getElementById(`tool-output-${key}`);
+      const promptEl = document.getElementById(`tool-prompt-${key}`);
+      const orderEl = document.getElementById(`tool-order-${key}`);
+      const enabledEl = document.getElementById(`tool-enabled-${key}`);
+      const featuredEl = document.getElementById(`tool-featured-${key}`);
+
+      const name = nameEl ? nameEl.value.trim() : '';
+      if (!name) {
+        showToast('Tool name cannot be empty', 'error');
+        return;
+      }
+
+      const payload = {
+        name,
+        description: descEl ? descEl.value.trim() : '',
+        category: catEl ? catEl.value.trim() : 'AI Creators',
+        badge: badgeEl ? badgeEl.value.trim() : 'Free Tool',
+        icon: iconEl ? iconEl.value.trim() : 'sparkles',
+        seo_slug: slugEl ? slugEl.value.trim() : key,
+        input_fields: inputsEl ? inputsEl.value.trim() : '',
+        output_format: outputEl ? outputEl.value.trim() : '',
+        custom_prompt: promptEl ? promptEl.value.trim() : '',
+        sort_order: orderEl ? Number(orderEl.value) || 1 : 1,
+        is_enabled: enabledEl ? enabledEl.checked : true,
+        is_featured: featuredEl ? featuredEl.checked : false,
+      };
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+      }
 
       try {
-        await req(`/admin/tools/${key}`, {
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, {
           method: 'PUT',
-          body: JSON.stringify({ name, description, category, badge, sort_order }),
+          body: JSON.stringify(payload),
         });
-        showToast(`Tool ${key} saved!`, 'success');
-        loadAllAdminData();
+        if (!res || !res.success) {
+          throw new Error(res?.error || 'Database write did not confirm success');
+        }
+        if (Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+        } else if (res.tool) {
+          const idx = (window.ADMIN.tools || []).findIndex(t => t.key === key || t.id === key);
+          if (idx !== -1) window.ADMIN.tools[idx] = res.tool;
+        }
+        renderToolsManager();
+        renderOverview();
+        showToast(`Tool "${res.tool?.name || name}" saved to database & live on website!`, 'success');
       } catch (err) {
         showToast('Save error: ' + err.message, 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+        }
+      }
+    };
+
+    window.saveAllToolsManager = async function(silent = false) {
+      const cards = document.querySelectorAll('[data-tool-card]');
+      if (!cards.length) return;
+      const bulkPayload = [];
+      cards.forEach(card => {
+        const key = card.getAttribute('data-tool-card');
+        if (!key) return;
+        const name = document.getElementById(`tool-name-${key}`)?.value?.trim();
+        if (!name) return;
+        bulkPayload.push({
+          key,
+          name,
+          description: document.getElementById(`tool-desc-${key}`)?.value?.trim() ?? '',
+          category: document.getElementById(`tool-cat-${key}`)?.value?.trim() ?? 'AI Creators',
+          badge: document.getElementById(`tool-badge-${key}`)?.value?.trim() ?? 'Free Tool',
+          icon: document.getElementById(`tool-icon-${key}`)?.value?.trim() ?? 'sparkles',
+          seo_slug: document.getElementById(`tool-slug-${key}`)?.value?.trim() ?? key,
+          input_fields: document.getElementById(`tool-inputs-${key}`)?.value?.trim() ?? '',
+          output_format: document.getElementById(`tool-output-${key}`)?.value?.trim() ?? '',
+          custom_prompt: document.getElementById(`tool-prompt-${key}`)?.value?.trim() ?? '',
+          sort_order: Number(document.getElementById(`tool-order-${key}`)?.value) || 1,
+          is_enabled: document.getElementById(`tool-enabled-${key}`) ? document.getElementById(`tool-enabled-${key}`).checked : true,
+          is_featured: document.getElementById(`tool-featured-${key}`) ? document.getElementById(`tool-featured-${key}`).checked : false,
+        });
+      });
+
+      if (!bulkPayload.length) return;
+      try {
+        const res = await req('/admin/tools', {
+          method: 'PUT',
+          body: JSON.stringify({ tools: bulkPayload }),
+        });
+        if (res && Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+          renderToolsManager();
+          renderOverview();
+        }
+        if (!silent) {
+          showToast('All AI Tools changes saved & published to live website!', 'success');
+        }
+      } catch (err) {
+        if (!silent) showToast('Error saving tools: ' + err.message, 'error');
       }
     };
 
     window.toggleTool = async function(key, is_enabled) {
       try {
-        await req(`/admin/tools/${key}`, { method: 'PUT', body: JSON.stringify({ is_enabled }) });
-        showToast(`Tool status updated!`, 'success');
-        loadAllAdminData();
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ is_enabled }) });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
+        showToast(`Tool "${key}" ${is_enabled ? 'enabled' : 'disabled'}!`, 'success');
+        renderToolsManager();
+        renderOverview();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.toggleToolFeatured = async function(key, is_featured) {
+      try {
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ is_featured }) });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
+        showToast(`Tool "${key}" ${is_featured ? 'marked as Featured' : 'unfeatured'}!`, 'success');
+        renderToolsManager();
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
       }
@@ -3912,9 +4174,11 @@
     window.deleteTool = async function(key) {
       if (!confirm(`Are you sure you want to delete tool "${key}"?`)) return;
       try {
-        await req(`/admin/tools/${key}`, { method: 'DELETE' });
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'DELETE' });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
         showToast('Tool deleted', 'info');
-        loadAllAdminData();
+        renderToolsManager();
+        renderOverview();
       } catch (err) {
         showToast('Delete error: ' + err.message, 'error');
       }
@@ -4227,8 +4491,19 @@
 
     window.publishAllCurrentChanges = async function() {
       showToast('Synchronizing & publishing all CMS configurations to live store...', 'info');
-      await createCmsRevisionSnapshot('Auto-Backup Before Publish');
-      showToast('All changes published live!', 'success');
+      try {
+        await saveAllToolsManager(true);
+        if (window.ADMIN.cmsHomepage && Array.isArray(window.ADMIN.cmsHomepage.sections)) {
+          await req('/admin/cms/homepage', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsHomepage) });
+        }
+        if (window.ADMIN.cmsNavigation && Array.isArray(window.ADMIN.cmsNavigation.items)) {
+          await req('/admin/cms/navigation', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsNavigation) });
+        }
+        await createCmsRevisionSnapshot('Auto-Backup Before Publish');
+        showToast('All changes saved & published live!', 'success');
+      } catch (err) {
+        showToast('Publish error: ' + err.message, 'error');
+      }
     };
 
     window.createCmsRevisionSnapshot = async function(customLabel) {

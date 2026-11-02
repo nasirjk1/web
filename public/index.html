@@ -1236,13 +1236,33 @@
 
     async function apiFetch(endpoint) {
       try {
-        const res = await fetch('/api' + endpoint);
+        const res = await fetch('/api' + endpoint, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
         if (!res.ok) throw new Error('Failed to load: ' + res.status);
         return await res.json();
       } catch (err) {
         console.warn('API fetch warning:', endpoint, err.message);
         return null;
       }
+    }
+
+    function syncPublicToolsNavigationAndFooter(toolsList) {
+      if (!Array.isArray(toolsList) || toolsList.length === 0) return;
+      const enabledTools = toolsList
+        .filter(t => t && t.is_enabled !== false)
+        .sort((a, b) => (a.sort_order ?? 999) - (b.sort_order ?? 999));
+
+      // Update Footer Free AI Utilities links dynamically
+      document.querySelectorAll('footer a[href^="#/tools/"]').forEach(link => {
+        const href = link.getAttribute('href') || '';
+        const key = href.replace('#/tools/', '').trim();
+        const matched = enabledTools.find(t => t.key === key || t.id === key);
+        if (matched && matched.name) {
+          link.textContent = matched.name;
+        }
+      });
     }
 
     function renderMarqueeTrack() {
@@ -1792,7 +1812,7 @@
         breadcrumbs.push({ name: 'Free Courses', url: baseDomain + '/free-courses' });
       } else if (hash.startsWith('#/tools/')) {
         const tkey = hash.replace('#/tools/', '').trim();
-        const t = (window.APP_STATE.tools || []).find(x => x.key === tkey);
+        const t = (window.APP_STATE.tools || []).find(x => x.key === tkey || x.id === tkey || x.seo_slug === tkey || x.seo_slug === ('/tools/' + tkey) || x.seo_slug === ('#/tools/' + tkey));
         cleanPath = '/tools/' + tkey;
         breadcrumbs.push({ name: 'Free AI Tools', url: baseDomain + '/tools' });
         if (t) {
@@ -2002,7 +2022,10 @@
     // ==========================================
     function renderHomeView(container) {
       const s = window.APP_STATE.settings || {};
-      const tools = (window.APP_STATE.tools || []).slice(0, 11);
+      const tools = (window.APP_STATE.tools || [])
+        .filter(t => t && t.is_enabled !== false)
+        .sort((a, b) => (a.sort_order ?? 999) - (b.sort_order ?? 999))
+        .slice(0, 11);
       const courses = (window.APP_STATE.courses || []).slice(0, 8);
       const topics = window.APP_STATE.topics || [];
       const articles = window.APP_STATE.articles || [];
@@ -2086,7 +2109,7 @@
           </div>
         </div>
 <!-- SECTION C: 11 FREE AI & WEB UTILITIES (Preserved 100% of Functionality) -->
-        <section class="py-16 sm:py-24 bg-white border-b border-bordercol">
+        <section id="homepage-section-tools" data-cms-section="tools" class="py-16 sm:py-24 bg-white border-b border-bordercol">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -3191,7 +3214,9 @@
     // VIEW 8: TOOLS DIRECTORY (#/tools)
     // ==========================================
     function renderToolsDirectoryView(container) {
-      const tools = window.APP_STATE.tools || [];
+      const tools = (window.APP_STATE.tools || [])
+        .filter(t => t && t.is_enabled !== false)
+        .sort((a, b) => (a.sort_order ?? 999) - (b.sort_order ?? 999));
 
       container.innerHTML = `
         <div class="bg-gradient-to-b from-brand-50/50 via-white to-white py-14 border-b border-bordercol text-center">
@@ -3234,7 +3259,10 @@
     // VIEW 9: DEDICATED TOOL WORKSPACES
     // ==========================================
     function renderToolWorkspacePage(container, key) {
-      const tool = (window.APP_STATE.tools || []).find(t => t.key === key) || { name: key, description: '' };
+      const tool = (window.APP_STATE.tools || []).find(
+        t => t.key === key || t.id === key || t.seo_slug === key || t.seo_slug === ('/tools/' + key) || t.seo_slug === ('#/tools/' + key)
+      ) || { key, name: key, description: '' };
+      const resolvedKey = tool.key || key;
 
       container.innerHTML = `
         <div class="bg-surface py-8 border-b border-bordercol">
@@ -3244,7 +3272,7 @@
               <span>Back to all tools</span>
             </a>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">100% Free Tool</span>
+              <span class="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">${tool.badge || '100% Free Tool'}</span>
               <button onclick="openSavedModal()" class="text-xs font-semibold text-slate-600 hover:text-brand-600 flex items-center gap-1">
                 <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">My Saved Results</span>
@@ -3262,39 +3290,39 @@
 
       const target = document.getElementById('tool-interactive-container');
 
-      switch (key) {
+      switch (resolvedKey) {
         case 'youtube':
-          mountAiYoutubeTool(target);
+          mountAiYoutubeTool(target, tool);
           break;
         case 'blogoutline':
-          mountAiBlogOutlineTool(target);
+          mountAiBlogOutlineTool(target, tool);
           break;
         case 'codeexplainer':
-          mountAiCodeTool(target);
+          mountAiCodeTool(target, tool);
           break;
         case 'adcopy':
-          mountAiAdCopyTool(target);
+          mountAiAdCopyTool(target, tool);
           break;
         case 'age':
-          mountAgeCalculator(target);
+          mountAgeCalculator(target, tool);
           break;
         case 'name':
-          mountNameGenerator(target);
+          mountNameGenerator(target, tool);
           break;
         case 'business':
-          mountBusinessCalculator(target);
+          mountBusinessCalculator(target, tool);
           break;
         case 'instagram':
-          mountInstagramGenerator(target);
+          mountInstagramGenerator(target, tool);
           break;
         case 'password':
-          mountPasswordGenerator(target);
+          mountPasswordGenerator(target, tool);
           break;
         case 'wordcount':
-          mountWordCounter(target);
+          mountWordCounter(target, tool);
           break;
         case 'arbitrage':
-          mountArbitrageCalculator(target);
+          mountArbitrageCalculator(target, tool);
           break;
         default:
           mountCustomAiTool(target, tool);
@@ -3304,15 +3332,18 @@
     }
 
     // --- AI TOOL 1: YOUTUBE TITLE & RETENTION HOOK ---
-    function mountAiYoutubeTool(el) {
+    function mountAiYoutubeTool(el, tool = {}) {
+      const title = tool.name || 'AI Viral YouTube Title & Hook Crafter';
+      const desc = tool.description || 'Generate 5 viral, high-CTR titles, 30-second retention hooks, and thumbnail concepts.';
+      const icon = tool.icon || 'video';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="video" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Viral YouTube Title & Hook Crafter</h2>
-            <p class="text-xs text-muted mt-1">Generate 5 viral, high-CTR titles, 30-second retention hooks, and thumbnail concepts.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
@@ -3328,7 +3359,7 @@
                 <option value="Educational & Authoritative">Educational & Authoritative</option>
               </select>
             </div>
-            <button id="yt-submit-btn" onclick="executeAiTool('ai_youtube', 'yt-topic', 'yt-tone', 'yt-output', 'AI YouTube Title Crafter')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+            <button id="yt-submit-btn" onclick="executeAiTool('ai_youtube', 'yt-topic', 'yt-tone', 'yt-output', ${JSON.stringify(title).replace(/"/g, '&quot;')})" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
               <span>Generate Viral Titles & Retention Hooks</span>
             </button>
@@ -3340,15 +3371,18 @@
     }
 
     // --- AI TOOL 2: SEO BLOG OUTLINE & KEYWORDS ---
-    function mountAiBlogOutlineTool(el) {
+    function mountAiBlogOutlineTool(el, tool = {}) {
+      const title = tool.name || 'AI SEO Blog Outline & Keyword Strategist';
+      const desc = tool.description || 'Structure intent-driven H2/H3 article hierarchies and high-CPC keywords to rank fast.';
+      const icon = tool.icon || 'file-text';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="file-text" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI SEO Blog Outline & Keyword Strategist</h2>
-            <p class="text-xs text-muted mt-1">Structure intent-driven H2/H3 article hierarchies and high-CPC keywords to rank fast.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
@@ -3356,7 +3390,7 @@
               <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Target Article Keyword / Topic</label>
               <input id="blog-topic" type="text" value="Google AdSense High RPM Strategy" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
             </div>
-            <button id="blog-submit-btn" onclick="executeAiTool('ai_blog', 'blog-topic', null, 'blog-output', 'AI Blog Outline Strategist')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+            <button id="blog-submit-btn" onclick="executeAiTool('ai_blog', 'blog-topic', null, 'blog-output', ${JSON.stringify(title).replace(/"/g, '&quot;')})" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
               <span>Generate SEO Outline & Keywords</span>
             </button>
@@ -3368,15 +3402,18 @@
     }
 
     // --- AI TOOL 3: CODE & REGEX EXPLAINER ---
-    function mountAiCodeTool(el) {
+    function mountAiCodeTool(el, tool = {}) {
+      const title = tool.name || 'AI Code, Regex & Script Explainer';
+      const desc = tool.description || 'Paste any regular expression, SQL query, or script for an instant plain-English breakdown.';
+      const icon = tool.icon || 'code';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="code" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Code, Regex & Script Explainer</h2>
-            <p class="text-xs text-muted mt-1">Paste any regular expression, SQL query, or script for an instant plain-English breakdown.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
@@ -3384,7 +3421,7 @@
               <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Paste Code / Regex Snippet</label>
               <textarea id="code-snippet" rows="5" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed">^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$</textarea>
             </div>
-            <button id="code-submit-btn" onclick="executeAiTool('ai_code', 'code-snippet', null, 'code-output', 'AI Code Explainer')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+            <button id="code-submit-btn" onclick="executeAiTool('ai_code', 'code-snippet', null, 'code-output', ${JSON.stringify(title).replace(/"/g, '&quot;')})" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
               <span>Explain Code Snippet</span>
             </button>
@@ -3396,15 +3433,18 @@
     }
 
     // --- AI TOOL 4: AD COPY GENERATOR ---
-    function mountAiAdCopyTool(el) {
+    function mountAiAdCopyTool(el, tool = {}) {
+      const title = tool.name || 'AI AdSense & Social Ad Copy Generator';
+      const desc = tool.description || 'Craft punchy headlines and click-optimized ad copy variations for low CPC campaigns.';
+      const icon = tool.icon || 'sparkles';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="sparkles" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI AdSense & Social Ad Copy Generator</h2>
-            <p class="text-xs text-muted mt-1">Craft punchy headlines and click-optimized ad copy variations for low CPC campaigns.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol mb-8 space-y-4">
@@ -3412,7 +3452,7 @@
               <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-2">Product, Website, or Offer</label>
               <input id="ad-input" type="text" value="Free AI Keyword Research Tool for Bloggers" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
             </div>
-            <button id="ad-submit-btn" onclick="executeAiTool('ai_adcopy', 'ad-input', null, 'ad-output', 'AI Ad Copy Generator')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+            <button id="ad-submit-btn" onclick="executeAiTool('ai_adcopy', 'ad-input', null, 'ad-output', ${JSON.stringify(title).replace(/"/g, '&quot;')})" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
               <span>Generate 3 High-CTR Ad Variations</span>
             </button>
@@ -3424,15 +3464,18 @@
     }
 
     // --- CLIENT UTILITY 5: ADSENSE & REVENUE ESTIMATOR ---
-    function mountBusinessCalculator(el) {
+    function mountBusinessCalculator(el, tool = {}) {
+      const title = tool.name || 'AdSense & Website Revenue Estimator';
+      const desc = tool.description || 'Calculate your projected monthly earnings based on traffic, page views, and niche RPM.';
+      const icon = tool.icon || 'dollar-sign';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AdSense & Website Revenue Estimator</h2>
-            <p class="text-xs text-muted mt-1">Calculate your projected monthly earnings based on traffic, page views, and niche RPM.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-5">
@@ -3473,7 +3516,7 @@
             </div>
 
             <div class="flex justify-end pt-2">
-              <button onclick="saveResultToFirestore('business', 'AdSense Revenue Estimator', 'Views: ' + document.getElementById('calc-views').value + ', RPM: $' + document.getElementById('calc-rpm').value, 'Monthly: ' + document.getElementById('calc-monthly').textContent + ', Yearly: ' + document.getElementById('calc-yearly').textContent)" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
+              <button onclick="saveResultToFirestore('business', ${JSON.stringify(title).replace(/"/g, '&quot;')}, 'Views: ' + document.getElementById('calc-views').value + ', RPM: $' + document.getElementById('calc-rpm').value, 'Monthly: ' + document.getElementById('calc-monthly').textContent + ', Yearly: ' + document.getElementById('calc-yearly').textContent)" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
                 <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
                 <span>Save Calculation to Account</span>
               </button>
@@ -3501,15 +3544,18 @@
     };
 
     // --- CLIENT UTILITY 6: DOMAIN & BRAND NAME GENERATOR ---
-    function mountNameGenerator(el) {
+    function mountNameGenerator(el, tool = {}) {
+      const title = tool.name || 'AI Brand & Domain Name Generator';
+      const desc = tool.description || 'Generate catchy, high-recall startup and domain names with instant suffix pairing.';
+      const icon = tool.icon || 'sparkles';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="sparkles" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AI Brand & Domain Name Generator</h2>
-            <p class="text-xs text-muted mt-1">Generate catchy, high-recall startup and domain names with instant suffix pairing.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
@@ -3551,15 +3597,18 @@
     };
 
     // --- CLIENT UTILITY 7: INSTAGRAM & SOCIAL CAPTIONS ---
-    function mountInstagramGenerator(el) {
+    function mountInstagramGenerator(el, tool = {}) {
+      const title = tool.name || 'Social Media Viral Caption & Tag Generator';
+      const desc = tool.description || 'Instant high-engagement captions paired with categorized hashtags for Reels & Posts.';
+      const icon = tool.icon || 'hash';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-pink-50 text-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="hash" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Social Media Viral Caption & Tag Generator</h2>
-            <p class="text-xs text-muted mt-1">Instant high-engagement captions paired with categorized hashtags for Reels & Posts.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
@@ -3595,15 +3644,18 @@
     };
 
     // --- CLIENT UTILITY 8: WORD & SEO DENSITY COUNTER ---
-    function mountWordCounter(el) {
+    function mountWordCounter(el, tool = {}) {
+      const title = tool.name || 'Pro Content SEO & Word Density Analyzer';
+      const desc = tool.description || 'Instant metrics for words, characters, reading time, speaking time, and top repeated keywords.';
+      const icon = tool.icon || 'file-text';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="file-text" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Pro Content SEO & Word Density Analyzer</h2>
-            <p class="text-xs text-muted mt-1">Instant metrics for words, characters, reading time, speaking time, and top repeated keywords.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="space-y-4">
@@ -3635,15 +3687,18 @@
     };
 
     // --- CLIENT UTILITY 9: MILITARY-GRADE PASSWORD GENERATOR ---
-    function mountPasswordGenerator(el) {
+    function mountPasswordGenerator(el, tool = {}) {
+      const title = tool.name || 'Military-Grade Password & Key Generator';
+      const desc = tool.description || 'Generate cryptographically secure 256-bit entropy passwords and secrets client-side.';
+      const icon = tool.icon || 'shield-check';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="shield-check" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Military-Grade Password & Key Generator</h2>
-            <p class="text-xs text-muted mt-1">Generate cryptographically secure 256-bit entropy passwords and secrets client-side.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
@@ -3681,15 +3736,18 @@
     };
 
     // --- CLIENT UTILITY 10: AGE & MILESTONE CALCULATOR ---
-    function mountAgeCalculator(el) {
+    function mountAgeCalculator(el, tool = {}) {
+      const title = tool.name || 'Exact Age & Milestone Calculator';
+      const desc = tool.description || 'Find your exact age down to days, hours, and next milestone birthdays.';
+      const icon = tool.icon || 'calendar';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="calendar" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">Exact Age & Milestone Calculator</h2>
-            <p class="text-xs text-muted mt-1">Find your exact age down to days, hours, and next milestone birthdays.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
@@ -3734,15 +3792,18 @@
     };
 
     // --- CLIENT UTILITY 11: ADSENSE ARBITRAGE & PROFIT CALCULATOR ---
-    function mountArbitrageCalculator(el) {
+    function mountArbitrageCalculator(el, tool = {}) {
+      const title = tool.name || 'AdSense Arbitrage & Traffic Profitability Calculator';
+      const desc = tool.description || 'Simulate paid ad acquisition cost vs AdSense revenue return, net profit margins, and campaign ROI percentage.';
+      const icon = tool.icon || 'trending-up';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="trending-up" class="w-6 h-6"></i>
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">AdSense Arbitrage & Traffic Profitability Calculator</h2>
-            <p class="text-xs text-muted mt-1">Simulate paid ad acquisition cost vs AdSense revenue return, net profit margins, and campaign ROI percentage.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
 
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-5">
@@ -3784,7 +3845,7 @@
             </div>
 
             <div class="flex justify-end pt-2">
-              <button onclick="saveResultToFirestore('arbitrage', 'AdSense Arbitrage Calculator', 'Spend: $' + document.getElementById('arb-spend').value + ', CPC: $' + document.getElementById('arb-cpc').value + ', RPM: $' + document.getElementById('arb-rpm').value, 'Net Profit: ' + document.getElementById('arb-net').textContent + ', ROI: ' + document.getElementById('arb-roi').textContent)" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
+              <button onclick="saveResultToFirestore('arbitrage', ${JSON.stringify(title).replace(/"/g, '&quot;')}, 'Spend: $' + document.getElementById('arb-spend').value + ', CPC: $' + document.getElementById('arb-cpc').value + ', RPM: $' + document.getElementById('arb-rpm').value, 'Net Profit: ' + document.getElementById('arb-net').textContent + ', ROI: ' + document.getElementById('arb-roi').textContent)" class="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1">
                 <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
                 <span>Save Arbitrage Calculation</span>
               </button>
@@ -3818,20 +3879,28 @@
       }
     };
 
-    function mountCustomAiTool(el, tool) {
+    function mountCustomAiTool(el, tool = {}) {
+      const title = tool.name || 'Custom AI Utility';
+      const desc = tool.description || 'Interactive AI generator powered by Web Nasir Academy.';
+      const icon = tool.icon || 'sparkles';
+      const toolKey = tool.key || 'custom';
       el.innerHTML = `
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
-            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${tool.name}</h2>
-            <p class="text-xs text-muted mt-1">${tool.description}</p>
+            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="${icon}" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-heading text-dark">${title}</h2>
+            <p class="text-xs text-muted mt-1">${desc}</p>
           </div>
           <div class="bg-surface p-6 rounded-2xl border border-bordercol space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase text-slate-700 mb-2">Input Prompt</label>
               <textarea id="custom-tool-input" rows="4" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm" placeholder="Enter topic or context..."></textarea>
             </div>
-            <button onclick="executeAiTool('custom', 'custom-tool-input', null, 'custom-output', '${tool.name}')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md">
-              Run AI Tool
+            <button onclick="executeAiTool('${toolKey}', 'custom-tool-input', null, 'custom-output', ${JSON.stringify(title).replace(/"/g, '&quot;')})" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Run ${title}</span>
             </button>
           </div>
           <div id="custom-output" class="hidden space-y-4 mt-6"></div>
@@ -4473,6 +4542,7 @@
         }
         if (Array.isArray(tools) && tools.length > 0) {
           window.APP_STATE.tools = tools;
+          syncPublicToolsNavigationAndFooter(tools);
           hasUpdates = true;
         }
         if (Array.isArray(articles) && articles.length > 0) {

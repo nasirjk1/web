@@ -29,18 +29,33 @@ export function initBlobEnvironment(event) {
 }
 
 function getWritableFilePaths() {
-  return [LOCAL_STORE_FILE, TMP_STORE_FILE];
+  return [TMP_STORE_FILE, LOCAL_STORE_FILE];
 }
 
 function loadLocalData() {
-  // Always re-read from disk if available so multi-process or hot-reloaded workers stay in sync
+  let newestData = localData;
+  let newestTs = Number(localData?._updated_at || 0);
+
   for (const filePath of getWritableFilePaths()) {
     try {
       if (fs.existsSync(filePath)) {
         const content = fs.readFileSync(filePath, 'utf8');
         if (content && content.trim().length > 2) {
-          localData = JSON.parse(content);
-          return localData;
+          const parsed = JSON.parse(content);
+          if (parsed && typeof parsed === 'object') {
+            let fileTs = Number(parsed._updated_at || 0);
+            if (!fileTs) {
+              try {
+                fileTs = Number(fs.statSync(filePath).mtimeMs || 0);
+              } catch (_) {
+                fileTs = 1;
+              }
+            }
+            if (!newestData || fileTs > newestTs) {
+              newestData = parsed;
+              newestTs = fileTs;
+            }
+          }
         }
       }
     } catch (err) {
@@ -48,24 +63,29 @@ function loadLocalData() {
     }
   }
 
-  if (localData) return localData;
-  localData = {};
+  if (newestData) {
+    localData = newestData;
+    return localData;
+  }
+
+  localData = { _updated_at: Date.now(), _key_ts: {} };
   saveLocalData();
   return localData;
 }
 
 function saveLocalData() {
   if (!localData) return;
+  localData._updated_at = Date.now();
   const serialized = JSON.stringify(localData, null, 2);
 
-  // Attempt primary project directory first
+  // Attempt primary project directory first (writable in dev / Node server)
   try {
     if (!fs.existsSync(LOCAL_STORE_DIR)) {
       fs.mkdirSync(LOCAL_STORE_DIR, { recursive: true });
     }
     fs.writeFileSync(LOCAL_STORE_FILE, serialized, 'utf8');
   } catch (err) {
-    // In serverless /var/task is read-only; fallback to /tmp which is always writable
+    // In serverless /var/task is read-only; /tmp is always writable
   }
 
   // Always mirror to /tmp for serverless container persistence across warm invocations
@@ -108,22 +128,20 @@ function getNativeStore() {
  * Get JSON data for a key
  */
 export async function getBlob(key) {
+  const local = loadLocalData();
   const store = getNativeStore();
   if (store) {
     try {
       const data = await store.get(key, { type: 'json' });
       if (data !== null && data !== undefined) {
-        // Sync into local cache as well
-        const local = loadLocalData();
         local[key] = data;
-        return data;
+        return JSON.parse(JSON.stringify(data));
       }
     } catch (err) {
       console.warn(`Netlify Blobs read fallback for "${key}":`, err.message);
     }
   }
 
-  const local = loadLocalData();
   return local[key] !== undefined ? JSON.parse(JSON.stringify(local[key])) : null;
 }
 
@@ -133,9 +151,13 @@ export async function getBlob(key) {
 export async function setBlob(key, value) {
   const cloned = value !== undefined ? JSON.parse(JSON.stringify(value)) : null;
 
-  // Always update local/tmp file store first
+  // Always update local/tmp file store first and stamp timestamp
   const local = loadLocalData();
   local[key] = cloned;
+  if (!local._key_ts || typeof local._key_ts !== 'object') {
+    local._key_ts = {};
+  }
+  local._key_ts[key] = Date.now();
   saveLocalData();
 
   const store = getNativeStore();
@@ -156,6 +178,9 @@ export async function setBlob(key, value) {
 export async function deleteBlob(key) {
   const local = loadLocalData();
   delete local[key];
+  if (local._key_ts && typeof local._key_ts === 'object') {
+    delete local._key_ts[key];
+  }
   saveLocalData();
 
   const store = getNativeStore();

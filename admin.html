@@ -523,18 +523,23 @@
             <h2 class="text-2xl font-bold font-heading text-dark">10. Payment Gateway Settings (Razorpay & UPI)</h2>
             <p class="text-sm text-muted">Configure Razorpay keys, test/live mode, currency, supported payment methods, and webhook verification.</p>
           </div>
-          <button onclick="handleSavePaymentGateway()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i><span>Save Payment Settings</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="testPaymentGatewayConnection()" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 shadow-2xs">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i><span>Test Gateway Connection</span>
+            </button>
+            <button onclick="handleSavePaymentGateway()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Save Payment Settings</span>
+            </button>
+          </div>
         </div>
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-6 max-w-3xl">
-          <div class="flex items-center justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+          <div id="pg-test-result-banner" class="flex items-center justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
             <div class="flex items-center gap-3">
               <i data-lucide="shield-check" class="w-6 h-6 text-emerald-600"></i>
               <div>
-                <div class="text-xs font-bold text-emerald-950">Gateway Status: Connected & Server-Side Verified</div>
-                <div class="text-[11px] text-emerald-700">Secret keys are kept strictly server-side. Signatures verified before course unlock.</div>
+                <div id="pg-status-headline" class="text-xs font-bold text-emerald-950">Gateway Status: Connected & Server-Side Verified</div>
+                <div id="pg-status-subtext" class="text-[11px] text-emerald-700">Secret keys are kept strictly server-side. Signatures verified before course unlock.</div>
               </div>
             </div>
             <label class="flex items-center gap-2 text-xs font-bold text-emerald-900 cursor-pointer">
@@ -607,6 +612,22 @@
               <input id="about-role" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
             </div>
           </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Founder Portrait Photo URL</label>
+              <div class="flex gap-2">
+                <input id="about-founder-photo" type="text" placeholder="/api/media/file/... or https://..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                  Upload
+                  <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'about-founder-photo')">
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Founder Intro Video URL (Optional)</label>
+              <input id="about-video-url" type="text" placeholder="https://... or /api/media/file/..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+          </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Full Founder Biography</label>
             <textarea id="about-bio" rows="4" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
@@ -677,11 +698,14 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-heading text-dark">19. Multi-Column Footer Builder</h2>
-            <p class="text-sm text-muted">Customize footer brand description, newsletter box, colors, copyright text, and column links.</p>
+            <p class="text-sm text-muted">Customize footer brand description, newsletter box, colors, copyright text, and multi-column navigation links.</p>
           </div>
-          <button onclick="handleSaveFooterBuilder()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i><span>Publish Footer Changes</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="addFooterColumn()" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-brand-600 hover:bg-slate-50">+ Add Column</button>
+            <button onclick="handleSaveFooterBuilder()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Publish Footer Changes</span>
+            </button>
+          </div>
         </div>
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-6 text-xs">
@@ -703,9 +727,23 @@
             <label class="block font-bold text-slate-700 mb-1">Footer Brand Summary Paragraph</label>
             <textarea id="ftr-desc" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Copyright Notice</label>
-            <input id="ftr-copyright" type="text" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Copyright Notice</label>
+              <input id="ftr-copyright" type="text" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Newsletter Heading</label>
+              <input id="ftr-newsletter-title" type="text" placeholder="Join 15,000+ AI Engineers & Publishers" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-dark">Footer Navigation Columns & Links</h3>
+              <span class="text-[11px] text-muted">Edit column headings and add/remove links in each column</span>
+            </div>
+            <div id="footer-columns-editor" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
           </div>
         </div>
       </section>
@@ -1219,36 +1257,96 @@
       <section id="tab-seo-settings" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold font-heading text-dark">21. Global SEO, OpenGraph & Sitemap Manager</h2>
-            <p class="text-sm text-muted">Configure search engine titles, meta descriptions, OpenGraph cards, canonical URLs, and robots.txt rules.</p>
+            <h2 class="text-2xl font-bold font-heading text-dark">21. Global SEO, OpenGraph, Structured Data & 301 Redirects</h2>
+            <p class="text-sm text-muted">Configure search engine titles, meta descriptions, live Google SERP preview, JSON-LD schema, sitemap.xml, robots.txt, and 301 redirects.</p>
           </div>
-          <button onclick="handleSaveSeoSettings()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i><span>Save SEO Configuration</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <a href="/sitemap.xml" target="_blank" class="px-3.5 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50">View sitemap.xml ↗</a>
+            <a href="/robots.txt" target="_blank" class="px-3.5 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50">View robots.txt ↗</a>
+            <button onclick="handleSaveSeoSettings()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Save SEO Configuration</span>
+            </button>
+          </div>
         </div>
 
-        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs max-w-3xl">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Global Meta Title</label>
-            <input id="seo-title" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Global Meta Description</label>
-            <textarea id="seo-desc" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs">
+          <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Canonical Base URL</label>
-              <input id="seo-canonical" type="text" value="https://webnasir.dpdns.org" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-bold text-slate-700">Global Meta Title</label>
+                <span id="seo-title-char-count" class="text-[11px] font-mono text-slate-500">0 / 60 chars</span>
+              </div>
+              <input id="seo-title" oninput="updateLiveSeoSnippetPreview()" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">OpenGraph Share Image URL</label>
-              <input id="seo-og-image" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-bold text-slate-700">Global Meta Description</label>
+                <span id="seo-desc-char-count" class="text-[11px] font-mono text-slate-500">0 / 160 chars</span>
+              </div>
+              <textarea id="seo-desc" oninput="updateLiveSeoSnippetPreview()" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Canonical Base URL</label>
+                <input id="seo-canonical" oninput="updateLiveSeoSnippetPreview()" type="text" value="https://webnasir.dpdns.org" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">OpenGraph Share Image URL</label>
+                <div class="flex gap-2">
+                  <input id="seo-og-image" oninput="updateLiveSeoSnippetPreview()" type="text" class="flex-1 px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+                  <label class="px-3 py-2.5 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                    Upload
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'seo-og-image')">
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Default Focus Keywords</label>
+                <input id="seo-keywords" type="text" placeholder="AI courses, Gemini tools, Web Nasir Academy, Technical SEO" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Robots Meta Indexing</label>
+                <select id="seo-indexing" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="index, follow">index, follow (Recommended)</option>
+                  <option value="noindex, follow">noindex, follow</option>
+                  <option value="noindex, nofollow">noindex, nofollow</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Robots.txt Directives (Served live at /robots.txt)</label>
+              <textarea id="seo-robots" rows="4" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono"></textarea>
             </div>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Robots.txt Directives</label>
-            <textarea id="seo-robots" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono"></textarea>
+
+          <!-- Live Google Search & Social Card Preview + 301 Redirects -->
+          <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="text-sm font-bold text-dark">Live Google Search Result Preview</h3>
+                <span id="seo-health-pill" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Optimal</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                <div id="serp-preview-url" class="text-[11px] text-emerald-700 truncate">https://webnasir.dpdns.org</div>
+                <div id="serp-preview-title" class="text-base font-bold text-blue-700 hover:underline leading-snug">Web Nasir — Practical AI Tools, Courses & Digital Growth Academy</div>
+                <div id="serp-preview-desc" class="text-xs text-slate-600 line-clamp-3 leading-relaxed">Master AI engineering, full-stack web development, SEO, and digital monetization with Nasir.</div>
+              </div>
+              <div id="seo-live-warnings" class="space-y-1.5 text-[11px]"></div>
+            </div>
+
+            <!-- 301 Redirect Manager -->
+            <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <h3 class="text-sm font-bold text-dark">301 URL Redirect Manager</h3>
+                  <p class="text-[11px] text-muted">Redirect old slugs to new clean URLs</p>
+                </div>
+                <button onclick="addSeoRedirectRule()" class="px-3 py-1.5 rounded-xl bg-brand-50 text-brand-700 font-bold text-xs hover:bg-brand-100">+ Add Rule</button>
+              </div>
+              <div id="seo-redirects-list" class="space-y-2 max-h-56 overflow-y-auto"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -1257,18 +1355,36 @@
       <section id="tab-media-library" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold font-heading text-dark">22. Media Library & Asset Manager</h2>
-            <p class="text-sm text-muted">Manage images, course thumbnails, and video streams with alt text and usage tracking.</p>
+            <h2 class="text-2xl font-bold font-heading text-dark">22. Persistent Media Library & Asset Manager</h2>
+            <p class="text-sm text-muted">Upload images (auto-optimized to WebP) and videos stored persistently at <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-xs">/api/media/file/...</code> across page refreshes.</p>
           </div>
-          <div class="flex items-center gap-2">
-            <label class="px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold cursor-pointer hover:bg-brand-100 flex items-center gap-1.5">
-              <i data-lucide="image-plus" class="w-4 h-4"></i>
-              <span>Upload & Optimize WebP</span>
-              <input type="file" accept="image/*" class="hidden" onchange="handleLocalMediaFileUpload(event)">
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="px-4 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold cursor-pointer hover:bg-brand-700 flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+              <span>Upload Images / Videos (Multi-File)</span>
+              <input type="file" multiple accept="image/*,video/mp4,video/webm" class="hidden" onchange="handleLocalMediaFileUpload(event)">
             </label>
-            <button onclick="promptAddMediaAsset()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="upload" class="w-4 h-4"></i><span>Add Media Asset</span>
-          </button>
+            <button onclick="openMediaEditModal(null)" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-dark text-xs font-bold hover:bg-slate-50 flex items-center gap-1.5">
+              <i data-lucide="link" class="w-4 h-4 text-brand-600"></i><span>Add External URL Asset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Media Library Search & Filter Bar -->
+        <div class="bg-white p-4 rounded-2xl border border-bordercol flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div class="relative w-full sm:w-80">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+            <input id="media-search-input" oninput="renderMediaLibrary()" type="text" placeholder="Search by filename, title, or alt text..." class="w-full pl-9 pr-3 py-2 bg-surface border border-bordercol rounded-xl">
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <select id="media-filter-type" onchange="renderMediaLibrary()" class="px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              <option value="all">All Media Types</option>
+              <option value="image">Images Only</option>
+              <option value="video">Videos Only</option>
+              <option value="used">Used on Website</option>
+              <option value="unassigned">Unassigned</option>
+            </select>
+            <span id="media-count-badge" class="px-3 py-1.5 rounded-xl bg-violet-50 text-violet-700 font-bold">0 Assets</span>
           </div>
         </div>
 
@@ -1627,13 +1743,22 @@
                   <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
                   <span>Actual delivery status recorded automatically in audit log.</span>
                 </div>
-                <button type="submit" id="btn-send-email" class="gradient-btn text-white text-xs font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow-md">
-                  <i data-lucide="send" class="w-4 h-4"></i>
-                  <span>Send Email to Students</span>
-                </button>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="handleSaveEmailDraft()" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">
+                    Save Draft
+                  </button>
+                  <button type="submit" id="btn-send-email" class="gradient-btn text-white text-xs font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow-md">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    <span>Send Email to Students</span>
+                  </button>
+                </div>
               </div>
 
             </form>
+            <div id="email-drafts-container" class="pt-4 border-t border-slate-100 hidden">
+              <div class="text-xs font-bold text-slate-600 mb-2">Saved Email Drafts</div>
+              <div id="email-drafts-list" class="space-y-2 text-xs"></div>
+            </div>
           </div>
         </div>
 
@@ -1717,7 +1842,21 @@
             <button onclick="closeStudentDetailModal()" class="text-slate-400 hover:text-dark p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
           </div>
 
+          <input type="hidden" id="modal-std-id">
           <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-600 mb-1">Student Full Name</label>
+                <input id="modal-std-edit-name" type="text" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-600 mb-1">Payment Tier</label>
+                <select id="modal-std-edit-payment" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="none">Free / Starter Tier</option>
+                  <option value="paid">Paid Masterclass Member</option>
+                </select>
+              </div>
+            </div>
             <div class="grid grid-cols-2 gap-3 text-xs">
               <div class="p-3 bg-surface rounded-xl border border-bordercol">
                 <span class="text-muted block text-[10px] uppercase font-bold">Authentication</span>
@@ -1744,13 +1883,18 @@
             </div>
           </div>
 
-          <div class="flex justify-between items-center pt-4 border-t border-bordercol">
+          <div class="flex flex-wrap justify-between items-center gap-2 pt-4 border-t border-bordercol">
             <button id="modal-std-toggle-btn" class="px-4 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200">
               Disable Account
             </button>
-            <button onclick="closeStudentDetailModal()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white">
-              Close Profile
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="saveStudentProfileEdits()" class="px-4 py-2 rounded-xl text-xs font-semibold gradient-btn text-white">
+                Save Profile Changes
+              </button>
+              <button onclick="closeStudentDetailModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2057,12 +2201,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-heading text-dark">Free AI & Web Utilities Manager</h2>
-            <p class="text-sm text-muted">Easily add new free AI tools, edit categories, customize prompts, and toggle visibility.</p>
+            <p class="text-sm text-muted">Manage all 11+ free AI tools: edit names, descriptions, icons, categories, badges, prompts, input/output formats, featured status, SEO slugs, and sort order.</p>
           </div>
-          <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 self-start shadow-sm">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Add New Free Tool</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2 self-start">
+            <button onclick="saveAllToolsManager(false)" class="px-4 py-2.5 rounded-xl bg-dark hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-2 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save All Tool Changes</span>
+            </button>
+            <button onclick="openNewToolModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add New Free Tool</span>
+            </button>
+          </div>
         </div>
 
         <div id="tools-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2158,7 +2308,7 @@
   <!-- MODAL: ADD / EDIT FREE AI TOOL -->
   <!-- ======================================================== -->
   <div id="tool-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
       <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
         <h3 id="tool-modal-title" class="text-lg font-bold font-heading text-dark">Add New Free AI Tool</h3>
         <button onclick="closeToolModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -2166,134 +2316,541 @@
 
       <form onsubmit="handleSaveToolForm(event)" class="space-y-4">
         <input type="hidden" id="edit-tool-is-new" value="true">
+        <input type="hidden" id="edit-tool-original-key" value="">
         
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Name</label>
-          <input id="modal-tool-name" oninput="autoGenToolKey()" type="text" required placeholder="e.g. AI Resume Bullet Crafter" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Name *</label>
+            <input id="modal-tool-name" oninput="autoGenToolKey()" type="text" required placeholder="e.g. AI Resume Bullet Crafter" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category *</label>
+            <input id="modal-tool-category" list="tool-category-suggestions" type="text" required value="AI Creators" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+            <datalist id="tool-category-suggestions">
+              <option value="AI Creators">
+              <option value="SEO & Content">
+              <option value="Monetization">
+              <option value="Calculators">
+            </datalist>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Key / Slug</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Permanent Tool Key / ID</label>
             <input id="modal-tool-key" type="text" required placeholder="resume-bullets" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Category</label>
-            <select id="modal-tool-category" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
-              <option value="AI Creators">AI Creators</option>
-              <option value="Monetization">Monetization</option>
-              <option value="SEO & Copy">SEO & Copy</option>
-              <option value="Calculators">Calculators</option>
-            </select>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">SEO URL Slug (#/tools/:slug)</label>
+            <input id="modal-tool-slug" type="text" placeholder="resume-bullets" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Description</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Description *</label>
           <textarea id="modal-tool-desc" rows="2" required placeholder="Short summary of what this free tool computes or generates..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs"></textarea>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Badge Label</label>
-            <input id="modal-tool-badge" type="text" value="Free AI" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
+            <input id="modal-tool-badge" type="text" value="AI Powered" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Lucide Icon</label>
             <input id="modal-tool-icon" type="text" value="sparkles" placeholder="sparkles, code, video, file-text" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
           </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Engine Type</label>
+            <select id="modal-tool-type" onchange="toggleCustomPromptField()" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+              <option value="custom_ai">Custom AI Prompt Tool (Gemini Flash)</option>
+              <option value="ai_youtube">Built-in: YouTube Titles & Hooks</option>
+              <option value="ai_blog">Built-in: SEO Blog Outline</option>
+              <option value="ai_code">Built-in: Code & Regex Explainer</option>
+              <option value="ai_adcopy">Built-in: Ad Copy Generator</option>
+              <option value="client_business">Built-in: Revenue Calculator</option>
+              <option value="client_name">Built-in: Brand Name Generator</option>
+              <option value="client_instagram">Built-in: Social Caption Generator</option>
+              <option value="client_wordcount">Built-in: Word Density Analyzer</option>
+              <option value="client_password">Built-in: Password Generator</option>
+              <option value="client_age">Built-in: Exact Age Calculator</option>
+              <option value="client_arbitrage">Built-in: Arbitrage Calculator</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tool Type</label>
-          <select id="modal-tool-type" onchange="toggleCustomPromptField()" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
-            <option value="custom_ai">Custom AI Prompt Tool (Gemini 3.8 Flash Free)</option>
-            <option value="ai_youtube">Built-in: YouTube Titles & Hooks</option>
-            <option value="ai_blog">Built-in: SEO Blog Outline</option>
-            <option value="ai_code">Built-in: Code & Regex Explainer</option>
-            <option value="ai_adcopy">Built-in: Ad Copy Generator</option>
-            <option value="client_business">Built-in: Revenue Calculator</option>
-            <option value="client_password">Built-in: Password Generator</option>
-          </select>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Input Fields Specification</label>
+            <input id="modal-tool-inputs" type="text" placeholder="e.g. Video Topic, Target Tone" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Output Format Specification</label>
+            <input id="modal-tool-output" type="text" placeholder="e.g. Markdown (Titles, Hooks & Concepts)" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+          </div>
         </div>
 
         <div id="modal-prompt-container">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Custom Prompt Instruction</label>
-          <textarea id="modal-tool-prompt" rows="3" placeholder="e.g. Generate 5 high-converting bullet points for a tech job resume based on the user's input." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs leading-relaxed"></textarea>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">AI Prompt / System Configuration</label>
+          <textarea id="modal-tool-prompt" rows="3" placeholder="e.g. Generate 5 high-converting bullet points based on the user's input..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs leading-relaxed"></textarea>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 items-center pt-1">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center pt-1">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
-            <input id="modal-tool-order" type="number" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+            <input id="modal-tool-order" type="number" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs font-bold">
           </div>
           <div class="pt-4">
             <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
               <input id="modal-tool-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
-              <span>Active / Enabled</span>
+              <span>Visible / Active</span>
+            </label>
+          </div>
+          <div class="pt-4">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+              <input id="modal-tool-featured" type="checkbox" class="w-4 h-4 text-amber-500 rounded">
+              <span>Featured Tool</span>
             </label>
           </div>
         </div>
 
         <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
           <button type="button" onclick="closeToolModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-          <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Tool</button>
+          <button id="modal-tool-submit-btn" type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Tool</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ARTICLE EDITOR MODAL -->
-  <div id="article-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
-      <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
-        <h3 id="article-modal-title" class="text-xl font-bold font-heading text-dark">New Technical Guide</h3>
-        <button onclick="closeArticleModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <!-- ARTICLE EDITOR MODAL -->
+      <div id="article-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+          <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
+            <h3 id="article-modal-title" class="text-xl font-bold font-heading text-dark">New Technical Guide</h3>
+            <button onclick="closeArticleModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+
+          <form onsubmit="handleSaveArticle(event)" class="space-y-4">
+            <input type="hidden" id="edit-article-is-new" value="true">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Guide Title</label>
+              <input id="article-field-title" oninput="autoGenerateSlug()" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Clean URL Slug</label>
+                <input id="article-field-slug" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tag / Category</label>
+                <input id="article-field-tag" type="text" required placeholder="ai, adsense, seo, case-study..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Focus Keyword</label>
+                <input id="article-field-keyword" type="text" placeholder="e.g. AdSense high RPM" class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Featured Image URL</label>
+                <div class="flex gap-2">
+                  <input id="article-field-image" type="text" placeholder="/api/media/file/... or https://..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs font-mono">
+                  <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                    Upload
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'article-field-image')">
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">SEO Meta Title</label>
+                <input id="article-field-seo-title" type="text" placeholder="Custom SEO title (optional)" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Meta Summary / SEO Description</label>
+              <textarea id="article-field-meta" rows="2" maxlength="300" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4 items-center">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
+                <input id="article-field-order" type="number" value="1" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
+              </div>
+              <div class="pt-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="article-field-published" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                  <span class="text-xs font-semibold text-slate-700">Published</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Full Article Body (Markdown)</label>
+              <textarea id="article-field-body" rows="12" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-xs font-mono leading-relaxed"></textarea>
+            </div>
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
+              <button type="button" onclick="closeArticleModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Article</button>
+            </div>
+          </form>
+        </div>
       </div>
 
-      <form onsubmit="handleSaveArticle(event)" class="space-y-4">
-        <input type="hidden" id="edit-article-is-new" value="true">
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Guide Title</label>
-          <input id="article-field-title" oninput="autoGenerateSlug()" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-sm font-medium">
+      <!-- PAID COURSE EDITOR MODAL -->
+      <div id="course-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+          <div class="flex items-center justify-between pb-4 border-b border-bordercol mb-6">
+            <h3 id="course-modal-title" class="text-lg font-bold font-heading text-dark">Add / Edit Masterclass</h3>
+            <button onclick="closeCourseModal()" class="p-2 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveCourseForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="modal-course-id">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Course Title *</label>
+                <input id="modal-course-title" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Category *</label>
+                <input id="modal-course-category" type="text" required value="AI Engineering" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Course Overview / Description *</label>
+              <textarea id="modal-course-desc" rows="3" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Price (INR)</label>
+                <input id="modal-course-price" type="number" value="4999" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-bold">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Original Price</label>
+                <input id="modal-course-original" type="number" value="9999" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Rating</label>
+                <input id="modal-course-rating" type="number" step="0.1" value="4.9" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Students Count</label>
+                <input id="modal-course-enrolled" type="number" value="150" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Duration</label>
+                <input id="modal-course-duration" type="text" value="8 Weeks" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Badge</label>
+                <input id="modal-course-badge" type="text" value="Bestseller" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Difficulty Level</label>
+                <input id="modal-course-level" type="text" value="Beginner to Advanced" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Course Thumbnail Image</label>
+                <div class="flex gap-2">
+                  <input id="modal-course-image" type="text" placeholder="/api/media/file/... or https://..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                  <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                    Upload
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'modal-course-image')">
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Promo Video URL (Optional)</label>
+                <input id="modal-course-video" type="text" placeholder="https://... or /api/media/file/..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Key Highlights / Outcomes (One per line)</label>
+              <textarea id="modal-course-highlights" rows="3" placeholder="100% Practical Projects&#10;Complete Source Code Included&#10;Certificate of Completion" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-bordercol">
+              <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                <input id="modal-course-active" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Published & Visible on Public Website</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="closeCourseModal()" class="px-4 py-2 rounded-xl border border-bordercol font-semibold text-slate-600">Cancel</button>
+                <button type="submit" class="gradient-btn text-white font-semibold px-6 py-2.5 rounded-xl">Save Masterclass</button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+      </div>
+
+      <!-- FREE COURSE MODAL -->
+      <div id="free-course-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 id="free-course-modal-title" class="text-lg font-bold font-heading text-dark">Add / Edit Free Starter Course</h3>
+            <button onclick="document.getElementById('free-course-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveFreeCourseForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="fc-modal-id">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Course Title *</label>
+              <input id="fc-modal-title" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Category</label>
+                <input id="fc-modal-category" type="text" value="AI Engineering" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Duration</label>
+                <input id="fc-modal-duration" type="text" value="2.5 Hours (5 Lessons)" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Description *</label>
+              <textarea id="fc-modal-desc" rows="3" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-bordercol">
+              <label class="flex items-center gap-2 cursor-pointer font-bold">
+                <input id="fc-modal-published" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Published</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="document.getElementById('free-course-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+                <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Free Course</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- COURSE CATEGORY MODAL -->
+      <div id="category-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 class="text-base font-bold font-heading text-dark">Course Category</h3>
+            <button onclick="document.getElementById('category-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveCategoryForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="cat-modal-idx" value="-1">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Category Name *</label>
+              <input id="cat-modal-name" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Description</label>
+              <textarea id="cat-modal-desc" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="document.getElementById('category-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+              <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Category</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- CURRICULUM MODULE MODAL -->
+      <div id="module-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 class="text-base font-bold font-heading text-dark">Course Syllabus Module & Lessons</h3>
+            <button onclick="document.getElementById('module-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveModuleForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="mod-modal-course-id">
+            <input type="hidden" id="mod-modal-idx" value="-1">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Module Title *</label>
+              <input id="mod-modal-title" type="text" required placeholder="Module 1: Core Architecture & Setup" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Lessons (One per line)</label>
+              <textarea id="mod-modal-lessons" rows="5" required placeholder="Lesson 1: Environment Setup&#10;Lesson 2: Live API Integration&#10;Lesson 3: Production Deployment" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="document.getElementById('module-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+              <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Module</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- LEARNING TOPIC MODAL -->
+      <div id="topic-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 id="topic-modal-title" class="text-base font-bold font-heading text-dark">Add / Edit Learning Topic</h3>
+            <button onclick="document.getElementById('topic-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveTopicForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="topic-modal-is-new" value="true">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Topic Name *</label>
+              <input id="topic-modal-name" oninput="if(document.getElementById('topic-modal-is-new').value==='true'){document.getElementById('topic-modal-key').value=this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Topic Key / Slug *</label>
+                <input id="topic-modal-key" type="text" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Lucide Icon</label>
+                <input id="topic-modal-icon" type="text" value="cpu" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Description *</label>
+              <textarea id="topic-modal-desc" rows="2" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="document.getElementById('topic-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+              <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Topic</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- TESTIMONIAL EDITOR MODAL -->
+      <div id="testimonial-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 id="testimonial-modal-title" class="text-lg font-bold font-heading text-dark">Student Review</h3>
+            <button onclick="closeTestimonialModal()" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveTestimonialForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="modal-testimonial-id">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Student Name *</label>
+                <input id="modal-testimonial-name" type="text" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Role / Title</label>
+                <input id="modal-testimonial-role" type="text" value="Full-Stack Developer" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Location</label>
+                <input id="modal-testimonial-location" type="text" value="Mumbai, India" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Rating (1-5)</label>
+                <input id="modal-testimonial-rating" type="number" min="1" max="5" value="5" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Outcome Metric</label>
+                <input id="modal-testimonial-metric" type="text" placeholder="$2,400/mo AdSense" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Course Completed</label>
+              <input id="modal-testimonial-course" type="text" value="Complete AI Mastery" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Review Quote *</label>
+              <textarea id="modal-testimonial-text" rows="3" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-bordercol">
+              <label class="flex items-center gap-2 cursor-pointer font-bold">
+                <input id="modal-testimonial-verified" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Verified Student Badge</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="closeTestimonialModal()" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+                <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Review</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- MEDIA ASSET ADD / EDIT / REPLACE MODAL -->
+      <div id="media-edit-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-bordercol">
+            <h3 id="media-edit-modal-title" class="text-lg font-bold font-heading text-dark">Edit / Replace Media Asset</h3>
+            <button onclick="document.getElementById('media-edit-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form onsubmit="handleSaveMediaModalForm(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="med-modal-id">
+            <input type="hidden" id="med-modal-data-url">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Asset Title / Name *</label>
+              <input id="med-modal-title" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">SEO Alt Text (Accessibility & Image Search) *</label>
+              <input id="med-modal-alt" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Media Type</label>
+                <select id="med-modal-type" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="image">Image (WebP/PNG/JPG)</option>
+                  <option value="video">Video (MP4/WebM/Stream)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Assigned Location</label>
+                <input id="med-modal-used" type="text" placeholder="Homepage Hero, Course Card..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Asset URL or Upload Replacement File</label>
+              <div class="flex gap-2">
+                <input id="med-modal-url" type="text" placeholder="/api/media/file/... or https://..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                  Replace File
+                  <input type="file" accept="image/*,video/mp4,video/webm" class="hidden" onchange="handleReplaceMediaModalFile(event)">
+                </label>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-bordercol">
+              <button type="button" onclick="document.getElementById('media-edit-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+              <button type="submit" class="gradient-btn text-white font-semibold px-6 py-2 rounded-xl">Save Asset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- MEDIA PREVIEW MODAL -->
+      <div id="media-preview-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-bordercol pb-3">
+            <div>
+              <h3 id="media-preview-title" class="text-base font-bold text-dark">Asset Preview</h3>
+              <p id="media-preview-meta" class="text-xs text-muted font-mono"></p>
+            </div>
+            <button onclick="document.getElementById('media-preview-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <div id="media-preview-body" class="bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center max-h-[65vh] min-h-[260px]"></div>
+        </div>
+      </div>
+
+      <!-- MEDIA IN-USE REPLACE & DELETE WARNING MODAL -->
+      <div id="media-replace-delete-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4 text-xs">
+          <div class="flex items-center justify-between border-b border-bordercol pb-3">
+            <div class="flex items-center gap-2 text-amber-700 font-bold text-sm">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+              <span>Asset Currently Used on Website</span>
+            </div>
+            <button onclick="document.getElementById('media-replace-delete-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <input type="hidden" id="mrd-asset-id">
+          <p id="mrd-warning-text" class="text-slate-700 leading-relaxed"></p>
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Slug</label>
-            <input id="article-field-slug" type="text" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-mono">
+            <label class="block font-bold uppercase text-slate-700 mb-1">Select Replacement Image/Asset (Optional)</label>
+            <select id="mrd-replacement-select" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold"></select>
           </div>
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Tag / Category</label>
-            <input id="article-field-tag" type="text" required placeholder="ai, adsense, facebook..." class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Meta Summary</label>
-          <textarea id="article-field-meta" rows="2" maxlength="300" required class="w-full px-4 py-2.5 bg-surface border border-bordercol rounded-xl text-xs font-medium"></textarea>
-        </div>
-        <div class="grid grid-cols-2 gap-4 items-center">
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Sort Order</label>
-            <input id="article-field-order" type="number" value="1" class="w-full px-4 py-2 bg-surface border border-bordercol rounded-xl text-xs">
-          </div>
-          <div class="pt-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input id="article-field-published" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
-              <span class="text-xs font-semibold text-slate-700">Published</span>
-            </label>
+          <div class="flex justify-end gap-2 pt-3 border-t border-bordercol">
+            <button onclick="document.getElementById('media-replace-delete-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+            <button onclick="confirmReplaceAndDeleteMedia(false)" class="px-4 py-2 rounded-xl bg-rose-100 text-rose-800 font-bold hover:bg-rose-200">Force Delete Anyway</button>
+            <button onclick="confirmReplaceAndDeleteMedia(true)" class="gradient-btn text-white font-bold px-5 py-2 rounded-xl">Replace References & Delete</button>
           </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Full Article Body (Markdown)</label>
-          <textarea id="article-field-body" rows="12" required class="w-full px-4 py-3 bg-surface border border-bordercol rounded-xl text-xs font-mono leading-relaxed"></textarea>
-        </div>
-        <div class="pt-4 flex items-center justify-end gap-3 border-t border-bordercol">
-          <button type="button" onclick="closeArticleModal()" class="px-5 py-2.5 rounded-xl border border-bordercol text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-          <button type="submit" class="gradient-btn text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-md">Save Article</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      </div>
 
   <!-- SCRIPT -->
   <script>
@@ -2333,11 +2890,11 @@
 
       let res;
       try {
-        res = await fetch('/api' + url, { credentials: 'include', ...options, headers });
+        res = await fetch('/api' + url, { cache: 'no-store', credentials: 'include', ...options, headers });
       } catch (err) {
         // If credentials: 'include' was rejected by browser (e.g. cross-origin iframe partitioned cookie policy), retry with credentials: 'omit' using Bearer token
         try {
-          res = await fetch('/api' + url, { credentials: 'omit', ...options, headers });
+          res = await fetch('/api' + url, { cache: 'no-store', credentials: 'omit', ...options, headers });
         } catch (retryErr) {
           throw new Error('Connection error: ' + (retryErr.message || 'Unable to connect to server'));
         }
@@ -3020,7 +3577,85 @@
       showToast('Applied color preset! Click Publish Theme Appearance to make it live.', 'info');
     };
 
-    window.handleLocalMediaFileUpload = function(e) {
+    window.handleLocalMediaFileUpload = async function(e) {
+      const files = Array.from((e.target && e.target.files) || []);
+      if (!files.length) return;
+      showToast(`Uploading & processing ${files.length} media file(s)...`, 'info');
+
+      for (const file of files) {
+        const cleanTitle = file.name.replace(/\.[^/.]+$/, '');
+        if (file.type && file.type.startsWith('video/')) {
+          await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+              try {
+                const sizeKb = Math.round(file.size / 1024);
+                await req('/admin/cms/media', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    title: cleanTitle,
+                    url: ev.target.result,
+                    alt: cleanTitle,
+                    type: 'video',
+                    mime_type: file.type,
+                    size_kb: sizeKb,
+                    dimensions: `Video (${sizeKb} KB)`
+                  })
+                });
+                showToast(`Video "${cleanTitle}" uploaded & stored persistently!`, 'success');
+              } catch (err) {
+                showToast('Video upload error: ' + err.message, 'error');
+              }
+              resolve();
+            };
+            reader.readAsDataURL(file);
+          });
+        } else {
+          await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              const img = new Image();
+              img.onload = async function() {
+                const canvas = document.createElement('canvas');
+                const maxW = 1400;
+                const scale = img.width > maxW ? maxW / img.width : 1;
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const webpDataUrl = canvas.toDataURL('image/webp', 0.86);
+                const approxKb = Math.round((webpDataUrl.length * 3) / 4 / 1024);
+                try {
+                  await req('/admin/cms/media', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      title: cleanTitle,
+                      url: webpDataUrl,
+                      alt: cleanTitle,
+                      type: 'image',
+                      mime_type: 'image/webp',
+                      size_kb: approxKb,
+                      dimensions: `${canvas.width}x${canvas.height} (${approxKb} KB WebP)`
+                    })
+                  });
+                  showToast(`Image "${cleanTitle}" optimized (${canvas.width}x${canvas.height}, ${approxKb} KB) & stored!`, 'success');
+                } catch (err) {
+                  showToast('Upload error: ' + err.message, 'error');
+                }
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+      }
+      e.target.value = '';
+      await loadCmsExtras();
+    };
+
+    window.uploadSingleFieldImage = function(e, targetInputId) {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -3034,23 +3669,28 @@
           canvas.height = Math.round(img.height * scale);
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const webpDataUrl = canvas.toDataURL('image/webp', 0.84);
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.86);
           const cleanTitle = file.name.replace(/\.[^/.]+$/, '');
           try {
-            await req('/admin/cms/media', {
+            const saved = await req('/admin/cms/media', {
               method: 'POST',
               body: JSON.stringify({
                 title: cleanTitle,
                 url: webpDataUrl,
                 alt: cleanTitle,
                 type: 'image',
+                used_in: targetInputId,
                 dimensions: canvas.width + 'x' + canvas.height + ' (WebP)'
               })
             });
-            showToast('Image optimized to WebP (' + canvas.width + 'x' + canvas.height + ') & added to Media Library!', 'success');
+            const inputEl = document.getElementById(targetInputId);
+            if (inputEl && saved && saved.url) {
+              inputEl.value = saved.url;
+            }
+            showToast('Image uploaded & linked to field!', 'success');
             loadCmsExtras();
           } catch (err) {
-            showToast('Upload error: ' + err.message, 'error');
+            showToast('Image upload failed: ' + err.message, 'error');
           }
         };
         img.src = ev.target.result;
@@ -3061,9 +3701,9 @@
     window.switchTab = function(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         if (btn.dataset.tab === tabName) {
-          btn.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
+          btn.classList.add('text-brand-600', 'bg-brand-50', 'font-bold');
         } else {
-          btn.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
+          btn.classList.remove('text-brand-600', 'bg-brand-50', 'font-bold');
         }
       });
 
@@ -3073,10 +3713,10 @@
       if (tabName === 'visual-builder' && typeof window.initVisualBuilder === 'function') window.initVisualBuilder();
       if (tabName === 'pages-manager' && typeof window.loadCmsPagesManager === 'function') window.loadCmsPagesManager();
       if (tabName === 'qa-health' && typeof window.runFullQaAndHealthSuite === 'function') window.runFullQaAndHealthSuite();
+      if (tabName === 'seo-settings' && typeof window.updateLiveSeoSnippetPreview === 'function') window.updateLiveSeoSnippetPreview();
       lucide.createIcons();
     };
 
-    
     async function loadAllAdminData() {
       try {
         const [articles, tools, topics, settings, courses, testimonials, marquee, enrollments, contacts, studentsData, templates, emailHist, emailCfg, analyticsData] = await Promise.all([
@@ -3103,6 +3743,7 @@
         window.ADMIN.courses = courses || [];
         window.ADMIN.testimonials = testimonials || [];
         window.ADMIN.marquee = (marquee && marquee.items) || [];
+        window.ADMIN.marqueeConfig = (marquee && marquee.config) || {};
         window.ADMIN.enrollments = enrollments || [];
         window.ADMIN.contacts = contacts || [];
         window.ADMIN.students = (studentsData && studentsData.students) || [];
@@ -3126,7 +3767,6 @@
         populateSettingsForm();
         loadCmsExtras();
 
-        // Populate email config form
         if (emailCfg) {
           if (document.getElementById('cfg-sender-name') && emailCfg.sender_name) document.getElementById('cfg-sender-name').value = emailCfg.sender_name;
           if (document.getElementById('cfg-sender-email') && emailCfg.sender_email) document.getElementById('cfg-sender-email').value = emailCfg.sender_email;
@@ -3137,44 +3777,6 @@
         showToast('Error loading admin state: ' + err.message, 'error');
       }
     }
-    async function _oldLoadAll() {
-      try {
-        const [articles, tools, topics, settings, courses, testimonials, marquee, enrollments, contacts] = await Promise.all([
-          req('/admin/articles'),
-          req('/admin/tools'),
-          req('/admin/topics'),
-          req('/admin/settings'),
-          req('/admin/courses').catch(() => []),
-          req('/admin/testimonials').catch(() => []),
-          req('/admin/marquee').catch(() => ({ items: [] })),
-          req('/admin/enrollments').catch(() => []),
-          req('/admin/contacts').catch(() => []),
-        ]);
-
-        window.ADMIN.articles = articles || [];
-        window.ADMIN.tools = tools || [];
-        window.ADMIN.topics = topics || [];
-        window.ADMIN.settings = settings || {};
-        window.ADMIN.courses = courses || [];
-        window.ADMIN.testimonials = testimonials || [];
-        window.ADMIN.marquee = (marquee && marquee.items) || [];
-        window.ADMIN.enrollments = enrollments || [];
-        window.ADMIN.contacts = contacts || [];
-
-        renderOverview();
-        renderArticlesTable();
-        renderToolsManager();
-        renderTopicsManager();
-        renderCoursesManager();
-        renderTestimonialsManager();
-        renderMarqueeManager();
-        renderEnrollmentsAndContacts();
-        populateSettingsForm();
-      } catch (err) {
-        showToast('Error loading admin state: ' + err.message, 'error');
-      }
-    }
-
 
     function renderOverview() {
       document.getElementById('metric-tools-count').textContent = window.ADMIN.tools.length;
@@ -3209,51 +3811,99 @@
     }
 
     // TOOLS MANAGER
+    function escAttr(val) {
+      return String(val ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     function renderToolsManager() {
       const container = document.getElementById('tools-manager-list');
-      container.innerHTML = window.ADMIN.tools.map(t => `
-        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">[${t.key}]</span>
-              <span class="text-sm font-bold text-dark">${t.name}</span>
+      if (!container) return;
+      const sortedTools = [...(window.ADMIN.tools || [])].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      container.innerHTML = sortedTools.map(t => `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4" data-tool-card="${escAttr(t.key)}">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                <i data-lucide="${escAttr(t.icon || 'sparkles')}" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">[${escAttr(t.key)}]</span>
+                  ${t.is_featured ? '<span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">★ Featured</span>' : ''}
+                </div>
+                <div class="text-sm font-bold text-dark truncate mt-0.5" id="tool-card-heading-${escAttr(t.key)}">${escAttr(t.name)}</div>
+              </div>
             </div>
             <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold" title="Featured on Homepage">
+                <input id="tool-featured-${escAttr(t.key)}" type="checkbox" ${t.is_featured ? 'checked' : ''} onchange="toggleToolFeatured('${escAttr(t.key)}', this.checked)" class="w-4 h-4 text-amber-500 rounded">
+                <span>Featured</span>
+              </label>
               <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
-                <input type="checkbox" ${t.is_enabled !== false ? 'checked' : ''} onchange="toggleTool('${t.key}', this.checked)" class="w-4 h-4 text-brand-600 rounded">
+                <input id="tool-enabled-${escAttr(t.key)}" type="checkbox" ${t.is_enabled !== false ? 'checked' : ''} onchange="toggleTool('${escAttr(t.key)}', this.checked)" class="w-4 h-4 text-brand-600 rounded">
                 <span>${t.is_enabled !== false ? 'Enabled' : 'Disabled'}</span>
               </label>
-              <button onclick="deleteTool('${t.key}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">Delete</button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="block font-bold text-slate-500 mb-1">Category</label>
-              <input id="tool-cat-${t.key}" type="text" value="${t.category || 'AI Creators'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-500 mb-1">Badge</label>
-              <input id="tool-badge-${t.key}" type="text" value="${t.badge || 'Free Tool'}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+              <button onclick="openEditToolModal('${escAttr(t.key)}')" class="text-brand-600 hover:text-brand-800 text-xs font-bold px-2 py-1 rounded bg-brand-50">Full Config</button>
+              <button onclick="deleteTool('${escAttr(t.key)}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">Delete</button>
             </div>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Display Title</label>
-            <input id="tool-name-${t.key}" type="text" value="${t.name}" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs font-medium">
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Display Title / Tool Name</label>
+            <input id="tool-name-${escAttr(t.key)}" type="text" value="${escAttr(t.name)}" oninput="const h=document.getElementById('tool-card-heading-${escAttr(t.key)}'); if(h) h.textContent=this.value;" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs font-bold text-dark">
           </div>
 
           <div>
             <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Description</label>
-            <textarea id="tool-desc-${t.key}" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs">${t.description}</textarea>
+            <textarea id="tool-desc-${escAttr(t.key)}" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-lg text-xs">${escAttr(t.description)}</textarea>
           </div>
 
-          <div class="flex items-center justify-between pt-2">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Category</label>
+              <input id="tool-cat-${escAttr(t.key)}" type="text" value="${escAttr(t.category || 'AI Creators')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Badge</label>
+              <input id="tool-badge-${escAttr(t.key)}" type="text" value="${escAttr(t.badge || 'Free Tool')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">Lucide Icon</label>
+              <input id="tool-icon-${escAttr(t.key)}" type="text" value="${escAttr(t.icon || 'sparkles')}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 mb-1">SEO URL Slug</label>
+              <input id="tool-slug-${escAttr(t.key)}" type="text" value="${escAttr(t.seo_slug || t.key)}" class="w-full px-3 py-1.5 bg-surface border border-bordercol rounded-lg font-mono">
+            </div>
+          </div>
+
+          <details class="bg-slate-50 rounded-xl border border-slate-200 p-3 text-xs">
+            <summary class="font-bold text-slate-700 cursor-pointer select-none">Prompt Configuration, Input Fields & Output Format</summary>
+            <div class="space-y-3 mt-3 pt-2 border-t border-slate-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1">Input Fields</label>
+                  <input id="tool-inputs-${escAttr(t.key)}" type="text" value="${escAttr(t.input_fields || 'User Input')}" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1">Output Format</label>
+                  <input id="tool-output-${escAttr(t.key)}" type="text" value="${escAttr(t.output_format || 'Formatted Result')}" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-500 mb-1">AI Prompt / System Instruction</label>
+                <textarea id="tool-prompt-${escAttr(t.key)}" rows="2" class="w-full px-2.5 py-1.5 bg-white border border-bordercol rounded-lg font-mono text-[11px]">${escAttr(t.custom_prompt || '')}</textarea>
+              </div>
+            </div>
+          </details>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
             <div class="flex items-center gap-2">
               <label class="text-[11px] font-bold text-slate-500">Order:</label>
-              <input id="tool-order-${t.key}" type="number" value="${t.sort_order || 1}" class="w-16 px-2 py-1 bg-surface border border-bordercol rounded text-xs text-center font-bold">
+              <input id="tool-order-${escAttr(t.key)}" type="number" value="${t.sort_order || 1}" class="w-16 px-2 py-1 bg-surface border border-bordercol rounded text-xs text-center font-bold">
+              <a href="/#/tools/${escAttr(t.key)}" target="_blank" class="text-[11px] font-semibold text-brand-600 hover:underline ml-2">View Live ↗</a>
             </div>
-            <button onclick="saveToolInfo('${t.key}')" class="text-xs font-semibold bg-dark hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <button id="tool-save-btn-${escAttr(t.key)}" onclick="saveToolInfo('${escAttr(t.key)}')" class="text-xs font-semibold bg-dark hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors shadow-2xs">
               Save Changes
             </button>
           </div>
@@ -3263,12 +3913,52 @@
     }
 
     window.openNewToolModal = function() {
+      document.getElementById('tool-modal-title').textContent = 'Add New Free AI Tool';
+      document.getElementById('edit-tool-is-new').value = 'true';
+      document.getElementById('edit-tool-original-key').value = '';
       document.getElementById('modal-tool-name').value = '';
-      document.getElementById('modal-tool-key').value = '';
+      const keyInp = document.getElementById('modal-tool-key');
+      keyInp.value = '';
+      keyInp.readOnly = false;
+      keyInp.classList.remove('bg-slate-100', 'text-slate-500');
+      document.getElementById('modal-tool-slug').value = '';
+      document.getElementById('modal-tool-category').value = 'AI Creators';
       document.getElementById('modal-tool-desc').value = '';
       document.getElementById('modal-tool-badge').value = 'AI Powered';
       document.getElementById('modal-tool-icon').value = 'sparkles';
-      document.getElementById('modal-tool-order').value = window.ADMIN.tools.length + 1;
+      document.getElementById('modal-tool-type').value = 'custom_ai';
+      document.getElementById('modal-tool-inputs').value = 'User Topic or Input';
+      document.getElementById('modal-tool-output').value = 'Markdown Strategy Output';
+      document.getElementById('modal-tool-prompt').value = '';
+      document.getElementById('modal-tool-order').value = (window.ADMIN.tools || []).length + 1;
+      document.getElementById('modal-tool-enabled').checked = true;
+      document.getElementById('modal-tool-featured').checked = false;
+      document.getElementById('tool-modal').classList.remove('hidden');
+    };
+
+    window.openEditToolModal = function(key) {
+      const t = (window.ADMIN.tools || []).find(item => item.key === key || item.id === key);
+      if (!t) return;
+      document.getElementById('tool-modal-title').textContent = `Edit Tool: ${t.name}`;
+      document.getElementById('edit-tool-is-new').value = 'false';
+      document.getElementById('edit-tool-original-key').value = t.key;
+      document.getElementById('modal-tool-name').value = t.name || '';
+      const keyInp = document.getElementById('modal-tool-key');
+      keyInp.value = t.key;
+      keyInp.readOnly = true;
+      keyInp.classList.add('bg-slate-100', 'text-slate-500');
+      document.getElementById('modal-tool-slug').value = t.seo_slug || t.key;
+      document.getElementById('modal-tool-category').value = t.category || 'AI Creators';
+      document.getElementById('modal-tool-desc').value = t.description || '';
+      document.getElementById('modal-tool-badge').value = t.badge || 'Free Tool';
+      document.getElementById('modal-tool-icon').value = t.icon || 'sparkles';
+      document.getElementById('modal-tool-type').value = t.tool_type || 'custom_ai';
+      document.getElementById('modal-tool-inputs').value = t.input_fields || 'User Input';
+      document.getElementById('modal-tool-output').value = t.output_format || 'Formatted Result';
+      document.getElementById('modal-tool-prompt').value = t.custom_prompt || '';
+      document.getElementById('modal-tool-order').value = t.sort_order || 1;
+      document.getElementById('modal-tool-enabled').checked = t.is_enabled !== false;
+      document.getElementById('modal-tool-featured').checked = !!t.is_featured;
       document.getElementById('tool-modal').classList.remove('hidden');
     };
 
@@ -3277,66 +3967,205 @@
     };
 
     window.autoGenToolKey = function() {
+      const isNew = document.getElementById('edit-tool-is-new').value === 'true';
+      if (!isNew) return;
       const name = document.getElementById('modal-tool-name').value;
       const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       document.getElementById('modal-tool-key').value = key;
+      document.getElementById('modal-tool-slug').value = key;
     };
 
     window.toggleCustomPromptField = function() {
-      const type = document.getElementById('modal-tool-type').value;
       const container = document.getElementById('modal-prompt-container');
-      container.style.display = type === 'custom_ai' ? '' : 'none';
+      if (container) container.style.display = '';
     };
 
     window.handleSaveToolForm = async function(e) {
       e.preventDefault();
+      const isNew = document.getElementById('edit-tool-is-new').value === 'true';
+      const origKey = document.getElementById('edit-tool-original-key').value.trim();
+      const submitBtn = document.getElementById('modal-tool-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving to Database...';
+      }
+
       const payload = {
         name: document.getElementById('modal-tool-name').value.trim(),
         key: document.getElementById('modal-tool-key').value.trim(),
-        category: document.getElementById('modal-tool-category').value,
+        seo_slug: document.getElementById('modal-tool-slug').value.trim() || document.getElementById('modal-tool-key').value.trim(),
+        category: document.getElementById('modal-tool-category').value.trim(),
         description: document.getElementById('modal-tool-desc').value.trim(),
         badge: document.getElementById('modal-tool-badge').value.trim(),
-        icon: document.getElementById('modal-tool-icon').value.trim(),
+        icon: document.getElementById('modal-tool-icon').value.trim() || 'sparkles',
         tool_type: document.getElementById('modal-tool-type').value,
+        input_fields: document.getElementById('modal-tool-inputs').value.trim(),
+        output_format: document.getElementById('modal-tool-output').value.trim(),
         custom_prompt: document.getElementById('modal-tool-prompt').value.trim(),
         sort_order: Number(document.getElementById('modal-tool-order').value) || 1,
         is_enabled: document.getElementById('modal-tool-enabled').checked,
+        is_featured: document.getElementById('modal-tool-featured').checked,
       };
 
       try {
-        await req('/admin/tools', { method: 'POST', body: JSON.stringify(payload) });
-        showToast('New AI Tool created successfully!', 'success');
+        let res;
+        if (isNew) {
+          res = await req('/admin/tools', { method: 'POST', body: JSON.stringify(payload) });
+          showToast(`New AI Tool "${payload.name}" created & saved!`, 'success');
+        } else {
+          res = await req(`/admin/tools/${encodeURIComponent(origKey || payload.key)}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+          showToast(`Tool "${res.tool?.name || payload.name}" updated & persisted!`, 'success');
+        }
+        if (res && Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+          renderToolsManager();
+          renderOverview();
+        }
         closeToolModal();
-        loadAllAdminData();
+        await loadAllAdminData();
       } catch (err) {
-        showToast('Error creating tool: ' + err.message, 'error');
+        showToast('Error saving tool: ' + err.message, 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Tool';
+        }
       }
     };
 
     window.saveToolInfo = async function(key) {
-      const name = document.getElementById(`tool-name-${key}`).value;
-      const description = document.getElementById(`tool-desc-${key}`).value;
-      const category = document.getElementById(`tool-cat-${key}`).value;
-      const badge = document.getElementById(`tool-badge-${key}`).value;
-      const sort_order = Number(document.getElementById(`tool-order-${key}`).value);
+      const btn = document.getElementById(`tool-save-btn-${key}`);
+      const nameEl = document.getElementById(`tool-name-${key}`);
+      const descEl = document.getElementById(`tool-desc-${key}`);
+      const catEl = document.getElementById(`tool-cat-${key}`);
+      const badgeEl = document.getElementById(`tool-badge-${key}`);
+      const iconEl = document.getElementById(`tool-icon-${key}`);
+      const slugEl = document.getElementById(`tool-slug-${key}`);
+      const inputsEl = document.getElementById(`tool-inputs-${key}`);
+      const outputEl = document.getElementById(`tool-output-${key}`);
+      const promptEl = document.getElementById(`tool-prompt-${key}`);
+      const orderEl = document.getElementById(`tool-order-${key}`);
+      const enabledEl = document.getElementById(`tool-enabled-${key}`);
+      const featuredEl = document.getElementById(`tool-featured-${key}`);
+
+      const name = nameEl ? nameEl.value.trim() : '';
+      if (!name) {
+        showToast('Tool name cannot be empty', 'error');
+        return;
+      }
+
+      const payload = {
+        name,
+        description: descEl ? descEl.value.trim() : '',
+        category: catEl ? catEl.value.trim() : 'AI Creators',
+        badge: badgeEl ? badgeEl.value.trim() : 'Free Tool',
+        icon: iconEl ? iconEl.value.trim() : 'sparkles',
+        seo_slug: slugEl ? slugEl.value.trim() : key,
+        input_fields: inputsEl ? inputsEl.value.trim() : '',
+        output_format: outputEl ? outputEl.value.trim() : '',
+        custom_prompt: promptEl ? promptEl.value.trim() : '',
+        sort_order: orderEl ? Number(orderEl.value) || 1 : 1,
+        is_enabled: enabledEl ? enabledEl.checked : true,
+        is_featured: featuredEl ? featuredEl.checked : false,
+      };
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+      }
 
       try {
-        await req(`/admin/tools/${key}`, {
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, {
           method: 'PUT',
-          body: JSON.stringify({ name, description, category, badge, sort_order }),
+          body: JSON.stringify(payload),
         });
-        showToast(`Tool ${key} saved!`, 'success');
-        loadAllAdminData();
+        if (!res || !res.success) {
+          throw new Error(res?.error || 'Database write did not confirm success');
+        }
+        if (Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+        } else if (res.tool) {
+          const idx = (window.ADMIN.tools || []).findIndex(t => t.key === key || t.id === key);
+          if (idx !== -1) window.ADMIN.tools[idx] = res.tool;
+        }
+        renderToolsManager();
+        renderOverview();
+        showToast(`Tool "${res.tool?.name || name}" saved to database & live on website!`, 'success');
       } catch (err) {
         showToast('Save error: ' + err.message, 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+        }
+      }
+    };
+
+    window.saveAllToolsManager = async function(silent = false) {
+      const cards = document.querySelectorAll('[data-tool-card]');
+      if (!cards.length) return;
+      const bulkPayload = [];
+      cards.forEach(card => {
+        const key = card.getAttribute('data-tool-card');
+        if (!key) return;
+        const name = document.getElementById(`tool-name-${key}`)?.value?.trim();
+        if (!name) return;
+        bulkPayload.push({
+          key,
+          name,
+          description: document.getElementById(`tool-desc-${key}`)?.value?.trim() ?? '',
+          category: document.getElementById(`tool-cat-${key}`)?.value?.trim() ?? 'AI Creators',
+          badge: document.getElementById(`tool-badge-${key}`)?.value?.trim() ?? 'Free Tool',
+          icon: document.getElementById(`tool-icon-${key}`)?.value?.trim() ?? 'sparkles',
+          seo_slug: document.getElementById(`tool-slug-${key}`)?.value?.trim() ?? key,
+          input_fields: document.getElementById(`tool-inputs-${key}`)?.value?.trim() ?? '',
+          output_format: document.getElementById(`tool-output-${key}`)?.value?.trim() ?? '',
+          custom_prompt: document.getElementById(`tool-prompt-${key}`)?.value?.trim() ?? '',
+          sort_order: Number(document.getElementById(`tool-order-${key}`)?.value) || 1,
+          is_enabled: document.getElementById(`tool-enabled-${key}`) ? document.getElementById(`tool-enabled-${key}`).checked : true,
+          is_featured: document.getElementById(`tool-featured-${key}`) ? document.getElementById(`tool-featured-${key}`).checked : false,
+        });
+      });
+
+      if (!bulkPayload.length) return;
+      try {
+        const res = await req('/admin/tools', {
+          method: 'PUT',
+          body: JSON.stringify({ tools: bulkPayload }),
+        });
+        if (res && Array.isArray(res.tools)) {
+          window.ADMIN.tools = res.tools;
+          renderToolsManager();
+          renderOverview();
+        }
+        if (!silent) {
+          showToast('All AI Tools changes saved & published to live website!', 'success');
+        }
+      } catch (err) {
+        if (!silent) showToast('Error saving tools: ' + err.message, 'error');
       }
     };
 
     window.toggleTool = async function(key, is_enabled) {
       try {
-        await req(`/admin/tools/${key}`, { method: 'PUT', body: JSON.stringify({ is_enabled }) });
-        showToast(`Tool status updated!`, 'success');
-        loadAllAdminData();
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ is_enabled }) });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
+        showToast(`Tool "${key}" ${is_enabled ? 'enabled' : 'disabled'}!`, 'success');
+        renderToolsManager();
+        renderOverview();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.toggleToolFeatured = async function(key, is_featured) {
+      try {
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ is_featured }) });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
+        showToast(`Tool "${key}" ${is_featured ? 'marked as Featured' : 'unfeatured'}!`, 'success');
+        renderToolsManager();
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
       }
@@ -3345,9 +4174,11 @@
     window.deleteTool = async function(key) {
       if (!confirm(`Are you sure you want to delete tool "${key}"?`)) return;
       try {
-        await req(`/admin/tools/${key}`, { method: 'DELETE' });
+        const res = await req(`/admin/tools/${encodeURIComponent(key)}`, { method: 'DELETE' });
+        if (res && Array.isArray(res.tools)) window.ADMIN.tools = res.tools;
         showToast('Tool deleted', 'info');
-        loadAllAdminData();
+        renderToolsManager();
+        renderOverview();
       } catch (err) {
         showToast('Delete error: ' + err.message, 'error');
       }
@@ -3381,6 +4212,13 @@
       if (document.getElementById('setting-video_url')) document.getElementById('setting-video_url').value = s.video_url || '';
       if (document.getElementById('setting-video_script_english')) document.getElementById('setting-video_script_english').value = s.video_script_english || '';
       if (document.getElementById('setting-video_script_urdu')) document.getElementById('setting-video_script_urdu').value = s.video_script_urdu || '';
+
+      // Populate Social Media inputs from settings
+      if (document.getElementById('soc-input-yt')) document.getElementById('soc-input-yt').value = s.social_youtube || 'https://youtube.com/@webnasir';
+      if (document.getElementById('soc-input-fb')) document.getElementById('soc-input-fb').value = s.social_facebook || 'https://facebook.com/webnasir';
+      if (document.getElementById('soc-input-x')) document.getElementById('soc-input-x').value = s.social_x || 'https://x.com/webnasir';
+      if (document.getElementById('soc-input-ig')) document.getElementById('soc-input-ig').value = s.social_instagram || 'https://instagram.com/webnasir';
+      if (document.getElementById('soc-input-li')) document.getElementById('soc-input-li').value = s.social_linkedin || 'https://linkedin.com/company/webnasir';
     }
 
     window.handleSaveSettings = async function(e) {
@@ -3430,7 +4268,7 @@
         <tr class="hover:bg-slate-50 transition-colors">
           <td class="py-4 px-6 font-semibold text-dark max-w-xs truncate">${a.title}</td>
           <td class="py-4 px-4 font-mono text-xs"><span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-semibold">${a.tag}</span></td>
-          <td class="py-4 px-4 font-mono text-xs text-slate-500">${a.slug}</td>
+          <td class="py-4 px-4 font-mono text-xs text-slate-500">/guides/${a.slug}</td>
           <td class="py-4 px-4">
             <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${a.is_published !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
               ${a.is_published !== false ? 'Published' : 'Draft'}
@@ -3452,6 +4290,9 @@
       document.getElementById('article-field-slug').value = '';
       document.getElementById('article-field-tag').value = 'ai';
       document.getElementById('article-field-meta').value = '';
+      if (document.getElementById('article-field-keyword')) document.getElementById('article-field-keyword').value = '';
+      if (document.getElementById('article-field-image')) document.getElementById('article-field-image').value = '';
+      if (document.getElementById('article-field-seo-title')) document.getElementById('article-field-seo-title').value = '';
       document.getElementById('article-field-body').value = '# Guide Title\n\nWrite content here...';
       document.getElementById('article-modal').classList.remove('hidden');
     };
@@ -3475,7 +4316,12 @@
         document.getElementById('article-field-slug').value = full.slug || '';
         document.getElementById('article-field-tag').value = full.tag || '';
         document.getElementById('article-field-meta').value = full.meta || '';
+        if (document.getElementById('article-field-keyword')) document.getElementById('article-field-keyword').value = full.focus_keyword || '';
+        if (document.getElementById('article-field-image')) document.getElementById('article-field-image').value = full.image || '';
+        if (document.getElementById('article-field-seo-title')) document.getElementById('article-field-seo-title').value = full.seo_title || full.title || '';
         document.getElementById('article-field-body').value = full.body || '';
+        document.getElementById('article-field-order').value = full.sort_order || 1;
+        document.getElementById('article-field-published').checked = full.is_published !== false;
         document.getElementById('article-modal').classList.remove('hidden');
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
@@ -3491,6 +4337,10 @@
         title: document.getElementById('article-field-title').value.trim(),
         tag: document.getElementById('article-field-tag').value.trim(),
         meta: document.getElementById('article-field-meta').value.trim(),
+        seo_description: document.getElementById('article-field-meta').value.trim(),
+        focus_keyword: document.getElementById('article-field-keyword') ? document.getElementById('article-field-keyword').value.trim() : '',
+        image: document.getElementById('article-field-image') ? document.getElementById('article-field-image').value.trim() : '',
+        seo_title: document.getElementById('article-field-seo-title') ? document.getElementById('article-field-seo-title').value.trim() : '',
         body: document.getElementById('article-field-body').value,
         sort_order: Number(document.getElementById('article-field-order').value) || 1,
         is_published: document.getElementById('article-field-published').checked,
@@ -3502,7 +4352,7 @@
         } else {
           await req(`/admin/articles/${slug}`, { method: 'PUT', body: JSON.stringify(payload) });
         }
-        showToast('Article saved!', 'success');
+        showToast('Article & SEO metadata saved!', 'success');
         closeArticleModal();
         loadAllAdminData();
       } catch (err) {
@@ -3527,13 +4377,67 @@
         <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs">
           <div class="flex items-center justify-between mb-3">
             <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">${t.key}</span>
-            <button onclick="deleteTopic('${t.key}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold">Delete</button>
+            <div class="flex items-center gap-2">
+              <button onclick="editTopic('${t.key}')" class="text-brand-600 hover:text-brand-800 text-xs font-semibold">Edit</button>
+              <button onclick="deleteTopic('${t.key}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold">Delete</button>
+            </div>
           </div>
           <h4 class="text-base font-bold text-dark mb-1">${t.name}</h4>
           <p class="text-xs text-muted mb-4">${t.description}</p>
         </div>
       `).join('');
     }
+
+    window.openNewTopicModal = function() {
+      document.getElementById('modal-topic-is-new').value = 'true';
+      document.getElementById('modal-topic-name').value = '';
+      document.getElementById('modal-topic-key').value = '';
+      document.getElementById('modal-topic-key').readOnly = false;
+      document.getElementById('modal-topic-desc').value = '';
+      document.getElementById('modal-topic-order').value = (window.ADMIN.topics || []).length + 1;
+      document.getElementById('topic-modal').classList.remove('hidden');
+    };
+
+    window.editTopic = function(key) {
+      const t = (window.ADMIN.topics || []).find(item => item.key === key);
+      if (!t) return;
+      document.getElementById('modal-topic-is-new').value = 'false';
+      document.getElementById('modal-topic-name').value = t.name || '';
+      document.getElementById('modal-topic-key').value = t.key || '';
+      document.getElementById('modal-topic-key').readOnly = true;
+      document.getElementById('modal-topic-desc').value = t.description || '';
+      document.getElementById('modal-topic-order').value = t.sort_order || 1;
+      document.getElementById('topic-modal').classList.remove('hidden');
+    };
+
+    window.closeTopicModal = function() {
+      document.getElementById('topic-modal').classList.add('hidden');
+    };
+
+    window.handleSaveTopicForm = async function(e) {
+      e.preventDefault();
+      const isNew = document.getElementById('modal-topic-is-new').value === 'true';
+      const key = document.getElementById('modal-topic-key').value.trim();
+      const payload = {
+        key,
+        name: document.getElementById('modal-topic-name').value.trim(),
+        description: document.getElementById('modal-topic-desc').value.trim(),
+        sort_order: Number(document.getElementById('modal-topic-order').value) || 1
+      };
+      try {
+        if (isNew) {
+          await req('/admin/topics', { method: 'POST', body: JSON.stringify(payload) });
+          showToast('Topic created!', 'success');
+        } else {
+          await req(`/admin/topics/${key}`, { method: 'PUT', body: JSON.stringify(payload) });
+          showToast('Topic updated!', 'success');
+        }
+        closeTopicModal();
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Error saving topic: ' + err.message, 'error');
+      }
+    };
 
     window.deleteTopic = async function(key) {
       if (!confirm(`Delete topic "${key}"?`)) return;
@@ -3546,23 +4450,17 @@
       }
     };
 
-    
     window.ADMIN.courses = [];
     window.ADMIN.testimonials = [];
     window.ADMIN.marquee = [];
     window.ADMIN.enrollments = [];
     window.ADMIN.contacts = [];
-
-    
     window.ADMIN.students = [];
     window.ADMIN.studentStats = {};
     window.ADMIN.emailTemplates = [];
     window.ADMIN.emailHistory = [];
     window.ADMIN.emailConfig = {};
     window.ADMIN.analytics = {};
-
-    // ==========================================
-    
     window.ADMIN.freeCourses = [];
     window.ADMIN.categories = [];
     window.ADMIN.cmsHomepage = {};
@@ -3572,25 +4470,12 @@
     window.ADMIN.cmsAbout = {};
     window.ADMIN.cmsContact = {};
     window.ADMIN.cmsSeo = {};
+    window.ADMIN.cmsRedirects = [];
     window.ADMIN.cmsMedia = [];
     window.ADMIN.cmsPayments = {};
     window.ADMIN.cmsRevisions = [];
     window.ADMIN.cmsAuditLogs = [];
-
-    // Update switchTab to style sidebar buttons cleanly
-    window.switchTab = function(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        if (btn.dataset.tab === tabName) {
-          btn.classList.add('text-brand-600', 'bg-brand-50', 'font-bold');
-        } else {
-          btn.classList.remove('text-brand-600', 'bg-brand-50', 'font-bold');
-        }
-      });
-      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
-      const active = document.getElementById('tab-' + tabName);
-      if (active) active.classList.remove('hidden');
-      lucide.createIcons();
-    };
+    window.ADMIN.emailDrafts = [];
 
     window.openLivePreviewModal = function() {
       const modal = document.getElementById('live-preview-modal');
@@ -3606,8 +4491,19 @@
 
     window.publishAllCurrentChanges = async function() {
       showToast('Synchronizing & publishing all CMS configurations to live store...', 'info');
-      await createCmsRevisionSnapshot('Auto-Backup Before Publish');
-      showToast('All changes published live!', 'success');
+      try {
+        await saveAllToolsManager(true);
+        if (window.ADMIN.cmsHomepage && Array.isArray(window.ADMIN.cmsHomepage.sections)) {
+          await req('/admin/cms/homepage', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsHomepage) });
+        }
+        if (window.ADMIN.cmsNavigation && Array.isArray(window.ADMIN.cmsNavigation.items)) {
+          await req('/admin/cms/navigation', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsNavigation) });
+        }
+        await createCmsRevisionSnapshot('Auto-Backup Before Publish');
+        showToast('All changes saved & published live!', 'success');
+      } catch (err) {
+        showToast('Publish error: ' + err.message, 'error');
+      }
     };
 
     window.createCmsRevisionSnapshot = async function(customLabel) {
@@ -3636,7 +4532,7 @@
 
     async function loadCmsExtras() {
       try {
-        const [hp, app, nav, ftr, abt, cnt, seo, med, pay, fc, cats, revs, logs] = await Promise.all([
+        const [hp, app, nav, ftr, abt, cnt, seo, redirects, med, pay, fc, cats, revs, logs, drafts] = await Promise.all([
           req('/admin/cms/homepage').catch(() => ({})),
           req('/admin/cms/appearance').catch(() => ({})),
           req('/admin/cms/navigation').catch(() => ({})),
@@ -3644,12 +4540,14 @@
           req('/admin/cms/about').catch(() => ({})),
           req('/admin/cms/contact').catch(() => ({})),
           req('/admin/cms/seo').catch(() => ({})),
+          req('/admin/cms/redirects').catch(() => []),
           req('/admin/cms/media').catch(() => []),
           req('/admin/cms/payments').catch(() => ({})),
           req('/admin/free-courses').catch(() => []),
           req('/admin/cms/categories').catch(() => []),
           req('/admin/cms/revisions').catch(() => []),
           req('/admin/cms/audit-logs').catch(() => []),
+          req('/admin/emails/drafts').catch(() => []),
         ]);
 
         window.ADMIN.cmsHomepage = hp || {};
@@ -3659,12 +4557,14 @@
         window.ADMIN.cmsAbout = abt || {};
         window.ADMIN.cmsContact = cnt || {};
         window.ADMIN.cmsSeo = seo || {};
+        window.ADMIN.cmsRedirects = Array.isArray(redirects) ? redirects : [];
         window.ADMIN.cmsMedia = med || [];
         window.ADMIN.cmsPayments = pay || {};
         window.ADMIN.freeCourses = fc || [];
         window.ADMIN.categories = cats || [];
         window.ADMIN.cmsRevisions = revs || [];
         window.ADMIN.cmsAuditLogs = logs || [];
+        window.ADMIN.emailDrafts = Array.isArray(drafts) ? drafts : [];
 
         renderHomepageBuilder();
         renderNavigationManager();
@@ -3679,6 +4579,8 @@
         populateSeoForm();
         renderMediaLibrary();
         renderRevisionsAndLogs();
+        renderEmailDrafts();
+        if (typeof window.loadCmsPagesManager === 'function') window.loadCmsPagesManager();
       } catch (err) {
         console.warn('CMS extras load warning:', err);
       }
@@ -3797,20 +4699,65 @@
           </div>
           <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
             <span>⏱️ ${fc.duration} • 👥 ${fc.enrolled_count || 100}+ Students</span>
-            <button onclick="deleteFreeCourse('${fc.id}')" class="text-rose-600 font-semibold hover:underline">Delete</button>
+            <div class="flex items-center gap-3">
+              <button onclick="editFreeCourse('${fc.id}')" class="text-violet-600 font-semibold hover:underline">Edit</button>
+              <button onclick="deleteFreeCourse('${fc.id}')" class="text-rose-600 font-semibold hover:underline">Delete</button>
+            </div>
           </div>
         </div>
       `).join('');
     }
 
-    window.openNewFreeCourseModal = async function() {
-      const title = prompt('Enter Free Starter Course Title:');
-      if (!title) return;
-      const description = prompt('Enter Course Description:', 'Practical hands-on starter bootcamp with immediate free access.');
-      const duration = prompt('Enter Course Duration:', '2.5 Hours (5 Lessons)');
+    window.openNewFreeCourseModal = function() {
+      document.getElementById('free-course-modal-title').textContent = 'Add Free Starter Course';
+      document.getElementById('modal-fc-id').value = '';
+      document.getElementById('modal-fc-title').value = '';
+      document.getElementById('modal-fc-desc').value = 'Practical hands-on starter bootcamp with immediate free access.';
+      document.getElementById('modal-fc-duration').value = '2.5 Hours (5 Lessons)';
+      document.getElementById('modal-fc-badge').value = '100% Free';
+      document.getElementById('modal-fc-enrolled').value = 150;
+      document.getElementById('modal-fc-video').value = '';
+      document.getElementById('free-course-modal').classList.remove('hidden');
+    };
+
+    window.editFreeCourse = function(id) {
+      const fc = (window.ADMIN.freeCourses || []).find(item => item.id === id);
+      if (!fc) return;
+      document.getElementById('free-course-modal-title').textContent = 'Edit Free Starter Course';
+      document.getElementById('modal-fc-id').value = fc.id;
+      document.getElementById('modal-fc-title').value = fc.title || '';
+      document.getElementById('modal-fc-desc').value = fc.description || '';
+      document.getElementById('modal-fc-duration').value = fc.duration || '';
+      document.getElementById('modal-fc-badge').value = fc.badge || '100% Free';
+      document.getElementById('modal-fc-enrolled').value = fc.enrolled_count || 100;
+      document.getElementById('modal-fc-video').value = fc.video_url || '';
+      document.getElementById('free-course-modal').classList.remove('hidden');
+    };
+
+    window.closeFreeCourseModal = function() {
+      document.getElementById('free-course-modal').classList.add('hidden');
+    };
+
+    window.handleSaveFreeCourseForm = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('modal-fc-id').value;
+      const payload = {
+        title: document.getElementById('modal-fc-title').value.trim(),
+        description: document.getElementById('modal-fc-desc').value.trim(),
+        duration: document.getElementById('modal-fc-duration').value.trim(),
+        badge: document.getElementById('modal-fc-badge').value.trim(),
+        enrolled_count: Number(document.getElementById('modal-fc-enrolled').value) || 100,
+        video_url: document.getElementById('modal-fc-video').value.trim(),
+      };
       try {
-        await req('/admin/free-courses', { method: 'POST', body: JSON.stringify({ title, description, duration }) });
-        showToast('Free course created!', 'success');
+        if (id) {
+          await req('/admin/free-courses/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+          showToast('Free course updated!', 'success');
+        } else {
+          await req('/admin/free-courses', { method: 'POST', body: JSON.stringify(payload) });
+          showToast('Free course created!', 'success');
+        }
+        closeFreeCourseModal();
         loadCmsExtras();
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
@@ -3836,18 +4783,49 @@
         <div class="bg-white p-5 rounded-2xl border border-bordercol space-y-2">
           <div class="flex items-center justify-between">
             <span class="font-bold text-sm text-dark">${c.name}</span>
-            <button onclick="window.ADMIN.categories.splice(${idx},1); saveCourseCategories();" class="text-xs text-rose-600">Delete</button>
+            <div class="flex items-center gap-2">
+              <button onclick="editCourseCategory(${idx})" class="text-xs text-violet-600 font-semibold">Edit</button>
+              <button onclick="window.ADMIN.categories.splice(${idx},1); saveCourseCategories();" class="text-xs text-rose-600 font-semibold">Delete</button>
+            </div>
           </div>
           <p class="text-xs text-muted">${c.description || ''}</p>
         </div>
       `).join('');
     }
 
-    window.addCourseCategory = async function() {
-      const name = prompt('Category Name:');
+    window.addCourseCategory = function() {
+      document.getElementById('modal-cat-index').value = '-1';
+      document.getElementById('modal-cat-name').value = '';
+      document.getElementById('modal-cat-desc').value = '';
+      document.getElementById('category-modal').classList.remove('hidden');
+    };
+
+    window.editCourseCategory = function(idx) {
+      const c = (window.ADMIN.categories || [])[idx];
+      if (!c) return;
+      document.getElementById('modal-cat-index').value = String(idx);
+      document.getElementById('modal-cat-name').value = c.name || '';
+      document.getElementById('modal-cat-desc').value = c.description || '';
+      document.getElementById('category-modal').classList.remove('hidden');
+    };
+
+    window.closeCategoryModal = function() {
+      document.getElementById('category-modal').classList.add('hidden');
+    };
+
+    window.handleSaveCategoryForm = async function(e) {
+      e.preventDefault();
+      const idx = Number(document.getElementById('modal-cat-index').value);
+      const name = document.getElementById('modal-cat-name').value.trim();
+      const description = document.getElementById('modal-cat-desc').value.trim();
       if (!name) return;
-      const description = prompt('Short Category Description:') || '';
-      window.ADMIN.categories.push({ id: 'cat-' + Date.now(), name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), description });
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      if (idx >= 0 && window.ADMIN.categories[idx]) {
+        window.ADMIN.categories[idx] = { ...window.ADMIN.categories[idx], name, slug, description };
+      } else {
+        window.ADMIN.categories.push({ id: 'cat-' + Date.now(), name, slug, description });
+      }
+      closeCategoryModal();
       await saveCourseCategories();
     };
 
@@ -3886,7 +4864,11 @@
             <div class="p-4 rounded-2xl bg-surface border border-bordercol space-y-2">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-xs text-dark">${m.title}</span>
-                <span class="text-[11px] text-violet-700 font-semibold">${(m.lessons || []).length} Lessons</span>
+                <div class="flex items-center gap-3">
+                  <span class="text-[11px] text-violet-700 font-semibold">${(m.lessons || []).length} Lessons</span>
+                  <button onclick="editModuleInCourse('${course.id}', ${mIdx})" class="text-xs text-brand-600 font-semibold hover:underline">Edit</button>
+                  <button onclick="deleteModuleFromCourse('${course.id}', ${mIdx})" class="text-xs text-rose-600 font-semibold hover:underline">Delete</button>
+                </div>
               </div>
               <ul class="text-xs text-slate-600 space-y-1 pl-4 list-disc">
                 ${(m.lessons || []).map(l => `<li>${typeof l === 'string' ? l : l.title}</li>`).join('')}
@@ -3897,17 +4879,58 @@
       `;
     };
 
-    window.addModuleToCourse = async function(courseId) {
+    window.addModuleToCourse = function(courseId) {
       const course = (window.ADMIN.courses || []).find(c => c.id === courseId);
       if (!course) return;
-      const modTitle = prompt('New Module Title:', 'Module ' + ((course.modules || []).length + 1) + ': Practical Implementation');
-      if (!modTitle) return;
-      const lessonsStr = prompt('Enter Lesson Titles (comma-separated):', 'Architecture Setup, Live Code Walkthrough, Production Deployment');
-      const lessons = (lessonsStr || '').split(',').map(s => s.trim()).filter(Boolean);
-      if (!course.modules) course.modules = [];
-      course.modules.push({ title: modTitle, lessons });
+      document.getElementById('modal-module-course-id').value = courseId;
+      document.getElementById('modal-module-index').value = '-1';
+      document.getElementById('modal-module-title').value = 'Module ' + ((course.modules || []).length + 1) + ': Practical Implementation';
+      document.getElementById('modal-module-lessons').value = 'Architecture Setup\nLive Code Walkthrough\nProduction Deployment';
+      document.getElementById('module-modal').classList.remove('hidden');
+    };
+
+    window.editModuleInCourse = function(courseId, mIdx) {
+      const course = (window.ADMIN.courses || []).find(c => c.id === courseId);
+      if (!course || !course.modules || !course.modules[mIdx]) return;
+      const mod = course.modules[mIdx];
+      document.getElementById('modal-module-course-id').value = courseId;
+      document.getElementById('modal-module-index').value = String(mIdx);
+      document.getElementById('modal-module-title').value = mod.title || '';
+      document.getElementById('modal-module-lessons').value = (mod.lessons || []).map(l => typeof l === 'string' ? l : l.title).join('\n');
+      document.getElementById('module-modal').classList.remove('hidden');
+    };
+
+    window.deleteModuleFromCourse = async function(courseId, mIdx) {
+      const course = (window.ADMIN.courses || []).find(c => c.id === courseId);
+      if (!course || !course.modules) return;
+      if (!confirm('Remove this syllabus module?')) return;
+      course.modules.splice(mIdx, 1);
       await req('/admin/courses/' + courseId, { method: 'PUT', body: JSON.stringify(course) });
-      showToast('Module added to course!', 'success');
+      showToast('Module removed!', 'info');
+      loadCourseCurriculumEditor();
+    };
+
+    window.closeModuleModal = function() {
+      document.getElementById('module-modal').classList.add('hidden');
+    };
+
+    window.handleSaveModuleForm = async function(e) {
+      e.preventDefault();
+      const courseId = document.getElementById('modal-module-course-id').value;
+      const mIdx = Number(document.getElementById('modal-module-index').value);
+      const modTitle = document.getElementById('modal-module-title').value.trim();
+      const lessons = document.getElementById('modal-module-lessons').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const course = (window.ADMIN.courses || []).find(c => c.id === courseId);
+      if (!course || !modTitle) return;
+      if (!course.modules) course.modules = [];
+      if (mIdx >= 0 && course.modules[mIdx]) {
+        course.modules[mIdx] = { title: modTitle, lessons };
+      } else {
+        course.modules.push({ title: modTitle, lessons });
+      }
+      await req('/admin/courses/' + courseId, { method: 'PUT', body: JSON.stringify(course) });
+      showToast('Syllabus module saved!', 'success');
+      closeModuleModal();
       loadCourseCurriculumEditor();
     };
 
@@ -3916,8 +4939,15 @@
       const p = window.ADMIN.cmsPayments || {};
       if (document.getElementById('pg-enabled')) document.getElementById('pg-enabled').checked = p.razorpay_enabled !== false;
       if (document.getElementById('pg-mode') && p.mode) document.getElementById('pg-mode').value = p.mode;
+      if (document.getElementById('pg-currency') && p.currency) document.getElementById('pg-currency').value = p.currency;
       if (document.getElementById('pg-key-id') && p.key_id) document.getElementById('pg-key-id').value = p.key_id;
+      if (document.getElementById('pg-key-secret') && p.key_secret) document.getElementById('pg-key-secret').value = p.key_secret;
       if (document.getElementById('pg-desc') && p.checkout_description) document.getElementById('pg-desc').value = p.checkout_description;
+      const m = p.methods || {};
+      if (document.getElementById('pg-m-upi')) document.getElementById('pg-m-upi').checked = m.upi !== false;
+      if (document.getElementById('pg-m-cards')) document.getElementById('pg-m-cards').checked = m.cards !== false;
+      if (document.getElementById('pg-m-nb')) document.getElementById('pg-m-nb').checked = m.netbanking !== false;
+      if (document.getElementById('pg-m-wallets')) document.getElementById('pg-m-wallets').checked = m.wallets !== false;
     }
 
     window.handleSavePaymentGateway = async function() {
@@ -3927,10 +4957,45 @@
         mode: document.getElementById('pg-mode').value,
         currency: document.getElementById('pg-currency').value,
         key_id: document.getElementById('pg-key-id').value.trim(),
+        key_secret: document.getElementById('pg-key-secret') ? document.getElementById('pg-key-secret').value.trim() : '',
         checkout_description: document.getElementById('pg-desc').value.trim(),
+        methods: {
+          upi: document.getElementById('pg-m-upi') ? document.getElementById('pg-m-upi').checked : true,
+          cards: document.getElementById('pg-m-cards') ? document.getElementById('pg-m-cards').checked : true,
+          netbanking: document.getElementById('pg-m-nb') ? document.getElementById('pg-m-nb').checked : true,
+          wallets: document.getElementById('pg-m-wallets') ? document.getElementById('pg-m-wallets').checked : true,
+        }
       };
+      window.ADMIN.cmsPayments = payload;
       await req('/admin/cms/payments', { method: 'PUT', body: JSON.stringify(payload) });
       showToast('Payment Gateway settings saved!', 'success');
+    };
+
+    window.testPaymentGatewayConnection = async function() {
+      await handleSavePaymentGateway();
+      const banner = document.getElementById('pg-test-result-banner');
+      try {
+        const res = await req('/admin/payments/test-connection', {
+          method: 'POST',
+          body: JSON.stringify({
+            key_id: document.getElementById('pg-key-id').value.trim(),
+            mode: document.getElementById('pg-mode').value
+          })
+        });
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.className = 'p-4 rounded-xl border text-xs font-semibold bg-emerald-50 border-emerald-200 text-emerald-800';
+          banner.textContent = `✓ ${res.message} (Gateway: ${res.gateway}, Mode: ${res.mode.toUpperCase()}, Key: ${res.key_prefix})`;
+        }
+        showToast(res.message || 'Gateway verified!', 'success');
+      } catch (err) {
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.className = 'p-4 rounded-xl border text-xs font-semibold bg-rose-50 border-rose-200 text-rose-800';
+          banner.textContent = '✗ Connection test failed: ' + err.message;
+        }
+        showToast('Gateway error: ' + err.message, 'error');
+      }
     };
 
     // 17 & 18. ABOUT & CONTACT EDITORS
@@ -3938,6 +5003,8 @@
       const a = window.ADMIN.cmsAbout || {};
       if (document.getElementById('about-heading')) document.getElementById('about-heading').value = a.heading || '';
       if (document.getElementById('about-role')) document.getElementById('about-role').value = a.founder_role || '';
+      if (document.getElementById('about-founder-photo')) document.getElementById('about-founder-photo').value = a.founder_photo || '';
+      if (document.getElementById('about-video-url')) document.getElementById('about-video-url').value = a.video_url || '';
       if (document.getElementById('about-bio')) document.getElementById('about-bio').value = a.biography || '';
       if (document.getElementById('about-mission')) document.getElementById('about-mission').value = a.mission || '';
       if (document.getElementById('about-vision')) document.getElementById('about-vision').value = a.vision || '';
@@ -3950,12 +5017,15 @@
         ...window.ADMIN.cmsAbout,
         heading: document.getElementById('about-heading').value,
         founder_role: document.getElementById('about-role').value,
+        founder_photo: document.getElementById('about-founder-photo') ? document.getElementById('about-founder-photo').value.trim() : '',
+        video_url: document.getElementById('about-video-url') ? document.getElementById('about-video-url').value.trim() : '',
         biography: document.getElementById('about-bio').value,
         mission: document.getElementById('about-mission').value,
         vision: document.getElementById('about-vision').value,
         cta_text: document.getElementById('about-cta-text').value,
         cta_link: document.getElementById('about-cta-link').value,
       };
+      window.ADMIN.cmsAbout = payload;
       await req('/admin/cms/about', { method: 'PUT', body: JSON.stringify(payload) });
       showToast('About Us page updated!', 'success');
     };
@@ -3978,6 +5048,7 @@
         office_hours: document.getElementById('contact-hours').value,
         address: document.getElementById('contact-address').value,
       };
+      window.ADMIN.cmsContact = payload;
       await req('/admin/cms/contact', { method: 'PUT', body: JSON.stringify(payload) });
       showToast('Contact page settings updated!', 'success');
     };
@@ -3990,7 +5061,52 @@
       if (document.getElementById('ftr-email')) document.getElementById('ftr-email').value = f.contact_email || 'support@webnasir.com';
       if (document.getElementById('ftr-desc')) document.getElementById('ftr-desc').value = f.brand_description || '';
       if (document.getElementById('ftr-copyright')) document.getElementById('ftr-copyright').value = f.copyright_text || '';
+      if (document.getElementById('ftr-newsletter-title')) document.getElementById('ftr-newsletter-title').value = f.newsletter_title || 'Subscribe for Free AI Prompts & Tech Updates';
+      if (!f.columns || !Array.isArray(f.columns)) {
+        f.columns = [
+          { title: 'Free AI Utilities', links: [{ label: 'YouTube Script Creator', url: '/tools' }, { label: 'SEO Content Brief', url: '/tools' }, { label: 'Website Revenue Calc', url: '/tools' }] },
+          { title: 'Academy Programs', links: [{ label: 'AI SaaS Engineering', url: '/courses' }, { label: 'YouTube Automation', url: '/courses' }, { label: 'Free Starter Courses', url: '/free-courses' }] },
+          { title: 'Company & Legal', links: [{ label: 'About Us', url: '/about' }, { label: 'Contact Support', url: '/contact' }, { label: 'Privacy Policy', url: '/privacy' }, { label: 'Terms & Conditions', url: '/terms' }] }
+        ];
+      }
+      renderFooterColumnsEditor();
     }
+
+    function renderFooterColumnsEditor() {
+      const container = document.getElementById('footer-columns-editor');
+      if (!container) return;
+      const cols = (window.ADMIN.cmsFooter && window.ADMIN.cmsFooter.columns) || [];
+      container.innerHTML = cols.map((col, cIdx) => `
+        <div class="p-4 rounded-2xl bg-surface border border-bordercol space-y-3 text-xs">
+          <div class="flex items-center justify-between gap-2">
+            <input type="text" value="${col.title || ''}" oninput="window.ADMIN.cmsFooter.columns[${cIdx}].title = this.value" class="px-3 py-1.5 bg-white border border-bordercol rounded-lg font-bold w-full" placeholder="Column Heading">
+            <button type="button" onclick="window.ADMIN.cmsFooter.columns.splice(${cIdx}, 1); renderFooterColumnsEditor();" class="text-rose-600 font-bold px-2">×</button>
+          </div>
+          <div class="space-y-2">
+            ${(col.links || []).map((lnk, lIdx) => `
+              <div class="flex items-center gap-1.5">
+                <input type="text" value="${lnk.label || ''}" oninput="window.ADMIN.cmsFooter.columns[${cIdx}].links[${lIdx}].label = this.value" class="px-2 py-1 bg-white border border-bordercol rounded w-1/2" placeholder="Label">
+                <input type="text" value="${lnk.url || ''}" oninput="window.ADMIN.cmsFooter.columns[${cIdx}].links[${lIdx}].url = this.value" class="px-2 py-1 bg-white border border-bordercol rounded w-1/2 font-mono text-[11px]" placeholder="/path">
+                <button type="button" onclick="window.ADMIN.cmsFooter.columns[${cIdx}].links.splice(${lIdx}, 1); renderFooterColumnsEditor();" class="text-rose-500 font-bold">×</button>
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" onclick="addFooterColumnLink(${cIdx})" class="text-[11px] font-bold text-violet-700 hover:underline">+ Add Link</button>
+        </div>
+      `).join('');
+    }
+
+    window.addFooterColumn = function() {
+      if (!window.ADMIN.cmsFooter.columns) window.ADMIN.cmsFooter.columns = [];
+      window.ADMIN.cmsFooter.columns.push({ title: 'New Column', links: [{ label: 'Sample Link', url: '/' }] });
+      renderFooterColumnsEditor();
+    };
+
+    window.addFooterColumnLink = function(cIdx) {
+      if (!window.ADMIN.cmsFooter.columns[cIdx].links) window.ADMIN.cmsFooter.columns[cIdx].links = [];
+      window.ADMIN.cmsFooter.columns[cIdx].links.push({ label: 'New Link', url: '/' });
+      renderFooterColumnsEditor();
+    };
 
     window.handleSaveFooterBuilder = async function() {
       const payload = {
@@ -4000,7 +5116,10 @@
         contact_email: document.getElementById('ftr-email').value,
         brand_description: document.getElementById('ftr-desc').value,
         copyright_text: document.getElementById('ftr-copyright').value,
+        newsletter_title: document.getElementById('ftr-newsletter-title') ? document.getElementById('ftr-newsletter-title').value : '',
+        columns: (window.ADMIN.cmsFooter && window.ADMIN.cmsFooter.columns) || []
       };
+      window.ADMIN.cmsFooter = payload;
       await req('/admin/cms/footer', { method: 'PUT', body: JSON.stringify(payload) });
       showToast('Footer configuration published!', 'success');
     };
@@ -4009,6 +5128,9 @@
     function populateAppearanceForm() {
       const app = window.ADMIN.cmsAppearance || {};
       const c = app.colors || {};
+      const t = app.typography || {};
+      const l = app.layout || {};
+      const m = app.mobile || {};
       if (document.getElementById('app-col-primary') && c.primary) {
         document.getElementById('app-col-primary').value = c.primary;
         document.getElementById('app-col-primary-hex').value = c.primary;
@@ -4017,6 +5139,18 @@
         document.getElementById('app-col-secondary').value = c.secondary;
         document.getElementById('app-col-secondary-hex').value = c.secondary;
       }
+      if (document.getElementById('app-col-accent') && c.accent) document.getElementById('app-col-accent').value = c.accent;
+      if (document.getElementById('app-col-bg') && c.background) document.getElementById('app-col-bg').value = c.background;
+      if (document.getElementById('app-col-header') && c.header_bg) document.getElementById('app-col-header').value = c.header_bg;
+      if (document.getElementById('app-col-footer') && c.footer_bg) document.getElementById('app-col-footer').value = c.footer_bg;
+      if (document.getElementById('app-font-heading') && t.heading_font) document.getElementById('app-font-heading').value = t.heading_font;
+      if (document.getElementById('app-font-body') && t.body_font) document.getElementById('app-font-body').value = t.body_font;
+      if (document.getElementById('app-line-height') && t.line_height) document.getElementById('app-line-height').value = t.line_height;
+      if (document.getElementById('app-btn-radius') && l.button_radius) document.getElementById('app-btn-radius').value = l.button_radius;
+      if (document.getElementById('app-mob-h1') && m.hero_h1_size) document.getElementById('app-mob-h1').value = m.hero_h1_size;
+      if (document.getElementById('app-mob-body') && m.body_text_size) document.getElementById('app-mob-body').value = m.body_text_size;
+      if (document.getElementById('app-mob-pad') && m.section_padding_y) document.getElementById('app-mob-pad').value = m.section_padding_y;
+      if (document.getElementById('app-mob-btn') && m.button_min_height) document.getElementById('app-mob-btn').value = m.button_min_height;
     }
 
     window.handleSaveAppearance = async function() {
@@ -4044,6 +5178,7 @@
           button_min_height: document.getElementById('app-mob-btn') ? document.getElementById('app-mob-btn').value : '46px',
         }
       };
+      window.ADMIN.cmsAppearance = payload;
       await req('/admin/cms/appearance', { method: 'PUT', body: JSON.stringify(payload) });
       showToast('Website Appearance theme published live!', 'success');
     };
@@ -4065,75 +5200,288 @@
       const s = window.ADMIN.cmsSeo || {};
       if (document.getElementById('seo-title')) document.getElementById('seo-title').value = s.global_title || '';
       if (document.getElementById('seo-desc')) document.getElementById('seo-desc').value = s.meta_description || '';
+      if (document.getElementById('seo-keywords')) document.getElementById('seo-keywords').value = s.keywords || 'AI academy, Web Nasir, AI tools, YouTube automation, SaaS courses';
       if (document.getElementById('seo-canonical')) document.getElementById('seo-canonical').value = s.canonical_base || 'https://webnasir.dpdns.org';
       if (document.getElementById('seo-og-image')) document.getElementById('seo-og-image').value = s.og_image || '';
+      if (document.getElementById('seo-indexing')) document.getElementById('seo-indexing').value = s.indexing || 'index, follow';
       if (document.getElementById('seo-robots')) document.getElementById('seo-robots').value = s.robots_txt || '';
+      updateLiveSeoSnippetPreview();
+      renderSeoRedirectsList();
     }
+
+    window.updateLiveSeoSnippetPreview = function() {
+      const title = (document.getElementById('seo-title') && document.getElementById('seo-title').value) || 'Web Nasir — Premier AI & Technology Academy';
+      const desc = (document.getElementById('seo-desc') && document.getElementById('seo-desc').value) || 'Learn practical AI engineering, digital automation, and use 11+ free AI tools.';
+      const canonical = (document.getElementById('seo-canonical') && document.getElementById('seo-canonical').value) || 'https://webnasir.dpdns.org';
+      if (document.getElementById('serp-preview-title')) document.getElementById('serp-preview-title').textContent = title;
+      if (document.getElementById('serp-preview-desc')) document.getElementById('serp-preview-desc').textContent = desc;
+      if (document.getElementById('serp-preview-url')) document.getElementById('serp-preview-url').textContent = canonical;
+      if (document.getElementById('seo-title-counter')) document.getElementById('seo-title-counter').textContent = `${title.length} / 60 chars`;
+      if (document.getElementById('seo-desc-counter')) document.getElementById('seo-desc-counter').textContent = `${desc.length} / 160 chars`;
+
+      const warningsEl = document.getElementById('seo-live-warnings');
+      if (warningsEl) {
+        const checks = [];
+        if (title.length >= 30 && title.length <= 65) {
+          checks.push('<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold">✓ Title length optimal (' + title.length + ' chars)</span>');
+        } else {
+          checks.push('<span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-bold">⚠ Title length (' + title.length + ' chars — target 30–60)</span>');
+        }
+        if (desc.length >= 70 && desc.length <= 165) {
+          checks.push('<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold">✓ Meta description optimal (' + desc.length + ' chars)</span>');
+        } else {
+          checks.push('<span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-bold">⚠ Meta description (' + desc.length + ' chars — target 70–160)</span>');
+        }
+        const missingAlt = (window.ADMIN.cmsMedia || []).filter(m => !m.alt || !m.alt.trim()).length;
+        if (missingAlt === 0) {
+          checks.push('<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold">✓ All Media Assets have SEO Alt Text</span>');
+        } else {
+          checks.push(`<span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-bold">✗ ${missingAlt} Media item(s) missing Alt Text</span>`);
+        }
+        warningsEl.innerHTML = checks.join('');
+      }
+    };
+
+    function renderSeoRedirectsList() {
+      const container = document.getElementById('seo-redirects-list');
+      if (!container) return;
+      const list = window.ADMIN.cmsRedirects || [];
+      if (!list.length) {
+        container.innerHTML = '<div class="text-xs text-slate-400 italic py-2">Built-in 301 Redirect active: <code>/articles/* → /guides/*</code>. Add custom 301 rules below.</div>';
+        return;
+      }
+      container.innerHTML = list.map((r, idx) => `
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-surface border border-bordercol text-xs">
+          <input type="text" value="${r.from || ''}" oninput="window.ADMIN.cmsRedirects[${idx}].from = this.value" placeholder="/old-url" class="px-3 py-1.5 bg-white border border-bordercol rounded-lg font-mono w-1/3">
+          <span class="text-slate-400 font-bold">→ 301 →</span>
+          <input type="text" value="${r.to || ''}" oninput="window.ADMIN.cmsRedirects[${idx}].to = this.value" placeholder="/new-url" class="px-3 py-1.5 bg-white border border-bordercol rounded-lg font-mono flex-grow">
+          <button type="button" onclick="window.ADMIN.cmsRedirects.splice(${idx}, 1); renderSeoRedirectsList();" class="text-rose-600 font-semibold px-2">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    window.addSeoRedirectRule = function() {
+      if (!Array.isArray(window.ADMIN.cmsRedirects)) window.ADMIN.cmsRedirects = [];
+      window.ADMIN.cmsRedirects.push({ from: '/old-page', to: '/courses', code: 301 });
+      renderSeoRedirectsList();
+    };
 
     window.handleSaveSeoSettings = async function() {
       const payload = {
-        global_title: document.getElementById('seo-title').value,
-        meta_description: document.getElementById('seo-desc').value,
-        canonical_base: document.getElementById('seo-canonical').value,
-        og_image: document.getElementById('seo-og-image').value,
+        global_title: document.getElementById('seo-title').value.trim(),
+        meta_description: document.getElementById('seo-desc').value.trim(),
+        keywords: document.getElementById('seo-keywords') ? document.getElementById('seo-keywords').value.trim() : '',
+        canonical_base: document.getElementById('seo-canonical').value.trim(),
+        og_image: document.getElementById('seo-og-image').value.trim(),
+        indexing: document.getElementById('seo-indexing') ? document.getElementById('seo-indexing').value : 'index, follow',
         robots_txt: document.getElementById('seo-robots').value,
       };
-      await req('/admin/cms/seo', { method: 'PUT', body: JSON.stringify(payload) });
-      showToast('Global SEO configuration saved!', 'success');
+      window.ADMIN.cmsSeo = payload;
+      await Promise.all([
+        req('/admin/cms/seo', { method: 'PUT', body: JSON.stringify(payload) }),
+        req('/admin/cms/redirects', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsRedirects || []) })
+      ]);
+      updateLiveSeoSnippetPreview();
+      showToast('Global SEO configuration & 301 Redirects saved!', 'success');
     };
 
     // 22. MEDIA LIBRARY
-    function renderMediaLibrary() {
+    window.renderMediaLibrary = function() {
       const grid = document.getElementById('media-library-grid');
       if (!grid) return;
-      grid.innerHTML = (window.ADMIN.cmsMedia || []).map(m => `
-        <div class="bg-white rounded-2xl border border-bordercol overflow-hidden shadow-2xs flex flex-col justify-between">
-          <div class="aspect-video bg-slate-100 flex items-center justify-center overflow-hidden">
-            ${m.type === 'video' ? '<i data-lucide="video" class="w-10 h-10 text-violet-600"></i>' : `<img src="${m.url}" alt="${m.alt}" class="w-full h-full object-cover">`}
+      const q = ((document.getElementById('media-search-input') && document.getElementById('media-search-input').value) || '').toLowerCase().trim();
+      const filterType = (document.getElementById('media-filter-type') && document.getElementById('media-filter-type').value) || 'all';
+      const allMedia = window.ADMIN.cmsMedia || [];
+      const filtered = allMedia.filter(m => {
+        if (filterType !== 'all' && m.type !== filterType) return false;
+        if (q && !(String(m.title || '').toLowerCase().includes(q) || String(m.alt || '').toLowerCase().includes(q) || String(m.used_in || '').toLowerCase().includes(q))) return false;
+        return true;
+      });
+      if (document.getElementById('media-count-badge')) {
+        document.getElementById('media-count-badge').textContent = `${filtered.length} of ${allMedia.length} assets`;
+      }
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="col-span-full py-10 text-center text-muted text-xs">No media assets match your filter. Upload an image or video above.</div>';
+        return;
+      }
+      grid.innerHTML = filtered.map(m => {
+        const fullUrl = m.url && m.url.startsWith('/') ? (window.location.origin + m.url) : m.url;
+        return `
+        <div class="bg-white rounded-2xl border border-bordercol overflow-hidden shadow-2xs flex flex-col justify-between group">
+          <div onclick="openMediaPreviewModal('${m.id}')" class="aspect-video bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer relative">
+            ${m.type === 'video'
+              ? '<div class="flex flex-col items-center gap-1 text-violet-600"><i data-lucide="video" class="w-10 h-10"></i><span class="text-[10px] font-bold uppercase">Preview Video</span></div>'
+              : `<img src="${m.url}" alt="${m.alt || m.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">`}
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-slate-900/75 text-white text-[10px] font-mono">${m.dimensions || m.type}</span>
           </div>
           <div class="p-4 space-y-2 text-xs">
-            <div class="font-bold text-dark truncate">${m.title}</div>
-            <div class="text-[10px] text-muted">Used in: ${m.used_in || 'General'}</div>
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <button onclick="navigator.clipboard.writeText('${m.url}'); showToast('Copied URL!', 'success');" class="text-brand-600 font-semibold">Copy URL</button>
-              <button onclick="deleteMediaAsset('${m.id}')" class="text-rose-600 font-semibold">Delete</button>
+            <div class="font-bold text-dark truncate" title="${m.title}">${m.title}</div>
+            <div class="text-[10px] text-slate-500 truncate">Alt: <span class="text-slate-700 font-medium">${m.alt || 'None'}</span></div>
+            <div class="text-[10px] text-muted truncate">Used in: <strong>${m.used_in || 'General'}</strong></div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-1">
+              <button onclick="navigator.clipboard.writeText('${fullUrl}'); showToast('Copied persistent URL!', 'success');" class="text-brand-600 font-semibold hover:underline">Copy URL</button>
+              <button onclick="openMediaEditModal('${m.id}')" class="text-violet-600 font-semibold hover:underline">Edit / Replace</button>
+              <button onclick="deleteMediaAsset('${m.id}')" class="text-rose-600 font-semibold hover:underline">Delete</button>
             </div>
           </div>
         </div>
-      `).join('');
+      `}).join('');
       lucide.createIcons();
-    }
-
-    window.promptAddMediaAsset = async function() {
-      const title = prompt('Asset Name / Title:');
-      if (!title) return;
-      const url = prompt('Image or Video URL (https://...):');
-      if (!url) return;
-      const alt = prompt('SEO Alt Text:', title);
-      await req('/admin/cms/media', { method: 'POST', body: JSON.stringify({ title, url, alt, type: url.includes('youtube') ? 'video' : 'image' }) });
-      showToast('Media asset added!', 'success');
-      loadCmsExtras();
     };
 
-    window.deleteMediaAsset = async function(id) {
-      if (!confirm('Delete this media item?')) return;
-      await req('/admin/cms/media/' + id, { method: 'DELETE' });
-      showToast('Asset deleted', 'info');
-      loadCmsExtras();
+    window.promptAddMediaAsset = function() {
+      document.getElementById('media-modal-title').textContent = 'Add External Media Asset';
+      document.getElementById('modal-media-id').value = '';
+      document.getElementById('modal-media-title').value = '';
+      document.getElementById('modal-media-alt').value = '';
+      document.getElementById('modal-media-url').value = '';
+      document.getElementById('modal-media-type').value = 'image';
+      document.getElementById('modal-media-used-in').value = 'General';
+      document.getElementById('media-edit-modal').classList.remove('hidden');
+    };
+
+    window.openMediaEditModal = function(id) {
+      const m = (window.ADMIN.cmsMedia || []).find(item => item.id === id);
+      if (!m) return;
+      document.getElementById('media-modal-title').textContent = 'Edit / Replace Media Asset';
+      document.getElementById('modal-media-id').value = m.id;
+      document.getElementById('modal-media-title').value = m.title || '';
+      document.getElementById('modal-media-alt').value = m.alt || '';
+      document.getElementById('modal-media-url').value = m.url || '';
+      document.getElementById('modal-media-type').value = m.type || 'image';
+      document.getElementById('modal-media-used-in').value = m.used_in || 'General';
+      document.getElementById('media-edit-modal').classList.remove('hidden');
+    };
+
+    window.closeMediaEditModal = function() {
+      document.getElementById('media-edit-modal').classList.add('hidden');
+    };
+
+    window.handleReplaceMediaModalFile = function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (file.type && file.type.startsWith('video/')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          document.getElementById('modal-media-url').value = ev.target.result;
+          document.getElementById('modal-media-type').value = 'video';
+          showToast('Video file loaded! Click Save Media Asset to persist.', 'info');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxW = 1400;
+            const scale = img.width > maxW ? maxW / img.width : 1;
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            document.getElementById('modal-media-url').value = canvas.toDataURL('image/webp', 0.86);
+            document.getElementById('modal-media-type').value = 'image';
+            showToast(`Replacement image optimized (${canvas.width}x${canvas.height} WebP). Click Save!`, 'info');
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    window.handleSaveMediaModalForm = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('modal-media-id').value;
+      const payload = {
+        title: document.getElementById('modal-media-title').value.trim(),
+        alt: document.getElementById('modal-media-alt').value.trim(),
+        url: document.getElementById('modal-media-url').value.trim(),
+        type: document.getElementById('modal-media-type').value,
+        used_in: document.getElementById('modal-media-used-in').value.trim() || 'General'
+      };
+      try {
+        if (id) {
+          await req('/admin/cms/media/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+          showToast('Media asset updated & persisted!', 'success');
+        } else {
+          await req('/admin/cms/media', { method: 'POST', body: JSON.stringify(payload) });
+          showToast('Media asset added & persisted!', 'success');
+        }
+        closeMediaEditModal();
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error saving media: ' + err.message, 'error');
+      }
+    };
+
+    window.openMediaPreviewModal = function(id) {
+      const m = (window.ADMIN.cmsMedia || []).find(item => item.id === id);
+      if (!m) return;
+      document.getElementById('media-preview-title').textContent = m.title || 'Media Preview';
+      const fullUrl = m.url && m.url.startsWith('/') ? (window.location.origin + m.url) : m.url;
+      document.getElementById('media-preview-meta').textContent = `${m.dimensions || m.type} • Alt: "${m.alt || ''}" • URL: ${fullUrl}`;
+      const body = document.getElementById('media-preview-body');
+      if (m.type === 'video') {
+        if (m.url.includes('youtube.com') || m.url.includes('youtu.be')) {
+          body.innerHTML = `<iframe src="${m.url}" class="w-full aspect-video rounded-xl" allowfullscreen></iframe>`;
+        } else {
+          body.innerHTML = `<video src="${m.url}" controls class="max-h-[420px] rounded-xl"></video>`;
+        }
+      } else {
+        body.innerHTML = `<img src="${m.url}" alt="${m.alt || m.title}" class="max-h-[420px] rounded-xl object-contain">`;
+      }
+      document.getElementById('media-preview-copy-btn').onclick = () => {
+        navigator.clipboard.writeText(fullUrl);
+        showToast('Copied full URL to clipboard!', 'success');
+      };
+      document.getElementById('media-preview-modal').classList.remove('hidden');
+    };
+
+    window.closeMediaPreviewModal = function() {
+      document.getElementById('media-preview-modal').classList.add('hidden');
+    };
+
+    window.deleteMediaAsset = function(id) {
+      const m = (window.ADMIN.cmsMedia || []).find(item => item.id === id);
+      if (!m) return;
+      document.getElementById('replace-delete-media-id').value = id;
+      document.getElementById('replace-delete-replacement-url').value = '';
+      document.getElementById('media-replace-delete-modal').classList.remove('hidden');
+    };
+
+    window.closeMediaReplaceDeleteModal = function() {
+      document.getElementById('media-replace-delete-modal').classList.add('hidden');
+    };
+
+    window.confirmReplaceAndDeleteMedia = async function() {
+      const id = document.getElementById('replace-delete-media-id').value;
+      const replacement_url = document.getElementById('replace-delete-replacement-url').value.trim();
+      try {
+        await req(`/admin/cms/media/${id}/replace-and-delete`, {
+          method: 'POST',
+          body: JSON.stringify({ replacement_url })
+        });
+        closeMediaReplaceDeleteModal();
+        showToast(replacement_url ? 'Asset deleted & references replaced across site!' : 'Media asset deleted!', 'info');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
     };
 
     // 23. SOCIAL SETTINGS
     window.handleSaveSocialMedia = async function() {
       const payload = {
         ...window.ADMIN.settings,
-        social_youtube: document.getElementById('soc-input-yt').value,
-        social_facebook: document.getElementById('soc-input-fb').value,
-        social_x: document.getElementById('soc-input-x').value,
-        social_instagram: document.getElementById('soc-input-ig').value,
-        social_linkedin: document.getElementById('soc-input-li').value,
+        social_youtube: document.getElementById('soc-input-yt').value.trim(),
+        social_facebook: document.getElementById('soc-input-fb').value.trim(),
+        social_x: document.getElementById('soc-input-x').value.trim(),
+        social_instagram: document.getElementById('soc-input-ig').value.trim(),
+        social_linkedin: document.getElementById('soc-input-li').value.trim(),
       };
+      window.ADMIN.settings = payload;
       await req('/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
-      showToast('Social media links updated!', 'success');
+      showToast('Social media links updated & persisted!', 'success');
     };
 
     // 24. REVISIONS & AUDIT LOGS
@@ -4303,10 +5651,13 @@
       try {
         const data = await req(`/admin/students/${id}`);
         const s = data.student;
+        window.ADMIN.activeStudentId = s.id;
         document.getElementById('modal-std-name').textContent = s.name || 'Student';
         document.getElementById('modal-std-email').textContent = s.email;
         document.getElementById('modal-std-provider').textContent = s.auth_provider || 'google';
         document.getElementById('modal-std-status').textContent = s.status || 'active';
+        if (document.getElementById('modal-std-edit-name')) document.getElementById('modal-std-edit-name').value = s.name || '';
+        if (document.getElementById('modal-std-edit-payment')) document.getElementById('modal-std-edit-payment').value = s.payment_status || 'free';
 
         const enrollList = document.getElementById('modal-std-enrollments');
         if (!data.enrollments || data.enrollments.length === 0) {
@@ -4349,6 +5700,24 @@
         lucide.createIcons();
       } catch (err) {
         showToast('Error loading profile: ' + err.message, 'error');
+      }
+    };
+
+    window.saveStudentProfileEdits = async function() {
+      const id = window.ADMIN.activeStudentId;
+      if (!id) return;
+      const name = document.getElementById('modal-std-edit-name') ? document.getElementById('modal-std-edit-name').value.trim() : '';
+      const payment_status = document.getElementById('modal-std-edit-payment') ? document.getElementById('modal-std-edit-payment').value : 'free';
+      try {
+        await req(`/admin/students/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ name, payment_status })
+        });
+        showToast('Student profile updated & saved!', 'success');
+        closeStudentDetailModal();
+        filterStudentsTable();
+      } catch (err) {
+        showToast('Update error: ' + err.message, 'error');
       }
     };
 
@@ -4398,6 +5767,60 @@
         document.getElementById('email-subject-input').value = t.subject || '';
         document.getElementById('email-body-input').value = t.body || '';
       }
+    };
+
+    window.handleSaveEmailDraft = async function() {
+      const subject = document.getElementById('email-subject-input').value.trim();
+      const body = document.getElementById('email-body-input').value.trim();
+      const recipient_type = document.getElementById('email-target-type').value;
+      if (!subject && !body) {
+        showToast('Enter a subject or body before saving a draft.', 'error');
+        return;
+      }
+      try {
+        const res = await req('/admin/emails/drafts', {
+          method: 'POST',
+          body: JSON.stringify({ subject, body, recipient_type })
+        });
+        window.ADMIN.emailDrafts = res.drafts || [];
+        renderEmailDrafts();
+        showToast('Email draft saved persistently!', 'success');
+      } catch (err) {
+        showToast('Error saving draft: ' + err.message, 'error');
+      }
+    };
+
+    function renderEmailDrafts() {
+      const container = document.getElementById('email-drafts-container');
+      const listEl = document.getElementById('email-drafts-list');
+      if (!container || !listEl) return;
+      const drafts = window.ADMIN.emailDrafts || [];
+      if (!drafts.length) {
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+      listEl.innerHTML = drafts.map((d, idx) => `
+        <div class="p-2.5 rounded-xl bg-surface border border-bordercol flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-dark">${d.subject || '(Untitled Draft)'}</span>
+            <span class="text-[10px] text-muted ml-2">${d.saved_at ? new Date(d.saved_at).toLocaleString() : ''}</span>
+          </div>
+          <button type="button" onclick="loadEmailDraftIntoComposer(${idx})" class="text-violet-600 font-bold hover:underline">Load Draft</button>
+        </div>
+      `).join('');
+    }
+
+    window.loadEmailDraftIntoComposer = function(idx) {
+      const d = (window.ADMIN.emailDrafts || [])[idx];
+      if (!d) return;
+      document.getElementById('email-subject-input').value = d.subject || '';
+      document.getElementById('email-body-input').value = d.body || '';
+      if (d.recipient_type) {
+        document.getElementById('email-target-type').value = d.recipient_type;
+        toggleEmailRecipientField();
+      }
+      showToast('Draft loaded into composer!', 'info');
     };
 
     window.handleSendAdminEmail = async function(e) {
@@ -4534,6 +5957,8 @@
       document.getElementById('modal-course-badge').value = 'New Masterclass';
       document.getElementById('modal-course-level').value = 'Beginner to Advanced';
       document.getElementById('modal-course-enrolled').value = 100;
+      if (document.getElementById('modal-course-image')) document.getElementById('modal-course-image').value = '';
+      if (document.getElementById('modal-course-video')) document.getElementById('modal-course-video').value = '';
       document.getElementById('modal-course-highlights').value = '';
       document.getElementById('modal-course-active').checked = true;
       document.getElementById('course-modal').classList.remove('hidden');
@@ -4558,6 +5983,8 @@
       document.getElementById('modal-course-badge').value = c.badge || '';
       document.getElementById('modal-course-level').value = c.level || '';
       document.getElementById('modal-course-enrolled').value = c.enrolled_count || 0;
+      if (document.getElementById('modal-course-image')) document.getElementById('modal-course-image').value = c.image || '';
+      if (document.getElementById('modal-course-video')) document.getElementById('modal-course-video').value = c.video_preview || '';
       document.getElementById('modal-course-highlights').value = (c.highlights || []).join('\n');
       document.getElementById('modal-course-active').checked = c.is_active !== false;
       document.getElementById('course-modal').classList.remove('hidden');
@@ -4580,6 +6007,8 @@
         badge: document.getElementById('modal-course-badge').value.trim(),
         level: document.getElementById('modal-course-level').value.trim(),
         enrolled_count: Number(document.getElementById('modal-course-enrolled').value) || 0,
+        image: document.getElementById('modal-course-image') ? document.getElementById('modal-course-image').value.trim() : '',
+        video_preview: document.getElementById('modal-course-video') ? document.getElementById('modal-course-video').value.trim() : '',
         highlights,
         is_active: document.getElementById('modal-course-active').checked,
       };
@@ -4633,7 +6062,7 @@
         <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-violet-100 text-violet-700 font-bold flex items-center justify-center text-sm">${t.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+              <div class="w-10 h-10 rounded-full bg-violet-100 text-violet-700 font-bold flex items-center justify-center text-sm">${(t.name || 'S').split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
               <div>
                 <h4 class="text-sm font-bold text-dark flex items-center gap-1.5">
                   <span>${t.name}</span>
@@ -4645,7 +6074,7 @@
             <span class="text-xs font-bold text-amber-500">★ ${t.rating || 5}.0</span>
           </div>
 
-          <p class="text-xs text-slate-600 italic">"${t.text}"</p>
+          <p class="text-xs text-slate-600 italic">"${t.text || t.content || ''}"</p>
 
           <div class="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-3">
             <span class="font-medium text-brand-700">${t.course || 'Academy Masterclass'}</span>
@@ -4690,7 +6119,7 @@
       document.getElementById('modal-testimonial-rating').value = t.rating || 5;
       document.getElementById('modal-testimonial-metric').value = t.earnings_metric || '';
       document.getElementById('modal-testimonial-course').value = t.course || '';
-      document.getElementById('modal-testimonial-text').value = t.text || '';
+      document.getElementById('modal-testimonial-text').value = t.text || t.content || '';
       document.getElementById('modal-testimonial-verified').checked = t.verified !== false;
       document.getElementById('testimonial-modal').classList.remove('hidden');
     };
@@ -4739,17 +6168,21 @@
     function renderMarqueeManager() {
       const container = document.getElementById('marquee-items-list');
       if (!container) return;
-      container.innerHTML = window.ADMIN.marquee.map((item, idx) => `
+      container.innerHTML = (window.ADMIN.marquee || []).map((item, idx) => {
+        const textVal = typeof item === 'object' && item !== null ? (item.text || '') : String(item || '');
+        const linkVal = typeof item === 'object' && item !== null ? (item.link || '/courses') : '/courses';
+        return `
         <div class="flex items-center gap-3 p-3 bg-surface rounded-xl border border-bordercol">
-          <input type="text" value="${item}" class="marquee-input flex-grow px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-medium">
+          <input type="text" value="${textVal.replace(/"/g, '&quot;')}" placeholder="Marquee item text..." class="marquee-input flex-grow px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-medium">
+          <input type="text" value="${linkVal.replace(/"/g, '&quot;')}" placeholder="/courses" class="marquee-link-input w-36 px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-mono">
           <button onclick="removeMarqueeRow(${idx})" class="text-rose-500 hover:text-rose-700 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
-      `).join('');
+      `}).join('');
       lucide.createIcons();
     }
 
     window.addMarqueeRow = function() {
-      window.ADMIN.marquee.push('✨ New Announcement Item');
+      window.ADMIN.marquee.push({ text: '✨ New Announcement Item', link: '/courses' });
       renderMarqueeManager();
     };
 
@@ -4760,10 +6193,14 @@
 
     window.handleSaveMarqueeItems = async function() {
       const inputs = document.querySelectorAll('.marquee-input');
-      const items = Array.from(inputs).map(inp => inp.value.trim()).filter(Boolean);
+      const linkInputs = document.querySelectorAll('.marquee-link-input');
+      const items = Array.from(inputs).map((inp, idx) => ({
+        text: inp.value.trim(),
+        link: (linkInputs[idx] && linkInputs[idx].value.trim()) || '/courses'
+      })).filter(it => it.text);
       try {
         await req('/admin/marquee', { method: 'PUT', body: JSON.stringify({ items }) });
-        showToast('Marquee items saved!', 'success');
+        showToast('Marquee items saved & published!', 'success');
         loadAllAdminData();
       } catch (err) {
         showToast('Error saving marquee: ' + err.message, 'error');
@@ -4798,17 +6235,26 @@
         if (window.ADMIN.enrollments.length === 0) {
           enrollTbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-muted">No student enrollments yet.</td></tr>';
         } else {
-          enrollTbody.innerHTML = window.ADMIN.enrollments.map(e => `
+          enrollTbody.innerHTML = window.ADMIN.enrollments.map(e => {
+            const eid = e.enrollment_id || e.id || '';
+            const st = (e.status || 'completed').toLowerCase();
+            return `
             <tr class="hover:bg-slate-50">
               <td class="py-3 px-4 font-semibold text-dark">${e.student_name || 'Anonymous'}<div class="text-[10px] text-muted">${e.student_email || ''}</div></td>
               <td class="py-3 px-4 text-slate-600">${e.student_phone || '--'}</td>
               <td class="py-3 px-4 font-medium text-brand-700">${e.course_title || e.course_id}</td>
               <td class="py-3 px-4 font-bold text-dark">₹${(e.amount || 0).toLocaleString()}</td>
               <td class="py-3 px-4 uppercase text-[10px] font-bold text-slate-500">${e.payment_method || 'UPI / Razorpay'}</td>
-              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">${e.status || 'Active'}</span></td>
-              <td class="py-3 px-4 text-slate-400 text-[10px]">${e.created_at ? new Date(e.created_at).toLocaleDateString() : '--'}</td>
+              <td class="py-3 px-4">
+                <select onchange="updateEnrollmentStatus('${eid}', this.value)" class="px-2 py-1 rounded-lg text-[10px] font-bold border border-bordercol ${st === 'refunded' ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-800'}">
+                  <option value="completed" ${st === 'completed' || st === 'active' ? 'selected' : ''}>Completed / Active</option>
+                  <option value="pending" ${st === 'pending' ? 'selected' : ''}>Pending</option>
+                  <option value="refunded" ${st === 'refunded' ? 'selected' : ''}>Refunded</option>
+                </select>
+              </td>
+              <td class="py-3 px-4 text-slate-400 text-[10px]">${(e.created_at || e.enrolled_at) ? new Date(e.created_at || e.enrolled_at).toLocaleDateString() : '--'}</td>
             </tr>
-          `).join('');
+          `}).join('');
         }
       }
 
@@ -4831,6 +6277,20 @@
         }
       }
     }
+
+    window.updateEnrollmentStatus = async function(enrollmentId, status) {
+      if (!enrollmentId) return;
+      try {
+        await req(`/admin/enrollments/${enrollmentId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ status, payment_status: status === 'refunded' ? 'refunded' : 'paid' })
+        });
+        showToast(`Order ${enrollmentId} status updated to ${status}!`, 'success');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Error updating enrollment: ' + err.message, 'error');
+      }
+    };
 
     // PASSWORD
     window.handleChangePassword = async function(e) {

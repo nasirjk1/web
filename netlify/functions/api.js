@@ -947,25 +947,29 @@ export const handler = async (event, context) => {
       const body = parseJsonBody(event.body);
       if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
-      const { tool_type, input, tone, options } = body;
+      const { tool_type, tool_key, input, tone, options } = body;
       if (!input || typeof input !== 'string' || input.trim().length === 0) {
         return jsonResponse(400, { error: 'Input text or topic is required' });
       }
+
+      const tools = (await getBlob('tools_index')) || [];
+      const matchedTool = tools.find((t) => (tool_key && (t.key === tool_key || t.id === tool_key)) || t.tool_type === tool_type);
+      const customPromptOverride = options?.custom_prompt || matchedTool?.custom_prompt || '';
 
       let prompt = '';
       let systemInstruction = 'You are Web Nasir, a 10-year veteran software engineer and high-income digital publishing mentor. Deliver direct, professional, high-impact results with zero fluff.';
 
       if (tool_type === 'ai_youtube') {
-        prompt = `Generate 5 viral, high-CTR YouTube video titles, 2 magnetic first-30-second retention hooks, and 2 visual thumbnail concept descriptions for the following video topic:\n"${input}"\nTarget audience vibe: ${tone || 'Engaging & Educational'}. Format with clean markdown headers and bullet points.`;
+        prompt = `${customPromptOverride || 'Generate 5 viral, high-CTR YouTube video titles, 2 magnetic first-30-second retention hooks, and 2 visual thumbnail concept descriptions'} for the following video topic:\n"${input}"\nTarget audience vibe: ${tone || 'Engaging & Educational'}. Format with clean markdown headers and bullet points.`;
       } else if (tool_type === 'ai_blog') {
-        prompt = `Create a comprehensive high-ranking SEO blog outline for the keyword / title:\n"${input}"\nInclude:\n1. Target Search Intent & High-CPC Primary/Secondary Keywords\n2. Compelling Meta Title (under 60 chars) and Meta Description\n3. Structured H2 and H3 Headings outline with key takeaways for each section\n4. Recommended Internal Linking & Content Monetization angle (AdSense / Affiliate).`;
+        prompt = `${customPromptOverride || 'Create a comprehensive high-ranking SEO blog outline'} for the keyword / title:\n"${input}"\nInclude:\n1. Target Search Intent & High-CPC Primary/Secondary Keywords\n2. Compelling Meta Title (under 60 chars) and Meta Description\n3. Structured H2 and H3 Headings outline with key takeaways for each section\n4. Recommended Internal Linking & Content Monetization angle (AdSense / Affiliate).`;
       } else if (tool_type === 'ai_code') {
-        prompt = `Analyze and clearly explain the following code snippet, regular expression, or command in plain English:\n\`\`\`\n${input}\n\`\`\`\nProvide:\n1. High-level summary of what it does\n2. Step-by-step breakdown of key lines\n3. Potential performance, security, or edge-case improvements.`;
+        prompt = `${customPromptOverride || 'Analyze and clearly explain the following code snippet, regular expression, or command in plain English'}:\n\`\`\`\n${input}\n\`\`\`\nProvide:\n1. High-level summary of what it does\n2. Step-by-step breakdown of key lines\n3. Potential performance, security, or edge-case improvements.`;
       } else if (tool_type === 'ai_adcopy') {
-        prompt = `Craft 3 high-converting ad copy variations (Headlines, Body text, and Call to Actions) for marketing the following product or website:\n"${input}"\nGoal: Drive high-intent clicks and low CPC.`;
+        prompt = `${customPromptOverride || 'Craft 3 high-converting ad copy variations (Headlines, Body text, and Call to Actions)'} for marketing the following product or website:\n"${input}"\nGoal: Drive high-intent clicks and low CPC.`;
       } else {
         // Custom tool prompt
-        prompt = `Task: ${options?.custom_prompt || 'Analyze and optimize the following request'}\n\nUser Input: ${input}\n\nProvide clear, actionable results.`;
+        prompt = `Task: ${customPromptOverride || 'Analyze and optimize the following request'}\n\nUser Input: ${input}\n\nProvide clear, actionable results.`;
       }
 
       let aiResponse = await callGeminiAPI(prompt, systemInstruction);
@@ -1304,79 +1308,197 @@ export const handler = async (event, context) => {
       // GET /api/admin/tools
       if (method === 'GET' && cleanPath === '/admin/tools') {
         const tools = (await getBlob('tools_index')) || [];
-        return jsonResponse(200, tools);
+        const sorted = [...tools].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        return jsonResponse(200, sorted);
       }
 
-      // POST /api/admin/tools (Admin easily adds new free AI tools!)
+      // POST /api/admin/tools (Admin adds new free AI tools)
       if (method === 'POST' && cleanPath === '/admin/tools') {
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
-        const { key, name, description, category, badge, icon, tool_type, custom_prompt, sort_order, seo_slug } = body;
-        if (!name || typeof name !== 'string') return jsonResponse(400, { error: 'Tool name is required' });
-        
+        const { key, name, description, category, badge, icon, tool_type, custom_prompt, input_fields, output_format, is_featured, sort_order, seo_slug } = body;
+        if (!name || typeof name !== 'string' || !name.trim()) {
+          return jsonResponse(400, { error: 'Tool name is required' });
+        }
+
         let toolKey = (key || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         if (!toolKey) toolKey = 'tool-' + Date.now();
 
         const tools = (await getBlob('tools_index')) || [];
-        if (tools.some(t => t.key === toolKey || t.id === toolKey)) {
+        if (tools.some((t) => t.key === toolKey || t.id === toolKey)) {
           toolKey = `${toolKey}-${Date.now().toString(36).slice(-4)}`;
         }
 
+        const nowIso = new Date().toISOString();
         const newTool = {
           id: toolKey,
           key: toolKey,
-          seo_slug: String(seo_slug || toolKey).trim(),
-          name: name.trim().slice(0, 150),
-          description: String(description || '').trim().slice(0, 500),
-          category: String(category || 'AI Creators').trim().slice(0, 50),
-          badge: String(badge || 'Free Tool').trim().slice(0, 50),
-          icon: String(icon || 'sparkles').trim().slice(0, 50),
-          tool_type: String(tool_type || 'custom_ai').trim().slice(0, 50),
-          custom_prompt: String(custom_prompt || '').slice(0, 2000),
+          seo_slug: String(seo_slug || toolKey).trim().replace(/^#?\/?tools\/?/, '') || toolKey,
+          name: name.trim().slice(0, 200),
+          description: String(description || '').trim().slice(0, 600),
+          category: String(category || 'AI Creators').trim().slice(0, 80),
+          badge: String(badge || 'Free Tool').trim().slice(0, 60),
+          icon: String(icon || 'sparkles').trim().slice(0, 60),
+          tool_type: String(tool_type || 'custom_ai').trim().slice(0, 60),
+          custom_prompt: String(custom_prompt || '').slice(0, 4000),
+          input_fields: String(input_fields || 'User Input / Topic').slice(0, 500),
+          output_format: String(output_format || 'Markdown Output').slice(0, 300),
           is_enabled: body.is_enabled !== false,
+          is_featured: !!is_featured,
           sort_order: Number(sort_order) || (tools.length + 1),
+          created_at: nowIso,
+          updated_at: nowIso,
         };
 
         tools.push(newTool);
         await setBlob('tools_index', tools);
-        return jsonResponse(201, { success: true, tool: newTool });
+
+        const logs = (await getBlob('cms_audit_logs')) || [];
+        logs.unshift({
+          id: 'log-' + Date.now(),
+          action: `Created AI Tool: ${newTool.name} (${newTool.key})`,
+          actor: adminPayload.username || 'admin',
+          timestamp: nowIso,
+        });
+        await setBlob('cms_audit_logs', logs.slice(0, 100));
+
+        return jsonResponse(201, { success: true, tool: newTool, tools });
       }
 
-      // PUT /api/admin/tools/:key
-      if (method === 'PUT' && cleanPath.startsWith('/admin/tools/')) {
-        const key = cleanPath.replace('/admin/tools/', '').trim();
+      // PUT /api/admin/tools (Bulk update all tools)
+      if ((method === 'PUT' || method === 'PATCH') && cleanPath === '/admin/tools') {
+        const body = parseJsonBody(event.body);
+        const incoming = Array.isArray(body) ? body : body?.tools;
+        if (!Array.isArray(incoming)) return jsonResponse(400, { error: 'Tools array is required' });
+
+        const existingTools = (await getBlob('tools_index')) || [];
+        const nowIso = new Date().toISOString();
+
+        for (const item of incoming) {
+          if (!item || (!item.key && !item.id)) continue;
+          const idx = existingTools.findIndex((t) => t.key === item.key || t.id === item.id || t.key === item.id);
+          if (idx !== -1) {
+            if (item.name !== undefined && String(item.name).trim()) existingTools[idx].name = String(item.name).trim().slice(0, 200);
+            if (item.description !== undefined) existingTools[idx].description = String(item.description).trim().slice(0, 600);
+            if (item.category !== undefined) existingTools[idx].category = String(item.category).trim().slice(0, 80);
+            if (item.badge !== undefined) existingTools[idx].badge = String(item.badge).trim().slice(0, 60);
+            if (item.icon !== undefined) existingTools[idx].icon = String(item.icon).trim().slice(0, 60);
+            if (item.tool_type !== undefined) existingTools[idx].tool_type = String(item.tool_type).trim().slice(0, 60);
+            if (item.custom_prompt !== undefined) existingTools[idx].custom_prompt = String(item.custom_prompt).slice(0, 4000);
+            if (item.input_fields !== undefined) existingTools[idx].input_fields = String(item.input_fields).slice(0, 500);
+            if (item.output_format !== undefined) existingTools[idx].output_format = String(item.output_format).slice(0, 300);
+            if (item.seo_slug !== undefined) existingTools[idx].seo_slug = String(item.seo_slug).trim().replace(/^#?\/?tools\/?/, '') || existingTools[idx].key;
+            if (item.is_enabled !== undefined) existingTools[idx].is_enabled = !!item.is_enabled;
+            if (item.is_featured !== undefined) existingTools[idx].is_featured = !!item.is_featured;
+            if (item.sort_order !== undefined) existingTools[idx].sort_order = Number(item.sort_order) || 0;
+            existingTools[idx].updated_at = nowIso;
+          }
+        }
+
+        existingTools.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        await setBlob('tools_index', existingTools);
+        return jsonResponse(200, { success: true, tools: existingTools });
+      }
+
+      // PUT or PATCH /api/admin/tools/:key
+      if ((method === 'PUT' || method === 'PATCH') && cleanPath.startsWith('/admin/tools/')) {
+        const rawKey = decodeURIComponent(cleanPath.replace('/admin/tools/', '').trim());
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
         const tools = (await getBlob('tools_index')) || [];
-        const toolIndex = tools.findIndex((t) => t.key === key || t.id === key);
+        const toolIndex = tools.findIndex((t) => t.key === rawKey || t.id === rawKey || t.seo_slug === rawKey);
         if (toolIndex === -1) {
-          return jsonResponse(404, { error: 'Tool not found' });
+          return jsonResponse(404, { error: `Tool "${rawKey}" not found` });
         }
 
-        if (body.name !== undefined) tools[toolIndex].name = String(body.name).slice(0, 200);
-        if (body.description !== undefined) tools[toolIndex].description = String(body.description).slice(0, 500);
-        if (body.category !== undefined) tools[toolIndex].category = String(body.category).slice(0, 50);
-        if (body.badge !== undefined) tools[toolIndex].badge = String(body.badge).slice(0, 50);
-        if (body.icon !== undefined) tools[toolIndex].icon = String(body.icon).slice(0, 50);
-        if (body.tool_type !== undefined) tools[toolIndex].tool_type = String(body.tool_type).slice(0, 50);
-        if (body.custom_prompt !== undefined) tools[toolIndex].custom_prompt = String(body.custom_prompt).slice(0, 2000);
-        if (body.seo_slug !== undefined) tools[toolIndex].seo_slug = String(body.seo_slug).trim();
+        if (body.name !== undefined) {
+          const cleanName = String(body.name).trim();
+          if (!cleanName) return jsonResponse(400, { error: 'Tool name cannot be empty' });
+          tools[toolIndex].name = cleanName.slice(0, 200);
+        }
+        if (body.description !== undefined) tools[toolIndex].description = String(body.description).trim().slice(0, 600);
+        if (body.category !== undefined) tools[toolIndex].category = String(body.category).trim().slice(0, 80);
+        if (body.badge !== undefined) tools[toolIndex].badge = String(body.badge).trim().slice(0, 60);
+        if (body.icon !== undefined) tools[toolIndex].icon = String(body.icon).trim().slice(0, 60);
+        if (body.tool_type !== undefined) tools[toolIndex].tool_type = String(body.tool_type).trim().slice(0, 60);
+        if (body.custom_prompt !== undefined) tools[toolIndex].custom_prompt = String(body.custom_prompt).slice(0, 4000);
+        if (body.input_fields !== undefined) tools[toolIndex].input_fields = String(body.input_fields).slice(0, 500);
+        if (body.output_format !== undefined) tools[toolIndex].output_format = String(body.output_format).slice(0, 300);
+        if (body.seo_slug !== undefined) {
+          tools[toolIndex].seo_slug = String(body.seo_slug).trim().replace(/^#?\/?tools\/?/, '') || tools[toolIndex].key;
+        }
         if (body.is_enabled !== undefined) tools[toolIndex].is_enabled = !!body.is_enabled;
+        if (body.is_featured !== undefined) tools[toolIndex].is_featured = !!body.is_featured;
         if (body.sort_order !== undefined) tools[toolIndex].sort_order = Number(body.sort_order) || 0;
+        if (!tools[toolIndex].id) tools[toolIndex].id = tools[toolIndex].key;
+        const nowIso = new Date().toISOString();
+        tools[toolIndex].updated_at = nowIso;
 
+        const updatedTool = tools[toolIndex];
         await setBlob('tools_index', tools);
-        return jsonResponse(200, { success: true, tool: tools[toolIndex] });
+
+        // Synchronize tool name in cms_navigation and cms_footer if referenced by #/tools/:key
+        try {
+          const targetUrl = `#/tools/${updatedTool.key}`;
+          const nav = await getBlob('cms_navigation');
+          if (nav && Array.isArray(nav.items)) {
+            let navChanged = false;
+            for (const item of nav.items) {
+              if (Array.isArray(item.dropdown)) {
+                for (const dd of item.dropdown) {
+                  if (dd.url === targetUrl && dd.label !== updatedTool.name) {
+                    dd.label = updatedTool.name;
+                    navChanged = true;
+                  }
+                }
+              }
+            }
+            if (navChanged) await setBlob('cms_navigation', nav);
+          }
+
+          const footer = await getBlob('cms_footer');
+          if (footer && Array.isArray(footer.columns)) {
+            let footerChanged = false;
+            for (const col of footer.columns) {
+              if (Array.isArray(col.links)) {
+                for (const lnk of col.links) {
+                  if (lnk.url === targetUrl && lnk.label !== updatedTool.name) {
+                    lnk.label = updatedTool.name;
+                    footerChanged = true;
+                  }
+                }
+              }
+            }
+            if (footerChanged) await setBlob('cms_footer', footer);
+          }
+        } catch (syncErr) {
+          console.warn('Navigation/footer tool name sync notice:', syncErr.message);
+        }
+
+        // Record audit log
+        try {
+          const logs = (await getBlob('cms_audit_logs')) || [];
+          logs.unshift({
+            id: 'log-' + Date.now(),
+            action: `Updated AI Tool "${updatedTool.name}" (${updatedTool.key})`,
+            actor: adminPayload.username || 'admin',
+            timestamp: nowIso,
+          });
+          await setBlob('cms_audit_logs', logs.slice(0, 100));
+        } catch (_) {}
+
+        return jsonResponse(200, { success: true, tool: updatedTool, tools });
       }
 
       // DELETE /api/admin/tools/:key
       if (method === 'DELETE' && cleanPath.startsWith('/admin/tools/')) {
-        const key = cleanPath.replace('/admin/tools/', '').trim();
+        const rawKey = decodeURIComponent(cleanPath.replace('/admin/tools/', '').trim());
         const tools = (await getBlob('tools_index')) || [];
-        const filtered = tools.filter((t) => t.key !== key);
+        const filtered = tools.filter((t) => t.key !== rawKey && t.id !== rawKey);
         await setBlob('tools_index', filtered);
-        return jsonResponse(200, { success: true, message: 'Tool deleted successfully' });
+        return jsonResponse(200, { success: true, message: 'Tool deleted successfully', tools: filtered });
       }
 
       // GET /api/admin/topics

@@ -15,13 +15,13 @@ export async function ensureSeeded() {
   const existingMarquee = await getBlob('marquee_items');
   const existingCms = await getBlob('cms_appearance');
 
-  // If already seeded and all indices are present, ensure extended Phase 1-6 collections exist
-  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth && existingCourses?.length >= 8 && existingFreeCourses?.length >= 3 && existingTestimonials?.length >= 4 && existingMarquee?.length >= 6 && existingCms) {
+  // If already seeded and core indices exist (even if modified/deleted by admin), never overwrite
+  if (meta && meta.seeded === true && Array.isArray(existingTools) && existingSettings && existingAuth) {
     await ensureExtendedCmsSeeded();
     return;
   }
 
-  console.log('Seeding initial data for Web Nasir (all collections & CMS verification)...');
+  console.log('Seeding initial data for Web Nasir (non-destructive)...');
 
   // 1. Admin Authentication
   if (!existingAuth) {
@@ -34,11 +34,12 @@ export async function ensureSeeded() {
   }
 
   // 2. Settings (Expanded with Academy Video & Payment Controls)
-  await setBlob('settings', {
-    site_name: 'Web Nasir Academy',
-    tagline: 'Practical AI, Web Engineering & Digital Monetization',
-    whatsapp_number: '917006334417',
-    email: 'hello@webnasir.com',
+  if (!existingSettings) {
+    await setBlob('settings', {
+      site_name: 'Web Nasir Academy',
+      tagline: 'Practical AI, Web Engineering & Digital Monetization',
+      whatsapp_number: '917006334417',
+      email: 'hello@webnasir.com',
     announcement_enabled: true,
     announcement_badge: 'New 2025 Edition',
     announcement_text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
@@ -77,6 +78,7 @@ export async function ensureSeeded() {
       '4.9 ★ Rating',
     ],
   });
+  }
 
   // 3. Topics
   const topics = [
@@ -129,133 +131,203 @@ export async function ensureSeeded() {
       sort_order: 6,
     },
   ];
-  await setBlob('topics_index', topics);
+  if (!existingTopics || !Array.isArray(existingTopics) || existingTopics.length === 0) {
+    await setBlob('topics_index', topics);
+  }
 
-  // 4. Comprehensive Suite of 10 Free AI & Webmaster Tools
+  // 4. Comprehensive Suite of 11 Free AI & Webmaster Tools
   const tools = [
     {
+      id: 'youtube',
       key: 'youtube',
+      seo_slug: 'youtube',
       name: 'AI Viral YouTube Title & Hook Crafter',
       description: 'Generate high-CTR click-worthy YouTube titles, retention intro hooks, and visual thumbnail concepts using Gemini AI.',
       category: 'AI Creators',
       badge: 'AI Powered',
       tool_type: 'ai_youtube',
       icon: 'video',
+      custom_prompt: 'Generate 5 viral, high-CTR YouTube video titles, 2 magnetic first-30-second retention hooks, and 2 visual thumbnail concept descriptions.',
+      input_fields: 'Video Topic / Working Title, Target Tone / Audience Vibe',
+      output_format: 'Markdown (Titles, 30s Hooks, Thumbnail Concepts)',
       is_enabled: true,
+      is_featured: true,
       sort_order: 1,
     },
     {
+      id: 'blogoutline',
       key: 'blogoutline',
+      seo_slug: 'blogoutline',
       name: 'AI SEO Blog Outline & Keyword Strategist',
       description: 'Produce intent-first article structures, H2/H3 hierarchies, and high-CPC target keyword clusters in seconds.',
       category: 'SEO & Content',
       badge: 'AI Powered',
       tool_type: 'ai_blog',
       icon: 'file-text',
+      custom_prompt: 'Create a comprehensive high-ranking SEO blog outline including search intent, high-CPC keywords, meta tags, and H2/H3 hierarchy.',
+      input_fields: 'Target Keyword or Article Topic',
+      output_format: 'Markdown (Keyword Cluster, Meta Tags, H2/H3 Outline)',
       is_enabled: true,
+      is_featured: true,
       sort_order: 2,
     },
     {
+      id: 'codeexplainer',
       key: 'codeexplainer',
+      seo_slug: 'codeexplainer',
       name: 'AI Code, Regex & Script Explainer',
       description: 'Break down complex JavaScript, Python, SQL queries, or regular expressions with plain English explanations and fixes.',
       category: 'AI Creators',
       badge: 'AI Powered',
       tool_type: 'ai_code',
       icon: 'code',
+      custom_prompt: 'Analyze and clearly explain the code snippet, regular expression, or command in plain English with optimization tips.',
+      input_fields: 'Code Snippet, Regex, or Terminal Command',
+      output_format: 'Markdown (Summary, Line-by-Line Breakdown, Security & Performance Fixes)',
       is_enabled: true,
+      is_featured: true,
       sort_order: 3,
     },
     {
+      id: 'adcopy',
       key: 'adcopy',
+      seo_slug: 'adcopy',
       name: 'AI AdSense & Social Ad Copy Generator',
       description: 'Generate high-converting headlines, primary ad copy, and psychological call-to-actions tailored for web traffic.',
       category: 'Monetization',
       badge: 'AI Powered',
       tool_type: 'ai_adcopy',
       icon: 'sparkles',
+      custom_prompt: 'Craft 3 high-converting ad copy variations (Headlines, Body text, and Call to Actions) to drive high-intent clicks and low CPC.',
+      input_fields: 'Product, Niche Website, or Offer Description',
+      output_format: 'Markdown (3 Ad Variations with Headlines, Primary Text & CTA)',
       is_enabled: true,
+      is_featured: true,
       sort_order: 4,
     },
     {
+      id: 'business',
       key: 'business',
+      seo_slug: 'business',
       name: 'AdSense & Website Revenue Estimator',
       description: 'Project daily, monthly, and yearly income based on niche traffic, RPM, ad impressions, and click-through rates.',
       category: 'Monetization',
       badge: 'Interactive Calc',
       tool_type: 'client_business',
       icon: 'dollar-sign',
+      custom_prompt: '',
+      input_fields: 'Daily Pageviews, Niche Category RPM, Target Tier Geography',
+      output_format: 'Interactive Revenue Dashboard (Daily, Monthly, Annual Projections)',
       is_enabled: true,
+      is_featured: true,
       sort_order: 5,
     },
     {
+      id: 'name',
       key: 'name',
+      seo_slug: 'name',
       name: 'AI Brand & Domain Name Generator',
       description: 'Generate catchy, brandable tech and business names with instant domain availability hints and marketing vibe scoring.',
       category: 'AI Creators',
       badge: 'Branding Tool',
       tool_type: 'client_name',
       icon: 'sparkles',
+      custom_prompt: '',
+      input_fields: 'Core Keyword / Industry, Brand Naming Style',
+      output_format: 'Interactive Brand Cards with .com/.io/.ai Domain Hints',
       is_enabled: true,
+      is_featured: false,
       sort_order: 6,
     },
     {
+      id: 'instagram',
       key: 'instagram',
+      seo_slug: 'instagram',
       name: 'Social Media Viral Caption & Tag Generator',
       description: 'Craft high-engagement Instagram, TikTok, and Facebook captions paired with tri-tier low/mid/high competition hashtags.',
       category: 'SEO & Content',
       badge: 'Growth Tool',
       tool_type: 'client_instagram',
       icon: 'hash',
+      custom_prompt: '',
+      input_fields: 'Post Topic / Keyword, Caption Vibe',
+      output_format: 'Viral Caption + 30 Tri-Tier Hashtags',
       is_enabled: true,
+      is_featured: false,
       sort_order: 7,
     },
     {
+      id: 'wordcount',
       key: 'wordcount',
+      seo_slug: 'wordcount',
       name: 'Pro Content SEO & Word Density Analyzer',
       description: 'Inspect word count, character count, estimated reading & speaking time, readability grades, and keyword density for SEO.',
       category: 'SEO & Content',
       badge: 'SEO Utility',
       tool_type: 'client_wordcount',
       icon: 'file-text',
+      custom_prompt: '',
+      input_fields: 'Article or Draft Text',
+      output_format: 'Real-Time Word, Character, Reading Time & Keyword Metrics',
       is_enabled: true,
+      is_featured: false,
       sort_order: 8,
     },
     {
+      id: 'password',
       key: 'password',
+      seo_slug: 'password',
       name: 'Military-Grade Password & Passphrase Generator',
       description: 'Create cryptographically strong passwords or memorable passphrase chains with real-time entropy strength analysis.',
       category: 'Calculators',
       badge: 'Security Tool',
       tool_type: 'client_password',
       icon: 'shield-check',
+      custom_prompt: '',
+      input_fields: 'Password Length, Character Sets (Uppercase, Numbers, Symbols)',
+      output_format: 'Cryptographic Password String + Entropy Rating',
       is_enabled: true,
+      is_featured: false,
       sort_order: 9,
     },
     {
+      id: 'age',
       key: 'age',
+      seo_slug: 'age',
       name: 'Exact Age & Date Milestone Calculator',
       description: 'Calculate your exact age down to days, hours, and minutes, upcoming milestone birthdays, and astrological insights.',
       category: 'Calculators',
       badge: 'Date Utility',
       tool_type: 'client_age',
       icon: 'calendar',
+      custom_prompt: '',
+      input_fields: 'Date of Birth',
+      output_format: 'Years, Months, Days, Total Days & Next Birthday Countdown',
       is_enabled: true,
+      is_featured: false,
       sort_order: 10,
     },
     {
+      id: 'arbitrage',
       key: 'arbitrage',
+      seo_slug: 'arbitrage',
       name: 'AdSense Arbitrage & Traffic Profitability Calculator',
       description: 'Simulate paid ad acquisition cost vs AdSense revenue return, net profit margins, and campaign ROI percentage.',
       category: 'Monetization',
       badge: 'Arbitrage Tool',
       tool_type: 'client_arbitrage',
       icon: 'trending-up',
+      custom_prompt: '',
+      input_fields: 'Paid Clicks, CPC ($), Pageviews/Visit, AdSense Session RPM ($)',
+      output_format: 'Gross Revenue, Ad Spend, Net Profit & ROI % Breakdown',
       is_enabled: true,
+      is_featured: false,
       sort_order: 11,
     },
   ];
-  await setBlob('tools_index', tools);
+  if (!existingTools || !Array.isArray(existingTools) || existingTools.length === 0) {
+    await setBlob('tools_index', tools);
+  }
 
   // 5. Articles (Full 700–900 words each)
   const now = new Date().toISOString();
@@ -462,39 +534,41 @@ The mathematical key is **longer retention on 3+ minute videos**:
     `,
   };
 
-  await setBlob('articles_index', [
-    {
-      slug: articleAi.slug,
-      tag: articleAi.tag,
-      title: articleAi.title,
-      meta: articleAi.meta,
-      is_published: true,
-      sort_order: 1,
-      updated_at: now,
-    },
-    {
-      slug: articleAdsense.slug,
-      tag: articleAdsense.tag,
-      title: articleAdsense.title,
-      meta: articleAdsense.meta,
-      is_published: true,
-      sort_order: 2,
-      updated_at: now,
-    },
-    {
-      slug: articleFacebook.slug,
-      tag: articleFacebook.tag,
-      title: articleFacebook.title,
-      meta: articleFacebook.meta,
-      is_published: true,
-      sort_order: 3,
-      updated_at: now,
-    },
-  ]);
+  if (!existingArticles || !Array.isArray(existingArticles) || existingArticles.length === 0) {
+    await setBlob('articles_index', [
+      {
+        slug: articleAi.slug,
+        tag: articleAi.tag,
+        title: articleAi.title,
+        meta: articleAi.meta,
+        is_published: true,
+        sort_order: 1,
+        updated_at: now,
+      },
+      {
+        slug: articleAdsense.slug,
+        tag: articleAdsense.tag,
+        title: articleAdsense.title,
+        meta: articleAdsense.meta,
+        is_published: true,
+        sort_order: 2,
+        updated_at: now,
+      },
+      {
+        slug: articleFacebook.slug,
+        tag: articleFacebook.tag,
+        title: articleFacebook.title,
+        meta: articleFacebook.meta,
+        is_published: true,
+        sort_order: 3,
+        updated_at: now,
+      },
+    ]);
 
-  await setBlob(`article:${articleAi.slug}`, articleAi);
-  await setBlob(`article:${articleAdsense.slug}`, articleAdsense);
-  await setBlob(`article:${articleFacebook.slug}`, articleFacebook);
+    await setBlob(`article:${articleAi.slug}`, articleAi);
+    await setBlob(`article:${articleAdsense.slug}`, articleAdsense);
+    await setBlob(`article:${articleFacebook.slug}`, articleFacebook);
+  }
 
   // 6. Paid Courses & Masterclasses
   const courses = [
@@ -806,9 +880,11 @@ The mathematical key is **longer retention on 3+ minute videos**:
     }
   ];
 
-  await setBlob('courses_index', courses);
-  for (const c of courses) {
-    await setBlob(`course:${c.id}`, c);
+  if (!existingCourses || !Array.isArray(existingCourses) || existingCourses.length === 0) {
+    await setBlob('courses_index', courses);
+    for (const c of courses) {
+      await setBlob(`course:${c.id}`, c);
+    }
   }
 
   // 7. Student Reviews & Mentee Testimonials
@@ -865,7 +941,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     }
   ];
 
-  await setBlob('testimonials_index', testimonials);
+  if (!existingTestimonials || !Array.isArray(existingTestimonials) || existingTestimonials.length === 0) {
+    await setBlob('testimonials_index', testimonials);
+  }
 
   // 8. Announcement Marquee Ticker
   const marquee = [
@@ -877,7 +955,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     { text: '🌐 Career Tracks: AI Specialist, Full-Stack Web Developer, SEO Architect.', link: '#/topics' },
   ];
 
-  await setBlob('marquee_items', marquee);
+  if (!existingMarquee || !Array.isArray(existingMarquee) || existingMarquee.length === 0) {
+    await setBlob('marquee_items', marquee);
+  }
 
   // 9. Email Templates (9 Reusable Academy Templates)
   const emailTemplates = [
@@ -946,7 +1026,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     },
   ];
 
-  await setBlob('email_templates', emailTemplates);
+  if (!(await getBlob('email_templates'))) {
+    await setBlob('email_templates', emailTemplates);
+  }
 
   // 10. Email Sender Configuration
   const emailConfig = {
@@ -956,7 +1038,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     resend_api_key: process.env.RESEND_API_KEY || '',
     is_verified: true,
   };
-  await setBlob('email_config', emailConfig);
+  if (!(await getBlob('email_config'))) {
+    await setBlob('email_config', emailConfig);
+  }
 
   // 11. Seed Baseline Students if empty
   const existingStudents = await getBlob('students_index');
@@ -1160,7 +1244,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       sort_order: 3,
     }
   ];
-  await setBlob('free_courses_index', freeCourses);
+  if (!existingFreeCourses || !Array.isArray(existingFreeCourses) || existingFreeCourses.length === 0) {
+    await setBlob('free_courses_index', freeCourses);
+  }
 
   // 15. Course Categories
   const courseCategories = [
@@ -1170,7 +1256,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     { id: 'cat-adsense', name: 'Monetization & AdSense', slug: 'monetization', description: 'High-RPM AdSense, Traffic Arbitrage & Digital Publishing', count: 2, sort_order: 4 },
     { id: 'cat-marketing', name: 'Digital Marketing & Video', slug: 'digital-marketing', description: 'YouTube Automation, Social Media & Performance Ads', count: 2, sort_order: 5 }
   ];
-  await setBlob('course_categories', courseCategories);
+  if (!(await getBlob('course_categories'))) {
+    await setBlob('course_categories', courseCategories);
+  }
 
   // 16. CMS Homepage Builder (Ordered Sections & Visual Settings)
   const cmsHomepage = {
@@ -1190,7 +1278,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       { id: 'final_cta', name: 'Final Call To Action Banner', enabled: true, order: 11, heading: 'Ready to Build Real Digital Assets & Income?', subtitle: 'Join thousands of learners using Web Nasir free AI tools and flagship technical courses.', bg_color: '#0f172a', text_color: '#ffffff', cta_primary_text: 'Explore Masterclasses', cta_primary_link: '#/courses', cta_secondary_text: 'Try Free AI Tools', cta_secondary_link: '#/tools', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' }
     ]
   };
-  await setBlob('cms_homepage', cmsHomepage);
+  if (!(await getBlob('cms_homepage'))) {
+    await setBlob('cms_homepage', cmsHomepage);
+  }
 
   // 17. CMS Appearance & Centralized Theme Configuration
   const cmsAppearance = {
@@ -1241,7 +1331,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       primary_size: 'md'
     }
   };
-  await setBlob('cms_appearance', cmsAppearance);
+  if (!existingCms) {
+    await setBlob('cms_appearance', cmsAppearance);
+  }
 
   // 18. CMS Header & Navigation Manager
   const cmsNavigation = {
@@ -1273,7 +1365,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       { id: 'nav-student', label: 'Student Portal', url: '#/student', icon: 'layout', enabled: true, order: 9, desktop: true, mobile: true, new_tab: false, dropdown: [] }
     ]
   };
-  await setBlob('cms_navigation', cmsNavigation);
+  if (!(await getBlob('cms_navigation'))) {
+    await setBlob('cms_navigation', cmsNavigation);
+  }
 
   // 19. CMS Footer Builder
   const cmsFooter = {
@@ -1329,7 +1423,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       }
     ]
   };
-  await setBlob('cms_footer', cmsFooter);
+  if (!(await getBlob('cms_footer'))) {
+    await setBlob('cms_footer', cmsFooter);
+  }
 
   // 20. CMS About Us Page Editor
   const cmsAbout = {
@@ -1352,7 +1448,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
       { year: '2025', title: 'Founded Web Nasir Academy', desc: 'Opened direct mentorship, 11 free AI tools, and 8 flagship masterclasses.' }
     ]
   };
-  await setBlob('cms_about', cmsAbout);
+  if (!(await getBlob('cms_about'))) {
+    await setBlob('cms_about', cmsAbout);
+  }
 
   // 21. CMS Contact Page Editor
   const cmsContact = {
@@ -1367,7 +1465,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     form_enabled: true,
     whatsapp_cta_enabled: true
   };
-  await setBlob('cms_contact', cmsContact);
+  if (!(await getBlob('cms_contact'))) {
+    await setBlob('cms_contact', cmsContact);
+  }
 
   // 22. CMS SEO Settings
   const cmsSeo = {
@@ -1380,7 +1480,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     sitemap_enabled: true,
     schema_org_enabled: true
   };
-  await setBlob('cms_seo', cmsSeo);
+  if (!(await getBlob('cms_seo'))) {
+    await setBlob('cms_seo', cmsSeo);
+  }
 
   // 23. CMS Media Library
   const cmsMedia = [
@@ -1389,7 +1491,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
     { id: 'med-3', title: 'Full-Stack Web Dev Cover', url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80', type: 'image', alt: 'Full-Stack Web Development Thumbnail', used_in: 'Courses Catalog', created_at: now },
     { id: 'med-4', title: 'Founder Intro Video Stream', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', type: 'video', alt: 'Founder Nasir Welcome Video', used_in: 'Founder Video Section', created_at: now }
   ];
-  await setBlob('cms_media', cmsMedia);
+  if (!(await getBlob('cms_media'))) {
+    await setBlob('cms_media', cmsMedia);
+  }
 
   // 24. CMS Payment Gateway Settings
   const cmsPayments = {
@@ -1412,21 +1516,29 @@ The mathematical key is **longer retention on 3+ minute videos**:
     webhook_url: 'https://webnasir.dpdns.org/api/webhooks/razorpay',
     connection_status: 'Connected (Test Mode Ready)'
   };
-  await setBlob('cms_payments', cmsPayments);
+  if (!(await getBlob('cms_payments'))) {
+    await setBlob('cms_payments', cmsPayments);
+  }
 
   // 25. CMS Users & Role Access Management
   const cmsUsers = [
     { id: 'adm-1', username: 'admin', email: 'muharim6@gmail.com', role: 'Super Admin', permissions: 'Full CMS, Payments, Security & Student Access', status: 'active', last_active: now }
   ];
-  await setBlob('cms_users', cmsUsers);
+  if (!(await getBlob('cms_users'))) {
+    await setBlob('cms_users', cmsUsers);
+  }
 
   // 26. CMS Revisions & Audit Logs
-  await setBlob('cms_revisions', [
-    { id: 'rev-initial', label: 'Initial Production Academy State', created_at: now, author: 'admin' }
-  ]);
-  await setBlob('cms_audit_logs', [
-    { id: 'log-1', action: 'System Seeded with Complete 27-Module CMS Control Center', actor: 'system', timestamp: now }
-  ]);
+  if (!(await getBlob('cms_revisions'))) {
+    await setBlob('cms_revisions', [
+      { id: 'rev-initial', label: 'Initial Production Academy State', created_at: now, author: 'admin' }
+    ]);
+  }
+  if (!(await getBlob('cms_audit_logs'))) {
+    await setBlob('cms_audit_logs', [
+      { id: 'log-1', action: 'System Seeded with Complete 27-Module CMS Control Center', actor: 'system', timestamp: now }
+    ]);
+  }
 
   await ensureExtendedCmsSeeded();
 
@@ -1605,7 +1717,7 @@ async function ensureExtendedCmsSeeded() {
 
   // E. Complete 24-Page Manager Catalog (cms_pages)
   const existingPages = await getBlob('cms_pages');
-  if (!existingPages || existingPages.length < 24) {
+  if (!existingPages || !Array.isArray(existingPages) || existingPages.length === 0) {
     const defaultPages = [
       { id: 'page-home', title: 'Homepage', slug: '#/', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Master AI, Build Digital Skills & Create Your Online Future.', subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir.', seo_title: 'Web Nasir Academy — Practical AI Tools, Full-Stack Web Dev & High-RPM Monetization', seo_description: 'Access 11 free AI tools, 8 flagship masterclasses, and battle-tested AdSense & SEO blueprints.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'full-width', updated_at: now },
       { id: 'page-about', title: 'About Us', slug: '#/about', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Built by a Practitioner, Not a Theoretical Lecturer.', subtitle: 'Meet Nasir — 10+ Years Full-Stack Engineer, AI Architect & High-RPM Digital Publisher.', seo_title: 'About Founder Nasir — Web Nasir Academy', seo_description: 'Learn about Founder Nasir’s 10+ year track record in full-stack software engineering and high-RPM publishing.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
@@ -1643,6 +1755,37 @@ async function ensureExtendedCmsSeeded() {
       updated_at: now,
       draft_modules: {}
     });
+  }
+
+  // G. Non-destructively backfill missing extended tool schema keys on existing tools (without ever touching name, description, etc.)
+  const currentTools = await getBlob('tools_index');
+  if (Array.isArray(currentTools) && currentTools.length > 0) {
+    let schemaBackfilled = false;
+    const defaultMetaByKey = {
+      youtube: { custom_prompt: 'Generate 5 viral, high-CTR YouTube video titles, 2 magnetic first-30-second retention hooks, and 2 visual thumbnail concept descriptions.', input_fields: 'Video Topic / Working Title, Target Tone / Audience Vibe', output_format: 'Markdown (Titles, 30s Hooks, Thumbnail Concepts)', is_featured: true },
+      blogoutline: { custom_prompt: 'Create a comprehensive high-ranking SEO blog outline including search intent, high-CPC keywords, meta tags, and H2/H3 hierarchy.', input_fields: 'Target Keyword or Article Topic', output_format: 'Markdown (Keyword Cluster, Meta Tags, H2/H3 Outline)', is_featured: true },
+      codeexplainer: { custom_prompt: 'Analyze and clearly explain the code snippet, regular expression, or command in plain English with optimization tips.', input_fields: 'Code Snippet, Regex, or Terminal Command', output_format: 'Markdown (Summary, Line-by-Line Breakdown, Security & Performance Fixes)', is_featured: true },
+      adcopy: { custom_prompt: 'Craft 3 high-converting ad copy variations (Headlines, Body text, and Call to Actions) to drive high-intent clicks and low CPC.', input_fields: 'Product, Niche Website, or Offer Description', output_format: 'Markdown (3 Ad Variations with Headlines, Primary Text & CTA)', is_featured: true },
+      business: { custom_prompt: '', input_fields: 'Daily Pageviews, Niche Category RPM, Target Tier Geography', output_format: 'Interactive Revenue Dashboard (Daily, Monthly, Annual Projections)', is_featured: true },
+      name: { custom_prompt: '', input_fields: 'Core Keyword / Industry, Brand Naming Style', output_format: 'Interactive Brand Cards with .com/.io/.ai Domain Hints', is_featured: false },
+      instagram: { custom_prompt: '', input_fields: 'Post Topic / Keyword, Caption Vibe', output_format: 'Viral Caption + 30 Tri-Tier Hashtags', is_featured: false },
+      wordcount: { custom_prompt: '', input_fields: 'Article or Draft Text', output_format: 'Real-Time Word, Character, Reading Time & Keyword Metrics', is_featured: false },
+      password: { custom_prompt: '', input_fields: 'Password Length, Character Sets (Uppercase, Numbers, Symbols)', output_format: 'Cryptographic Password String + Entropy Rating', is_featured: false },
+      age: { custom_prompt: '', input_fields: 'Date of Birth', output_format: 'Years, Months, Days, Total Days & Next Birthday Countdown', is_featured: false },
+      arbitrage: { custom_prompt: '', input_fields: 'Paid Clicks, CPC ($), Pageviews/Visit, AdSense Session RPM ($)', output_format: 'Gross Revenue, Ad Spend, Net Profit & ROI % Breakdown', is_featured: false },
+    };
+    for (const t of currentTools) {
+      const def = defaultMetaByKey[t.key] || {};
+      if (!t.id) { t.id = t.key; schemaBackfilled = true; }
+      if (!t.seo_slug) { t.seo_slug = t.key; schemaBackfilled = true; }
+      if (t.is_featured === undefined) { t.is_featured = def.is_featured ?? false; schemaBackfilled = true; }
+      if (t.custom_prompt === undefined) { t.custom_prompt = def.custom_prompt ?? ''; schemaBackfilled = true; }
+      if (t.input_fields === undefined) { t.input_fields = def.input_fields ?? 'User Input'; schemaBackfilled = true; }
+      if (t.output_format === undefined) { t.output_format = def.output_format ?? 'Formatted Output'; schemaBackfilled = true; }
+    }
+    if (schemaBackfilled) {
+      await setBlob('tools_index', currentTools);
+    }
   }
 }
 
