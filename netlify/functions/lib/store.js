@@ -1,72 +1,105 @@
-import { getStore } from '@netlify/blobs';
+import { getStore, connectLambda } from '@netlify/blobs';
 import fs from 'fs';
 import path from 'path';
 
 const STORE_NAME = 'webnasir';
 const LOCAL_STORE_DIR = path.resolve(process.cwd(), '.netlify-blobs-data');
 const LOCAL_STORE_FILE = path.join(LOCAL_STORE_DIR, 'webnasir.json');
+const TMP_STORE_DIR = '/tmp/.netlify-blobs-data';
+const TMP_STORE_FILE = path.join(TMP_STORE_DIR, 'webnasir.json');
 
-// In-memory / file fallback for local development or non-Netlify preview
+// In-memory cache synchronized with disk / Netlify Blobs
 let localData = null;
+let lambdaConnected = false;
 
-function loadLocalData() {
-  if (localData) return localData;
+/**
+ * Connect Netlify Lambda event to @netlify/blobs context on each invocation.
+ * Without this call, Netlify Functions v1 (exports.handler) throws MissingBlobsEnvironmentError!
+ */
+export function initBlobEnvironment(event) {
+  if (!event) return;
   try {
-    if (!fs.existsSync(LOCAL_STORE_DIR)) {
-      fs.mkdirSync(LOCAL_STORE_DIR, { recursive: true });
-    }
-    if (fs.existsSync(LOCAL_STORE_FILE)) {
-      const content = fs.readFileSync(LOCAL_STORE_FILE, 'utf8');
-      localData = JSON.parse(content);
-    } else {
-      localData = {};
-      fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(localData, null, 2), 'utf8');
+    if (event.blobs) {
+      connectLambda(event);
+      lambdaConnected = true;
     }
   } catch (err) {
-    console.warn('Local blob file read error, using in-memory store:', err.message);
-    localData = {};
+    console.warn('connectLambda notice:', err.message);
   }
+}
+
+function getWritableFilePaths() {
+  return [LOCAL_STORE_FILE, TMP_STORE_FILE];
+}
+
+function loadLocalData() {
+  // Always re-read from disk if available so multi-process or hot-reloaded workers stay in sync
+  for (const filePath of getWritableFilePaths()) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        if (content && content.trim().length > 2) {
+          localData = JSON.parse(content);
+          return localData;
+        }
+      }
+    } catch (err) {
+      // Try next path
+    }
+  }
+
+  if (localData) return localData;
+  localData = {};
+  saveLocalData();
   return localData;
 }
 
 function saveLocalData() {
   if (!localData) return;
+  const serialized = JSON.stringify(localData, null, 2);
+
+  // Attempt primary project directory first
   try {
     if (!fs.existsSync(LOCAL_STORE_DIR)) {
       fs.mkdirSync(LOCAL_STORE_DIR, { recursive: true });
     }
-    fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(localData, null, 2), 'utf8');
+    fs.writeFileSync(LOCAL_STORE_FILE, serialized, 'utf8');
   } catch (err) {
-    console.warn('Local blob file write error:', err.message);
+    // In serverless /var/task is read-only; fallback to /tmp which is always writable
+  }
+
+  // Always mirror to /tmp for serverless container persistence across warm invocations
+  try {
+    if (!fs.existsSync(TMP_STORE_DIR)) {
+      fs.mkdirSync(TMP_STORE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(TMP_STORE_FILE, serialized, 'utf8');
+  } catch (err) {
+    // Ignore if /tmp not available
   }
 }
 
-let blobStoreInstance = null;
-let useNetlifyNative = null;
-
 function getNativeStore() {
-  if (useNetlifyNative === false) return null;
-  if (blobStoreInstance) return blobStoreInstance;
-
   try {
-    // Only attempt Netlify Blobs if Netlify environment variables exist
     const hasNetlifyEnv = !!(
+      lambdaConnected ||
       process.env.NETLIFY ||
       process.env.NETLIFY_BLOBS_CONTEXT ||
       (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN)
     );
 
-    if (hasNetlifyEnv) {
-      blobStoreInstance = getStore(STORE_NAME);
-      useNetlifyNative = true;
-      return blobStoreInstance;
-    } else {
-      useNetlifyNative = false;
-      return null;
+    if (!hasNetlifyEnv) return null;
+
+    if (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN) {
+      return getStore({
+        name: STORE_NAME,
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_AUTH_TOKEN,
+      });
     }
+
+    return getStore(STORE_NAME);
   } catch (err) {
-    console.warn('Netlify Blobs not available in current runtime, using persistent file fallback:', err.message);
-    useNetlifyNative = false;
     return null;
   }
 }
@@ -79,10 +112,14 @@ export async function getBlob(key) {
   if (store) {
     try {
       const data = await store.get(key, { type: 'json' });
-      return data ?? null;
+      if (data !== null && data !== undefined) {
+        // Sync into local cache as well
+        const local = loadLocalData();
+        local[key] = data;
+        return data;
+      }
     } catch (err) {
-      console.error(`Error reading blob "${key}" from Netlify Blobs:`, err);
-      // Fallback to local
+      console.warn(`Netlify Blobs read fallback for "${key}":`, err.message);
     }
   }
 
@@ -94,18 +131,22 @@ export async function getBlob(key) {
  * Set JSON data for a key
  */
 export async function setBlob(key, value) {
+  const cloned = value !== undefined ? JSON.parse(JSON.stringify(value)) : null;
+
+  // Always update local/tmp file store first
+  const local = loadLocalData();
+  local[key] = cloned;
+  saveLocalData();
+
   const store = getNativeStore();
   if (store) {
     try {
-      await store.setJSON(key, value);
+      await store.setJSON(key, cloned);
     } catch (err) {
-      console.error(`Error saving blob "${key}" to Netlify Blobs:`, err);
+      console.error(`Error saving blob "${key}" to Netlify Blobs:`, err.message);
     }
   }
 
-  const local = loadLocalData();
-  local[key] = JSON.parse(JSON.stringify(value));
-  saveLocalData();
   return true;
 }
 
@@ -113,18 +154,19 @@ export async function setBlob(key, value) {
  * Delete a key
  */
 export async function deleteBlob(key) {
+  const local = loadLocalData();
+  delete local[key];
+  saveLocalData();
+
   const store = getNativeStore();
   if (store) {
     try {
       await store.delete(key);
     } catch (err) {
-      console.error(`Error deleting blob "${key}" from Netlify Blobs:`, err);
+      console.error(`Error deleting blob "${key}" from Netlify Blobs:`, err.message);
     }
   }
 
-  const local = loadLocalData();
-  delete local[key];
-  saveLocalData();
   return true;
 }
 
@@ -132,18 +174,22 @@ export async function deleteBlob(key) {
  * List all keys or keys with prefix
  */
 export async function listBlobs(options = {}) {
+  const local = loadLocalData();
+  const keySet = new Set(Object.keys(local));
+
   const store = getNativeStore();
   if (store) {
     try {
       const res = await store.list(options);
-      return res.blobs ? res.blobs.map((b) => b.key) : [];
+      if (res && Array.isArray(res.blobs)) {
+        res.blobs.forEach((b) => keySet.add(b.key));
+      }
     } catch (err) {
-      console.error('Error listing blobs from Netlify Blobs:', err);
+      console.warn('Error listing blobs from Netlify Blobs:', err.message);
     }
   }
 
-  const local = loadLocalData();
-  let keys = Object.keys(local);
+  let keys = Array.from(keySet);
   if (options.prefix) {
     keys = keys.filter((k) => k.startsWith(options.prefix));
   }

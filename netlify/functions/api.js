@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getBlob, setBlob, deleteBlob } from './lib/store.js';
+import { getBlob, setBlob, deleteBlob, initBlobEnvironment } from './lib/store.js';
 import {
   hashPassword,
   verifyPassword,
@@ -129,6 +129,7 @@ function parseJsonBody(body) {
 export const handler = async (event, context) => {
   try {
     currentEvent = event;
+    initBlobEnvironment(event);
     const method = (event.httpMethod || event.method || 'GET').toUpperCase();
 
     // Handle CORS OPTIONS preflight immediately
@@ -178,6 +179,147 @@ export const handler = async (event, context) => {
         must_change_password: auth.must_change_password,
       };
     };
+
+    // ==========================================
+    // TECHNICAL SEO & MEDIA BINARY PUBLIC ROUTES
+    // ==========================================
+
+    // GET /sitemap.xml (Dynamic XML Sitemap for all clean URLs)
+    if (method === 'GET' && cleanPath === '/sitemap.xml') {
+      const [seo, tools, courses, freeCourses, articles, pages] = await Promise.all([
+        getBlob('cms_seo').then((r) => r || {}),
+        getBlob('tools_index').then((r) => r || []),
+        getBlob('courses_index').then((r) => r || []),
+        getBlob('free_courses_index').then((r) => r || []),
+        getBlob('articles_index').then((r) => r || []),
+        getBlob('cms_pages').then((r) => r || []),
+      ]);
+
+      const base = (seo.canonical_base || 'https://webnasir.dpdns.org').replace(/\/+$/, '');
+      const today = new Date().toISOString().split('T')[0];
+
+      const toolSlugMap = {
+        youtube: 'youtube-title-generator',
+        blog: 'seo-blog-outline-generator',
+        code: 'code-and-regex-explainer',
+        adcopy: 'high-converting-ad-copy-generator',
+        adsense: 'adsense-rpm-revenue-calculator',
+        words: 'seo-word-and-keyword-density-counter',
+        meta: 'meta-tag-and-opengraph-generator',
+        utm: 'campaign-utm-link-builder',
+        privacy: 'website-privacy-policy-generator',
+        roas: 'facebook-and-google-ads-roas-calculator',
+        password: 'cryptographic-password-generator',
+      };
+
+      const urls = [
+        { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
+        { loc: `${base}/about`, priority: '0.8', changefreq: 'weekly' },
+        { loc: `${base}/contact`, priority: '0.8', changefreq: 'monthly' },
+        { loc: `${base}/tools`, priority: '0.9', changefreq: 'weekly' },
+        { loc: `${base}/courses`, priority: '0.9', changefreq: 'weekly' },
+        { loc: `${base}/free-courses`, priority: '0.9', changefreq: 'weekly' },
+        { loc: `${base}/guides`, priority: '0.9', changefreq: 'daily' },
+        { loc: `${base}/topics`, priority: '0.8', changefreq: 'weekly' },
+        { loc: `${base}/faq`, priority: '0.7', changefreq: 'monthly' },
+        { loc: `${base}/privacy`, priority: '0.5', changefreq: 'yearly' },
+        { loc: `${base}/terms`, priority: '0.5', changefreq: 'yearly' },
+        { loc: `${base}/disclaimer`, priority: '0.5', changefreq: 'yearly' },
+      ];
+
+      tools.filter((t) => t.is_enabled !== false).forEach((t) => {
+        const cleanSlug = t.seo_slug || toolSlugMap[t.key] || t.key;
+        urls.push({ loc: `${base}/tools/${cleanSlug}`, priority: '0.85', changefreq: 'weekly' });
+      });
+
+      courses.filter((c) => c.is_published !== false && c.is_active !== false).forEach((c) => {
+        urls.push({ loc: `${base}/courses/${c.slug || c.id}`, priority: '0.9', changefreq: 'weekly' });
+      });
+
+      freeCourses.filter((c) => c.is_published !== false).forEach((c) => {
+        urls.push({ loc: `${base}/courses/${c.slug || c.id}`, priority: '0.85', changefreq: 'weekly' });
+      });
+
+      articles.filter((a) => a.is_published !== false).forEach((a) => {
+        urls.push({ loc: `${base}/guides/${a.slug}`, priority: '0.8', changefreq: 'weekly' });
+      });
+
+      pages.filter((p) => p.status !== 'draft' && !p.is_system_protected && p.slug && p.slug.includes('/page/')).forEach((p) => {
+        const cleanCustom = p.slug.replace(/^#/, '');
+        urls.push({ loc: `${base}${cleanCustom}`, priority: '0.75', changefreq: 'weekly' });
+      });
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+        .map(
+          (u) =>
+            `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`
+        )
+        .join('\n')}\n</urlset>`;
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
+          ...getCorsHeaders(event),
+        },
+        body: xml,
+      };
+    }
+
+    // GET /robots.txt
+    if (method === 'GET' && cleanPath === '/robots.txt') {
+      const seo = (await getBlob('cms_seo')) || {};
+      const base = (seo.canonical_base || 'https://webnasir.dpdns.org').replace(/\/+$/, '');
+      const robotsContent =
+        seo.robots_txt ||
+        `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/admin/\nSitemap: ${base}/sitemap.xml`;
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
+          ...getCorsHeaders(event),
+        },
+        body: robotsContent,
+      };
+    }
+
+    // GET /api/media/file/:idWithExt (Persistent Media File Binary Streamer)
+    if (method === 'GET' && cleanPath.startsWith('/media/file/')) {
+      const rawFile = cleanPath.replace('/media/file/', '').trim();
+      const assetId = rawFile.replace(/\.[a-zA-Z0-9]+$/, '');
+      if (!assetId) return jsonResponse(400, { error: 'Asset ID is required' });
+
+      let binRecord = await getBlob(`media_bin:${assetId}`);
+      if (!binRecord) {
+        // Fallback: check cms_media list for embedded data_url or preview_data_url
+        const mediaList = (await getBlob('cms_media')) || [];
+        const item = mediaList.find((m) => m.id === assetId);
+        const dataUri = item?.preview_data_url || (item?.url && item.url.startsWith('data:') ? item.url : null);
+        if (dataUri) {
+          const match = dataUri.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            binRecord = { mime_type: match[1], base64: match[2] };
+          }
+        }
+      }
+
+      if (!binRecord || !binRecord.base64) {
+        return jsonResponse(404, { error: 'Media binary file not found in persistent store' });
+      }
+
+      return {
+        statusCode: 200,
+        isBase64Encoded: true,
+        headers: {
+          'Content-Type': binRecord.mime_type || 'image/webp',
+          'Cache-Control': 'public, max-age=31536000',
+          ...getCorsHeaders(event),
+        },
+        body: binRecord.base64,
+      };
+    }
 
     // ==========================================
     // PUBLIC ROUTES
@@ -235,7 +377,7 @@ export const handler = async (event, context) => {
     if (method === 'GET' && cleanPath === '/courses') {
       const courses = (await getBlob('courses_index')) || [];
       const category = event.queryStringParameters?.category;
-      let published = courses.filter((c) => c.is_published !== false);
+      let published = courses.filter((c) => c.is_published !== false && c.is_active !== false);
       if (category && category !== 'all') {
         published = published.filter((c) => (c.category || '').toLowerCase() === category.toLowerCase());
       }
@@ -251,7 +393,11 @@ export const handler = async (event, context) => {
       let course = await getBlob(`course:${id}`);
       if (!course) {
         const courses = (await getBlob('courses_index')) || [];
-        course = courses.find((c) => c.id === id);
+        course = courses.find((c) => c.id === id || c.slug === id);
+      }
+      if (!course) {
+        const freeCourses = (await getBlob('free_courses_index')) || [];
+        course = freeCourses.find((c) => c.id === id || c.slug === id);
       }
       if (!course) {
         return jsonResponse(404, { error: 'Course not found' });
@@ -262,7 +408,8 @@ export const handler = async (event, context) => {
     // GET /api/testimonials
     if (method === 'GET' && cleanPath === '/testimonials') {
       const list = (await getBlob('testimonials_index')) || [];
-      const sorted = [...list].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const approved = list.filter((t) => t.status !== 'rejected' && t.status !== 'pending');
+      const sorted = [...approved].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
       return jsonResponse(200, sorted);
     }
 
@@ -279,9 +426,9 @@ export const handler = async (event, context) => {
       return jsonResponse(200, published);
     }
 
-    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, and SEO)
+    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, redirects, social, and SEO)
     if (method === 'GET' && cleanPath === '/cms-bundle') {
-      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig] = await Promise.all([
+      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, redirects, socialProfiles, settings] = await Promise.all([
         getBlob('cms_homepage').then((r) => r || {}),
         getBlob('cms_appearance').then((r) => r || {}),
         getBlob('cms_navigation').then((r) => r || {}),
@@ -295,6 +442,9 @@ export const handler = async (event, context) => {
         getBlob('cms_sidebars').then((r) => r || {}),
         getBlob('cms_announcement').then((r) => r || {}),
         getBlob('cms_marquee_config').then((r) => r || {}),
+        getBlob('cms_redirects').then((r) => r || []),
+        getBlob('cms_social_profiles').then((r) => r || []),
+        getBlob('settings').then((r) => r || {}),
       ]);
 
       // Server-side scheduled publishing & date window enforcement
@@ -335,6 +485,9 @@ export const handler = async (event, context) => {
         sidebars,
         announcement: resolvedAnnouncement,
         marquee_config: resolvedMarqueeConfig,
+        redirects,
+        social_profiles: socialProfiles,
+        settings,
       });
     }
 
@@ -974,7 +1127,21 @@ export const handler = async (event, context) => {
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
-        let { slug, tag, title, meta, body: articleBody, is_published, sort_order } = body;
+        let {
+          slug,
+          tag,
+          title,
+          meta,
+          body: articleBody,
+          is_published,
+          sort_order,
+          image,
+          seo_title,
+          seo_description,
+          canonical_url,
+          focus_keyword,
+          scheduled_at,
+        } = body;
 
         if (!title || typeof title !== 'string' || title.trim().length === 0) {
           return jsonResponse(400, { error: 'Article title is required' });
@@ -983,7 +1150,7 @@ export const handler = async (event, context) => {
           return jsonResponse(400, { error: 'Article content body is required' });
         }
         if (!tag || typeof tag !== 'string') {
-          return jsonResponse(400, { error: 'Tag is required' });
+          tag = 'guide';
         }
 
         if (!slug || typeof slug !== 'string') {
@@ -992,7 +1159,7 @@ export const handler = async (event, context) => {
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)+/g, '');
         } else {
-          slug = slug.toLowerCase().trim();
+          slug = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)+/g, '');
         }
 
         if (!/^[a-z0-9-]+$/.test(slug)) {
@@ -1009,10 +1176,16 @@ export const handler = async (event, context) => {
         const now = new Date().toISOString();
         const newArticle = {
           slug,
-          tag: tag.toLowerCase(),
+          tag: tag.toLowerCase().trim(),
           title: title.trim(),
           meta: (meta || '').trim(),
           body: articleBody,
+          image: String(image || '').trim(),
+          seo_title: String(seo_title || `${title.trim()} — Web Nasir Academy`).trim(),
+          seo_description: String(seo_description || meta || '').trim(),
+          canonical_url: String(canonical_url || `https://webnasir.dpdns.org/guides/${slug}`).trim(),
+          focus_keyword: String(focus_keyword || '').trim(),
+          scheduled_at: String(scheduled_at || '').trim(),
           is_published: is_published !== false,
           sort_order: Number(sort_order) || 1,
           created_at: now,
@@ -1027,6 +1200,12 @@ export const handler = async (event, context) => {
           tag: newArticle.tag,
           title: newArticle.title,
           meta: newArticle.meta,
+          image: newArticle.image,
+          seo_title: newArticle.seo_title,
+          seo_description: newArticle.seo_description,
+          canonical_url: newArticle.canonical_url,
+          focus_keyword: newArticle.focus_keyword,
+          scheduled_at: newArticle.scheduled_at,
           is_published: newArticle.is_published,
           sort_order: newArticle.sort_order,
           updated_at: newArticle.updated_at,
@@ -1042,37 +1221,70 @@ export const handler = async (event, context) => {
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
-        const article = await getBlob(`article:${slug}`);
+        let article = await getBlob(`article:${slug}`);
+        const index = (await getBlob('articles_index')) || [];
+        const idx = index.findIndex((a) => a.slug === slug);
+
+        if (!article && idx !== -1) {
+          article = { ...index[idx], body: body.body || '' };
+        }
         if (!article) {
           return jsonResponse(404, { error: 'Article not found' });
         }
 
-        const { title, tag, meta, body: articleBody, is_published, sort_order } = body;
+        const {
+          title,
+          tag,
+          meta,
+          body: articleBody,
+          is_published,
+          sort_order,
+          image,
+          seo_title,
+          seo_description,
+          canonical_url,
+          focus_keyword,
+          scheduled_at,
+        } = body;
 
-        if (title !== undefined) article.title = title.trim();
+        if (title !== undefined) article.title = String(title).trim();
         if (tag !== undefined) article.tag = String(tag).toLowerCase().trim();
         if (meta !== undefined) article.meta = String(meta).trim();
         if (articleBody !== undefined) article.body = articleBody;
+        if (image !== undefined) article.image = String(image).trim();
+        if (seo_title !== undefined) article.seo_title = String(seo_title).trim();
+        if (seo_description !== undefined) article.seo_description = String(seo_description).trim();
+        if (canonical_url !== undefined) article.canonical_url = String(canonical_url).trim();
+        if (focus_keyword !== undefined) article.focus_keyword = String(focus_keyword).trim();
+        if (scheduled_at !== undefined) article.scheduled_at = String(scheduled_at).trim();
         if (is_published !== undefined) article.is_published = !!is_published;
         if (sort_order !== undefined) article.sort_order = Number(sort_order) || 0;
 
         article.updated_at = new Date().toISOString();
         await setBlob(`article:${slug}`, article);
 
-        const index = (await getBlob('articles_index')) || [];
-        const idx = index.findIndex((a) => a.slug === slug);
+        const summaryEntry = {
+          slug: article.slug,
+          tag: article.tag,
+          title: article.title,
+          meta: article.meta,
+          image: article.image || '',
+          seo_title: article.seo_title || '',
+          seo_description: article.seo_description || '',
+          canonical_url: article.canonical_url || '',
+          focus_keyword: article.focus_keyword || '',
+          scheduled_at: article.scheduled_at || '',
+          is_published: article.is_published,
+          sort_order: article.sort_order,
+          updated_at: article.updated_at,
+        };
+
         if (idx !== -1) {
-          index[idx] = {
-            slug: article.slug,
-            tag: article.tag,
-            title: article.title,
-            meta: article.meta,
-            is_published: article.is_published,
-            sort_order: article.sort_order,
-            updated_at: article.updated_at,
-          };
-          await setBlob('articles_index', index);
+          index[idx] = summaryEntry;
+        } else {
+          index.push(summaryEntry);
         }
+        await setBlob('articles_index', index);
 
         return jsonResponse(200, { success: true, article });
       }
@@ -1100,19 +1312,21 @@ export const handler = async (event, context) => {
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
-        const { key, name, description, category, badge, icon, tool_type, custom_prompt, sort_order } = body;
+        const { key, name, description, category, badge, icon, tool_type, custom_prompt, sort_order, seo_slug } = body;
         if (!name || typeof name !== 'string') return jsonResponse(400, { error: 'Tool name is required' });
         
         let toolKey = (key || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         if (!toolKey) toolKey = 'tool-' + Date.now();
 
         const tools = (await getBlob('tools_index')) || [];
-        if (tools.some(t => t.key === toolKey)) {
-          return jsonResponse(400, { error: `Tool key "${toolKey}" already exists` });
+        if (tools.some(t => t.key === toolKey || t.id === toolKey)) {
+          toolKey = `${toolKey}-${Date.now().toString(36).slice(-4)}`;
         }
 
         const newTool = {
+          id: toolKey,
           key: toolKey,
+          seo_slug: String(seo_slug || toolKey).trim(),
           name: name.trim().slice(0, 150),
           description: String(description || '').trim().slice(0, 500),
           category: String(category || 'AI Creators').trim().slice(0, 50),
@@ -1120,7 +1334,7 @@ export const handler = async (event, context) => {
           icon: String(icon || 'sparkles').trim().slice(0, 50),
           tool_type: String(tool_type || 'custom_ai').trim().slice(0, 50),
           custom_prompt: String(custom_prompt || '').slice(0, 2000),
-          is_enabled: true,
+          is_enabled: body.is_enabled !== false,
           sort_order: Number(sort_order) || (tools.length + 1),
         };
 
@@ -1136,7 +1350,7 @@ export const handler = async (event, context) => {
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
         const tools = (await getBlob('tools_index')) || [];
-        const toolIndex = tools.findIndex((t) => t.key === key);
+        const toolIndex = tools.findIndex((t) => t.key === key || t.id === key);
         if (toolIndex === -1) {
           return jsonResponse(404, { error: 'Tool not found' });
         }
@@ -1148,6 +1362,7 @@ export const handler = async (event, context) => {
         if (body.icon !== undefined) tools[toolIndex].icon = String(body.icon).slice(0, 50);
         if (body.tool_type !== undefined) tools[toolIndex].tool_type = String(body.tool_type).slice(0, 50);
         if (body.custom_prompt !== undefined) tools[toolIndex].custom_prompt = String(body.custom_prompt).slice(0, 2000);
+        if (body.seo_slug !== undefined) tools[toolIndex].seo_slug = String(body.seo_slug).trim();
         if (body.is_enabled !== undefined) tools[toolIndex].is_enabled = !!body.is_enabled;
         if (body.sort_order !== undefined) tools[toolIndex].sort_order = Number(body.sort_order) || 0;
 
@@ -1314,30 +1529,53 @@ export const handler = async (event, context) => {
         const body = parseJsonBody(event.body);
         if (!body || !body.title) return jsonResponse(400, { error: 'Course title is required' });
 
-        const id = (body.id || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/^-|-$/g, '');
+        let id = (body.id || body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/^-|-$/g, '');
         const courses = (await getBlob('courses_index')) || [];
         if (courses.some((c) => c.id === id)) {
-          return jsonResponse(400, { error: `Course ID "${id}" already exists` });
+          id = `${id}-${Date.now().toString(36).slice(-4)}`;
         }
+
+        const highlightsList = Array.isArray(body.highlights)
+          ? body.highlights
+          : Array.isArray(body.features)
+            ? body.features
+            : ['100% Practical Production Projects', 'Direct Code Reviews', 'Lifetime Access'];
+
+        const modulesList = Array.isArray(body.modules)
+          ? body.modules
+          : Array.isArray(body.curriculum)
+            ? body.curriculum
+            : [];
 
         const newCourse = {
           id,
-          title: String(body.title).trim().slice(0, 150),
-          subtitle: String(body.subtitle || '').trim().slice(0, 300),
+          slug: String(body.slug || id).trim(),
+          title: String(body.title).trim().slice(0, 180),
+          subtitle: String(body.subtitle || body.description || '').trim().slice(0, 400),
+          description: String(body.description || body.overview || body.subtitle || '').trim().slice(0, 2500),
+          overview: String(body.overview || body.description || '').trim().slice(0, 2500),
           category: String(body.category || 'AI & Automation').trim(),
           level: String(body.level || 'All Levels').trim(),
           duration: String(body.duration || '6 Weeks').trim(),
-          modules_count: Number(body.modules_count) || 20,
-          price: Number(body.price) || 2999,
-          original_price: Number(body.original_price) || 7999,
+          modules_count: Number(body.modules_count) || (modulesList.length || 8),
+          price: body.price !== undefined ? Number(body.price) : 2999,
+          original_price: body.original_price !== undefined ? Number(body.original_price) : 7999,
+          rating: Number(body.rating) || 4.9,
+          enrolled_count: Number(body.enrolled_count) || 120,
           instructor: String(body.instructor || 'Nasir').trim(),
           instructor_title: String(body.instructor_title || 'Lead Technical Mentor').trim(),
           badge: String(body.badge || 'Popular').trim(),
-          is_published: body.is_published !== false,
+          image: String(body.image || '').trim(),
+          video_preview: String(body.video_preview || '').trim(),
+          seo_title: String(body.seo_title || `${body.title} — Web Nasir Academy`).trim(),
+          seo_description: String(body.seo_description || body.description || body.subtitle || '').trim(),
+          is_published: body.is_published !== false && body.is_active !== false,
+          is_active: body.is_active !== false && body.is_published !== false,
           sort_order: Number(body.sort_order) || courses.length + 1,
-          overview: String(body.overview || '').slice(0, 2000),
-          features: Array.isArray(body.features) ? body.features : ['100% Practical Production Projects', 'Direct Code Reviews', 'Lifetime Access'],
-          curriculum: Array.isArray(body.curriculum) ? body.curriculum : []
+          highlights: highlightsList,
+          features: highlightsList,
+          modules: modulesList,
+          curriculum: modulesList,
         };
 
         courses.push(newCourse);
@@ -1362,6 +1600,14 @@ export const handler = async (event, context) => {
           ...body,
           id: existing.id,
         };
+        if (body.description !== undefined && body.overview === undefined) updated.overview = body.description;
+        if (body.overview !== undefined && body.description === undefined) updated.description = body.overview;
+        if (Array.isArray(body.highlights) && !body.features) updated.features = body.highlights;
+        if (Array.isArray(body.features) && !body.highlights) updated.highlights = body.features;
+        if (Array.isArray(body.modules) && !body.curriculum) updated.curriculum = body.modules;
+        if (Array.isArray(body.curriculum) && !body.modules) updated.modules = body.curriculum;
+        if (body.is_active !== undefined && body.is_published === undefined) updated.is_published = Boolean(body.is_active);
+        if (body.is_published !== undefined && body.is_active === undefined) updated.is_active = Boolean(body.is_published);
 
         courses[idx] = updated;
         await setBlob('courses_index', courses);
@@ -1392,19 +1638,27 @@ export const handler = async (event, context) => {
       // POST /api/admin/testimonials
       if (method === 'POST' && cleanPath === '/admin/testimonials') {
         const body = parseJsonBody(event.body);
-        if (!body || !body.name || !body.content) return jsonResponse(400, { error: 'Name and content are required' });
+        const quoteText = body ? (body.content || body.text || '').trim() : '';
+        if (!body || !body.name || !quoteText) {
+          return jsonResponse(400, { error: 'Student name and review text are required' });
+        }
 
         const list = (await getBlob('testimonials_index')) || [];
-        const id = 'test-' + Date.now();
+        const id = body.id || 'test-' + Date.now();
         const newTest = {
           id,
           name: String(body.name).trim().slice(0, 100),
           role: String(body.role || 'Student & Alumni').trim().slice(0, 100),
-          course: String(body.course || 'Academy Masterclass').trim().slice(0, 100),
+          location: String(body.location || 'India').trim().slice(0, 100),
+          course: String(body.course || 'Academy Masterclass').trim().slice(0, 120),
+          earnings_metric: String(body.earnings_metric || '').trim().slice(0, 100),
           rating: Number(body.rating) || 5,
-          content: String(body.content).trim().slice(0, 1000),
-          has_video: Boolean(body.has_video),
-          video_url: String(body.video_url || ''),
+          content: quoteText.slice(0, 1500),
+          text: quoteText.slice(0, 1500),
+          has_video: Boolean(body.has_video || body.video_url),
+          video_url: String(body.video_url || '').trim(),
+          avatar: String(body.avatar || '').trim(),
+          status: String(body.status || 'approved').trim(),
           verified: body.verified !== false,
           sort_order: Number(body.sort_order) || list.length + 1,
         };
@@ -1424,7 +1678,14 @@ export const handler = async (event, context) => {
         const idx = list.findIndex((t) => t.id === id);
         if (idx === -1) return jsonResponse(404, { error: 'Testimonial not found' });
 
-        list[idx] = { ...list[idx], ...body, id };
+        const updatedQuote = body.content !== undefined ? body.content : (body.text !== undefined ? body.text : (list[idx].content || list[idx].text));
+        list[idx] = {
+          ...list[idx],
+          ...body,
+          id,
+          content: updatedQuote,
+          text: updatedQuote,
+        };
         await setBlob('testimonials_index', list);
         return jsonResponse(200, { success: true, testimonial: list[idx] });
       }
@@ -1445,7 +1706,8 @@ export const handler = async (event, context) => {
       // GET /api/admin/marquee
       if (method === 'GET' && cleanPath === '/admin/marquee') {
         const list = (await getBlob('marquee_items')) || [];
-        return jsonResponse(200, list);
+        const config = (await getBlob('cms_marquee_config')) || {};
+        return jsonResponse(200, { items: list, config });
       }
 
       // PUT /api/admin/marquee
@@ -1453,12 +1715,20 @@ export const handler = async (event, context) => {
         const body = parseJsonBody(event.body);
         if (!body || !Array.isArray(body.items)) return jsonResponse(400, { error: 'items array is required' });
 
-        const sanitized = body.items.map((i) => ({
-          text: String(i.text || '').slice(0, 200),
-          link: String(i.link || '#/courses').slice(0, 100),
-        })).filter(i => i.text.length > 0);
+        const sanitized = body.items.map((i) => {
+          if (typeof i === 'string') {
+            return { text: i.trim().slice(0, 200), link: '/courses' };
+          }
+          return {
+            text: String(i.text || '').trim().slice(0, 200),
+            link: String(i.link || '/courses').trim().slice(0, 150),
+          };
+        }).filter((i) => i.text.length > 0);
 
         await setBlob('marquee_items', sanitized);
+        if (body.config && typeof body.config === 'object') {
+          await setBlob('cms_marquee_config', body.config);
+        }
         return jsonResponse(200, { success: true, items: sanitized });
       }
 
@@ -1470,6 +1740,26 @@ export const handler = async (event, context) => {
       if (method === 'GET' && cleanPath === '/admin/enrollments') {
         const list = (await getBlob('enrollments_list')) || [];
         return jsonResponse(200, list);
+      }
+
+      // PUT /api/admin/enrollments/:id (Update Order/Enrollment Status, Refund, Manual Verification)
+      if (method === 'PUT' && cleanPath.startsWith('/admin/enrollments/')) {
+        const id = cleanPath.replace('/admin/enrollments/', '').trim();
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const list = (await getBlob('enrollments_list')) || [];
+        const idx = list.findIndex((e) => e.id === id || e.payment_id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Enrollment record not found' });
+
+        list[idx] = {
+          ...list[idx],
+          ...body,
+          id: list[idx].id,
+          updated_at: new Date().toISOString(),
+        };
+        await setBlob('enrollments_list', list);
+        return jsonResponse(200, { success: true, enrollment: list[idx] });
       }
 
       // GET /api/admin/contacts
@@ -1597,6 +1887,66 @@ export const handler = async (event, context) => {
         return jsonResponse(200, { success: true, student: students[idx] });
       }
 
+      // PUT /api/admin/students/:id (Edit Student Profile & Enrolled Courses)
+      if (method === 'PUT' && cleanPath.startsWith('/admin/students/') && !cleanPath.endsWith('/status')) {
+        const id = cleanPath.replace('/admin/students/', '').trim();
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const students = (await getBlob('students_index')) || [];
+        const idx = students.findIndex((s) => s.id === id || s.email === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Student not found' });
+
+        if (body.name !== undefined) students[idx].name = String(body.name).trim();
+        if (body.phone !== undefined) students[idx].phone = String(body.phone).trim();
+        if (body.status !== undefined) students[idx].status = body.status === 'disabled' ? 'disabled' : 'active';
+        if (body.payment_status !== undefined) students[idx].payment_status = String(body.payment_status).trim();
+        if (Array.isArray(body.enrolled_courses)) students[idx].enrolled_courses = body.enrolled_courses;
+        students[idx].updated_at = new Date().toISOString();
+
+        await setBlob('students_index', students);
+        return jsonResponse(200, { success: true, student: students[idx] });
+      }
+
+      // POST /api/admin/payments/test-connection
+      if (method === 'POST' && cleanPath === '/admin/payments/test-connection') {
+        const body = parseJsonBody(event.body) || {};
+        const paymentsCfg = (await getBlob('cms_payments')) || {};
+        const keyId = String(body.key_id || paymentsCfg.key_id || '').trim();
+        const keySecret = String(body.key_secret || paymentsCfg.key_secret || '').trim();
+        const enabled = body.razorpay_enabled !== undefined ? Boolean(body.razorpay_enabled) : Boolean(paymentsCfg.razorpay_enabled);
+
+        if (!enabled) {
+          return jsonResponse(200, {
+            success: true,
+            status: 'DISABLED',
+            mode: 'disabled',
+            message: 'Payment gateway is currently switched off. Enable Razorpay / UPI toggle to accept payments.',
+          });
+        }
+        if (!keyId) {
+          return jsonResponse(400, {
+            success: false,
+            status: 'MISSING_CREDENTIALS',
+            message: 'Razorpay Key ID is empty. Enter rzp_test_... or rzp_live_... to initialize checkout.',
+          });
+        }
+        const isLiveKey = keyId.startsWith('rzp_live_');
+        const isDemoOrTest = keyId.includes('demo') || keyId.startsWith('rzp_test_');
+        return jsonResponse(200, {
+          success: true,
+          status: isLiveKey && keySecret ? 'LIVE_READY' : 'SANDBOX_READY',
+          mode: isLiveKey ? 'live' : 'sandbox',
+          key_id: keyId,
+          has_secret: Boolean(keySecret),
+          message: isLiveKey && keySecret
+            ? `Verified Live Razorpay Configuration (${keyId}). Ready for production capture.`
+            : isDemoOrTest
+              ? `Verified Sandbox/Test Gateway (${keyId}). Checkout modal and instant course unlocking are operational in test mode.`
+              : `Key ID (${keyId}) saved. Provide matching Key Secret for HMAC signature verification.`,
+        });
+      }
+
       // ==========================================
       // ADMIN EMAIL CENTER
       // ==========================================
@@ -1605,6 +1955,41 @@ export const handler = async (event, context) => {
       if (method === 'GET' && cleanPath === '/admin/emails/templates') {
         const templates = (await getBlob('email_templates')) || [];
         return jsonResponse(200, templates);
+      }
+
+      // PUT /api/admin/emails/templates
+      if (method === 'PUT' && cleanPath === '/admin/emails/templates') {
+        const body = parseJsonBody(event.body);
+        if (!Array.isArray(body)) return jsonResponse(400, { error: 'Expected array of email templates' });
+        await setBlob('email_templates', body);
+        return jsonResponse(200, { success: true, templates: body });
+      }
+
+      // GET & POST /api/admin/emails/drafts
+      if (cleanPath === '/admin/emails/drafts') {
+        if (method === 'GET') {
+          const drafts = (await getBlob('email_drafts')) || [];
+          return jsonResponse(200, drafts);
+        }
+        if (method === 'POST') {
+          const body = parseJsonBody(event.body);
+          if (!body) return jsonResponse(400, { error: 'Invalid draft payload' });
+          const drafts = (await getBlob('email_drafts')) || [];
+          const draftItem = {
+            id: body.id || 'edraft-' + Date.now().toString(36),
+            subject: String(body.subject || '(Untitled Draft)').trim(),
+            body: String(body.body || ''),
+            recipient_type: String(body.recipient_type || 'all'),
+            recipient_email: String(body.recipient_email || ''),
+            course_id: String(body.course_id || ''),
+            updated_at: new Date().toISOString(),
+          };
+          const existingIdx = drafts.findIndex((d) => d.id === draftItem.id);
+          if (existingIdx !== -1) drafts[existingIdx] = draftItem;
+          else drafts.unshift(draftItem);
+          await setBlob('email_drafts', drafts.slice(0, 50));
+          return jsonResponse(200, { success: true, draft: draftItem, drafts });
+        }
       }
 
       // GET /api/admin/emails/history
@@ -1636,7 +2021,7 @@ export const handler = async (event, context) => {
           sender_email: String(body.sender_email || existing.sender_email || 'support@webnasir.com').trim(),
           reply_to: String(body.reply_to || existing.reply_to || 'hello@webnasir.com').trim(),
         };
-        if (body.resend_api_key !== undefined) {
+        if (body.resend_api_key !== undefined && String(body.resend_api_key).trim() !== '') {
           updated.resend_api_key = String(body.resend_api_key).trim();
         }
         await setBlob('email_config', updated);
@@ -1812,6 +2197,8 @@ export const handler = async (event, context) => {
         '/admin/cms/marquee-config': 'cms_marquee_config',
         '/admin/cms/sidebars': 'cms_sidebars',
         '/admin/cms/drafts': 'cms_drafts',
+        '/admin/cms/redirects': 'cms_redirects',
+        '/admin/cms/social-profiles': 'cms_social_profiles',
       };
 
       if (cmsMap[cleanPath]) {
@@ -2390,6 +2777,42 @@ export const handler = async (event, context) => {
         });
       };
 
+      // Helper to extract and persist binary data URLs into dedicated media_bin:<id> blobs
+      // and return a real HTTP URL (/api/media/file/<id>.<ext>) that survives page refresh
+      const persistMediaBinaryIfDataUrl = async (id, rawUrl, explicitDataUrl) => {
+        const sourceData = explicitDataUrl || (typeof rawUrl === 'string' && rawUrl.startsWith('data:') ? rawUrl : '');
+        if (!sourceData || !sourceData.startsWith('data:')) {
+          return { publicUrl: String(rawUrl || '').trim(), mimeType: null };
+        }
+        const match = sourceData.match(/^data:([^;]+);base64,(.+)$/);
+        if (!match) {
+          return { publicUrl: String(rawUrl || '').trim(), mimeType: null };
+        }
+        const mimeType = match[1];
+        const base64Data = match[2];
+        const extMap = {
+          'image/webp': 'webp',
+          'image/jpeg': 'jpg',
+          'image/jpg': 'jpg',
+          'image/png': 'png',
+          'image/gif': 'gif',
+          'image/svg+xml': 'svg',
+          'video/mp4': 'mp4',
+          'video/webm': 'webm',
+        };
+        const ext = extMap[mimeType] || 'webp';
+        await setBlob(`media_bin:${id}`, {
+          id,
+          mime_type: mimeType,
+          base64: base64Data,
+          updated_at: new Date().toISOString(),
+        });
+        return {
+          publicUrl: `/api/media/file/${id}.${ext}`,
+          mimeType,
+        };
+      };
+
       if (cleanPath === '/admin/cms/media') {
         if (method === 'GET') {
           const media = (await getBlob('cms_media')) || [];
@@ -2398,39 +2821,132 @@ export const handler = async (event, context) => {
         }
         if (method === 'POST') {
           const body = parseJsonBody(event.body);
-          if (!body || !body.url) return jsonResponse(400, { error: 'Media URL is required' });
+          if (!body || (!body.url && !body.data_url)) {
+            return jsonResponse(400, { error: 'Media URL or uploaded file data is required' });
+          }
           const media = (await getBlob('cms_media')) || [];
+          const id = body.id || 'med-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 5);
+          const { publicUrl, mimeType } = await persistMediaBinaryIfDataUrl(id, body.url, body.data_url);
+
           const newItem = {
-            id: 'med-' + Date.now().toString(36),
+            id,
             title: String(body.title || 'Uploaded Asset').trim(),
-            url: String(body.url).trim(),
-            type: body.type || 'image',
+            url: publicUrl,
+            type: body.type || (mimeType && mimeType.startsWith('video/') ? 'video' : 'image'),
+            mime_type: mimeType || body.mime_type || 'image/webp',
             category: String(body.category || 'general'),
             alt: String(body.alt || body.title || '').trim(),
-            file_size: String(body.file_size || 'Optimized WebP/Stream'),
+            file_size: String(body.file_size || 'Optimized WebP'),
             dimensions: String(body.dimensions || 'Responsive'),
             used_in: String(body.used_in || 'Unassigned'),
             created_at: new Date().toISOString(),
           };
           media.unshift(newItem);
           await setBlob('cms_media', media);
-          await appendAuditLog(`Added Media Asset: ${newItem.title}`);
-          return jsonResponse(201, { success: true, item: newItem });
+          await appendAuditLog(`Uploaded Media Asset: ${newItem.title} (${newItem.url})`);
+          const enriched = await computeMediaUsage([newItem]);
+          return jsonResponse(201, { success: true, item: enriched[0] });
         }
       }
 
       if (cleanPath.startsWith('/admin/cms/media/')) {
-        const id = cleanPath.replace('/admin/cms/media/', '').trim();
+        const subPath = cleanPath.replace('/admin/cms/media/', '').trim();
+
+        // POST /api/admin/cms/media/:id/replace-and-delete (Replaces all active references across site, then deletes)
+        if (method === 'POST' && subPath.endsWith('/replace-and-delete')) {
+          const id = subPath.replace('/replace-and-delete', '').trim();
+          const body = parseJsonBody(event.body) || {};
+          const replacementUrl = String(body.replacement_url || '').trim();
+          const media = (await getBlob('cms_media')) || [];
+          const idx = media.findIndex((m) => m.id === id);
+          if (idx === -1) return jsonResponse(404, { error: 'Media asset not found' });
+
+          const oldUrl = media[idx].url;
+          if (replacementUrl && oldUrl) {
+            const [pages, courses, articles, about, seo] = await Promise.all([
+              getBlob('cms_pages').then((r) => r || []),
+              getBlob('courses_index').then((r) => r || []),
+              getBlob('articles_index').then((r) => r || []),
+              getBlob('cms_about').then((r) => r || {}),
+              getBlob('cms_seo').then((r) => r || {}),
+            ]);
+            let pagesChanged = false;
+            pages.forEach((p) => {
+              if (p.hero_image === oldUrl) { p.hero_image = replacementUrl; pagesChanged = true; }
+              if (p.video_url === oldUrl) { p.video_url = replacementUrl; pagesChanged = true; }
+            });
+            if (pagesChanged) await setBlob('cms_pages', pages);
+
+            let coursesChanged = false;
+            for (const c of courses) {
+              if (c.image === oldUrl || c.video_preview === oldUrl) {
+                if (c.image === oldUrl) c.image = replacementUrl;
+                if (c.video_preview === oldUrl) c.video_preview = replacementUrl;
+                coursesChanged = true;
+                await setBlob(`course:${c.id}`, c);
+              }
+            }
+            if (coursesChanged) await setBlob('courses_index', courses);
+
+            let articlesChanged = false;
+            for (const a of articles) {
+              if (a.image === oldUrl) {
+                a.image = replacementUrl;
+                articlesChanged = true;
+                const fullArt = await getBlob(`article:${a.slug}`);
+                if (fullArt) {
+                  fullArt.image = replacementUrl;
+                  await setBlob(`article:${a.slug}`, fullArt);
+                }
+              }
+            }
+            if (articlesChanged) await setBlob('articles_index', articles);
+
+            if (about.founder_photo === oldUrl || about.video_url === oldUrl) {
+              if (about.founder_photo === oldUrl) about.founder_photo = replacementUrl;
+              if (about.video_url === oldUrl) about.video_url = replacementUrl;
+              await setBlob('cms_about', about);
+            }
+            if (seo.og_image === oldUrl) {
+              seo.og_image = replacementUrl;
+              await setBlob('cms_seo', seo);
+            }
+          }
+
+          const removed = media[idx];
+          const filtered = media.filter((m) => m.id !== id);
+          await setBlob('cms_media', filtered);
+          await deleteBlob(`media_bin:${id}`);
+          await appendAuditLog(`Replaced & Deleted Media Asset: ${removed.title}`);
+          return jsonResponse(200, { success: true });
+        }
+
+        const id = subPath;
         const media = (await getBlob('cms_media')) || [];
         const idx = media.findIndex((m) => m.id === id);
         if (idx === -1) return jsonResponse(404, { error: 'Media asset not found' });
 
         if (method === 'PUT') {
           const body = parseJsonBody(event.body) || {};
-          media[idx] = { ...media[idx], ...body, id };
+          let updatedUrl = body.url !== undefined ? String(body.url).trim() : media[idx].url;
+          if (body.data_url || (updatedUrl && updatedUrl.startsWith('data:'))) {
+            const { publicUrl, mimeType } = await persistMediaBinaryIfDataUrl(id, updatedUrl, body.data_url);
+            updatedUrl = publicUrl + `?v=${Date.now().toString(36)}`;
+            if (mimeType) body.mime_type = mimeType;
+          }
+          const updatedItem = {
+            ...media[idx],
+            ...body,
+            id,
+            url: updatedUrl,
+            updated_at: new Date().toISOString(),
+          };
+          delete updatedItem.data_url;
+          media[idx] = updatedItem;
           await setBlob('cms_media', media);
           await appendAuditLog(`Updated Media Asset: ${media[idx].title}`);
-          return jsonResponse(200, { success: true, item: media[idx] });
+          const enriched = await computeMediaUsage([media[idx]]);
+          return jsonResponse(200, { success: true, item: enriched[0] });
         }
 
         if (method === 'DELETE') {
@@ -2445,6 +2961,7 @@ export const handler = async (event, context) => {
           }
           const filtered = media.filter((m) => m.id !== id);
           await setBlob('cms_media', filtered);
+          await deleteBlob(`media_bin:${id}`);
           await appendAuditLog(`Deleted Media Asset: ${target.title}`);
           return jsonResponse(200, { success: true });
         }

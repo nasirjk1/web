@@ -5,10 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Nasir Academy — AI, Web Engineering & Digital Monetization</title>
   <meta name="description" content="Master practical AI tools, full-stack website development, technical SEO, and Google AdSense & Facebook monetization with 10-year veteran Nasir. 11+ Free AI Utilities & Professional Masterclasses.">
+  <meta id="seo-robots-meta" name="robots" content="index, follow">
+  <link id="seo-canonical-link" rel="canonical" href="https://webnasir.dpdns.org/">
   <meta property="og:title" content="Web Nasir Academy — AI, Web Engineering & Digital Monetization">
   <meta property="og:description" content="Learn practical AI, web development, SEO, and battle-tested monetization strategies with Nasir. Access 11+ free tools and project-driven courses.">
   <meta property="og:type" content="website">
+  <meta id="seo-og-url" property="og:url" content="https://webnasir.dpdns.org/">
+  <meta id="seo-og-image" property="og:image" content="https://webnasir.dpdns.org/favicon.svg">
   <meta name="twitter:card" content="summary_large_image">
+  <meta id="seo-twitter-title" name="twitter:title" content="Web Nasir Academy — AI, Web Engineering & Digital Monetization">
+  <meta id="seo-twitter-desc" name="twitter:description" content="Master practical AI tools, full-stack web engineering, SEO, and digital monetization with Nasir.">
+  <script id="dynamic-jsonld" type="application/ld+json"></script>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1685,10 +1692,249 @@
     }
 
     // ==========================================
-    // ROUTER
+    // CLEAN URL RESOLVER, ROUTER & DYNAMIC SEO ENGINE
     // ==========================================
+    function normalizeCleanPathToHash() {
+      const rawHash = window.location.hash || '';
+      const rawPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      if (rawHash && rawHash !== '#' && rawHash !== '#/') {
+        if (rawHash === '#/guides') return '#/articles';
+        if (rawHash.startsWith('#/guides/')) return '#/articles/' + rawHash.replace('#/guides/', '');
+        return rawHash;
+      }
+      if (rawPath === '/' || rawPath === '/index.html') return '#/';
+      if (rawPath === '/guides' || rawPath === '/articles') return '#/articles';
+      if (rawPath.startsWith('/guides/')) return '#/articles/' + rawPath.replace('/guides/', '');
+      if (rawPath.startsWith('/articles/')) return '#/articles/' + rawPath.replace('/articles/', '');
+      if (rawPath === '/free-courses') return '#/free-courses';
+      return '#' + rawPath;
+    }
+
+    function renderFreeCoursesCatalogView(container) {
+      const freeCourses = window.APP_STATE.freeCourses || (window.APP_STATE.cms && window.APP_STATE.cms.free_courses) || [];
+      container.innerHTML = `
+        <div class="bg-gradient-to-b from-emerald-50/60 via-white to-white py-14 border-b border-bordercol text-center">
+          <div class="max-w-4xl mx-auto px-4">
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
+              <i data-lucide="gift" class="w-3.5 h-3.5"></i>
+              <span>100% Free Open Academy</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
+              Free Starter Bootcamps & Courses
+            </h1>
+            <p class="text-sm text-slate-600 max-w-2xl mx-auto mt-2">
+              Zero-cost foundational courses built by Nasir to help you master AI prompts, web development fundamentals, and SEO basics.
+            </p>
+          </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            ${freeCourses.map(fc => `
+              <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">${fc.badge || '100% Free'}</span>
+                    <span class="text-xs text-slate-400 font-semibold">${fc.duration || '2.5 Hours'} • ${fc.lessons_count || 8} Lessons</span>
+                  </div>
+                  <h3 class="text-lg font-bold font-heading text-slate-900">${fc.title}</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">${fc.description || ''}</p>
+                </div>
+                <button onclick="handleQuickFreeEnroll('${fc.id}')" class="mt-6 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all">
+                  Enroll Free & Start Learning
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function updatePageSeoAndSchema(hash) {
+      const cms = window.APP_STATE.cms || {};
+      const seo = cms.seo || {};
+      const s = window.APP_STATE.settings || {};
+      const baseDomain = (seo.canonical_url || 'https://webnasir.dpdns.org').replace(/\/+$/, '');
+
+      let pageTitle = seo.global_title || 'Web Nasir Academy — AI, Web Engineering & Digital Monetization';
+      let pageDesc = seo.meta_description || 'Master practical AI tools, full-stack website development, technical SEO, and Google AdSense & Facebook monetization with Nasir.';
+      let cleanPath = '/';
+      let breadcrumbs = [{ name: 'Home', url: baseDomain + '/' }];
+      let pageEntitySchema = null;
+
+      if (hash.startsWith('#/courses/')) {
+        const cid = hash.replace('#/courses/', '').trim();
+        const c = (window.APP_STATE.courses || []).find(x => x.id === cid);
+        cleanPath = '/courses/' + cid;
+        breadcrumbs.push({ name: 'Paid Courses', url: baseDomain + '/courses' });
+        if (c) {
+          pageTitle = `${c.title} — Web Nasir Academy Masterclass`;
+          pageDesc = c.subtitle || c.overview || pageDesc;
+          breadcrumbs.push({ name: c.title, url: baseDomain + cleanPath });
+          pageEntitySchema = {
+            '@context': 'https://schema.org',
+            '@type': 'Course',
+            name: c.title,
+            description: pageDesc,
+            provider: { '@type': 'Organization', name: 'Web Nasir Academy', sameAs: baseDomain },
+            offers: { '@type': 'Offer', price: String(c.price || 4999), priceCurrency: 'INR', availability: 'https://schema.org/InStock' }
+          };
+        }
+      } else if (hash === '#/courses') {
+        cleanPath = '/courses';
+        pageTitle = 'Paid Masterclasses & AI Engineering Courses — Web Nasir Academy';
+        pageDesc = 'Enroll in practical, project-driven masterclasses on AI engineering, full-stack web development, technical SEO, and Google AdSense monetization.';
+        breadcrumbs.push({ name: 'Paid Courses', url: baseDomain + '/courses' });
+      } else if (hash === '#/free-courses') {
+        cleanPath = '/free-courses';
+        pageTitle = '100% Free Starter Courses & Bootcamps — Web Nasir Academy';
+        pageDesc = 'Start learning AI prompt engineering, modern web development, and SEO fundamentals for free at Web Nasir Academy.';
+        breadcrumbs.push({ name: 'Free Courses', url: baseDomain + '/free-courses' });
+      } else if (hash.startsWith('#/tools/')) {
+        const tkey = hash.replace('#/tools/', '').trim();
+        const t = (window.APP_STATE.tools || []).find(x => x.key === tkey);
+        cleanPath = '/tools/' + tkey;
+        breadcrumbs.push({ name: 'Free AI Tools', url: baseDomain + '/tools' });
+        if (t) {
+          pageTitle = `${t.name} — Free Online AI Tool | Web Nasir`;
+          pageDesc = t.description || pageDesc;
+          breadcrumbs.push({ name: t.name, url: baseDomain + cleanPath });
+          pageEntitySchema = {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: t.name,
+            description: pageDesc,
+            applicationCategory: 'WebApplication',
+            operatingSystem: 'All',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+          };
+        }
+      } else if (hash === '#/tools') {
+        cleanPath = '/tools';
+        pageTitle = '11+ Free AI Tools & Webmaster Calculators — Web Nasir';
+        pageDesc = 'Use 11+ free AI tools and webmaster calculators including YouTube Script Architect, SEO Outline Builder, AdSense Revenue Calculator, and Code Explainer.';
+        breadcrumbs.push({ name: 'Free AI Tools', url: baseDomain + '/tools' });
+      } else if (hash.startsWith('#/articles/')) {
+        const slug = hash.replace('#/articles/', '').trim();
+        const a = (window.APP_STATE.articles || []).find(x => x.slug === slug);
+        cleanPath = '/guides/' + slug;
+        breadcrumbs.push({ name: 'Guides & Case Studies', url: baseDomain + '/guides' });
+        if (a) {
+          pageTitle = `${a.seo_title || a.title} — Web Nasir Engineering Guide`;
+          pageDesc = a.seo_description || a.meta || a.summary || pageDesc;
+          breadcrumbs.push({ name: a.title, url: baseDomain + cleanPath });
+          pageEntitySchema = {
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: a.title,
+            description: pageDesc,
+            author: { '@type': 'Person', name: a.author || 'Nasir' },
+            publisher: { '@type': 'Organization', name: 'Web Nasir Academy' },
+            mainEntityOfPage: baseDomain + cleanPath
+          };
+        }
+      } else if (hash === '#/articles') {
+        cleanPath = '/guides';
+        pageTitle = 'Engineering Guides, SEO & Monetization Case Studies — Web Nasir';
+        pageDesc = 'In-depth technical guides and case studies on Google AdSense RPM optimization, Facebook monetization, and full-stack AI web architecture.';
+        breadcrumbs.push({ name: 'Guides & Case Studies', url: baseDomain + '/guides' });
+      } else if (hash === '#/topics') {
+        cleanPath = '/topics';
+        pageTitle = 'Curriculum Topics & Learning Tracks — Web Nasir Academy';
+        breadcrumbs.push({ name: 'Topics', url: baseDomain + '/topics' });
+      } else if (hash === '#/about') {
+        cleanPath = '/about';
+        pageTitle = 'About Founder Nasir & Web Nasir Academy — 10+ Years Engineering';
+        pageDesc = (cms.about && cms.about.subtitle) || pageDesc;
+        breadcrumbs.push({ name: 'About Us', url: baseDomain + '/about' });
+      } else if (hash === '#/contact') {
+        cleanPath = '/contact';
+        pageTitle = 'Contact Nasir — Course Admissions & Technical Consulting';
+        pageDesc = (cms.contact && cms.contact.subtitle) || pageDesc;
+        breadcrumbs.push({ name: 'Contact Us', url: baseDomain + '/contact' });
+      } else if (hash.startsWith('#/')) {
+        const rawSlug = hash.replace('#/', '');
+        if (rawSlug) {
+          cleanPath = '/' + rawSlug;
+          const pg = (cms.pages || []).find(p => p.slug === hash || p.slug === cleanPath);
+          if (pg) {
+            pageTitle = pg.seo_title || `${pg.title} — Web Nasir Academy`;
+            pageDesc = pg.seo_description || pg.subtitle || pageDesc;
+          }
+          breadcrumbs.push({ name: pg ? pg.title : rawSlug.toUpperCase(), url: baseDomain + cleanPath });
+        }
+      }
+
+      document.title = pageTitle;
+      const canonicalUrl = baseDomain + (cleanPath === '/' ? '/' : cleanPath);
+      const setAttr = (sel, attr, val) => { const el = document.querySelector(sel); if (el && val) el.setAttribute(attr, val); };
+      setAttr('meta[name="description"]', 'content', pageDesc);
+      setAttr('#seo-canonical-link', 'href', canonicalUrl);
+      setAttr('#seo-robots-meta', 'content', `${seo.robots_index !== false ? 'index' : 'noindex'}, ${seo.robots_follow !== false ? 'follow' : 'nofollow'}`);
+      setAttr('meta[property="og:title"]', 'content', pageTitle);
+      setAttr('meta[property="og:description"]', 'content', pageDesc);
+      setAttr('#seo-og-url', 'content', canonicalUrl);
+      if (seo.og_image) setAttr('#seo-og-image', 'content', seo.og_image);
+      setAttr('#seo-twitter-title', 'content', pageTitle);
+      setAttr('#seo-twitter-desc', 'content', pageDesc);
+
+      // Inject Breadcrumb UI Bar on Inner Pages
+      const appView = document.getElementById('app-view');
+      if (appView && cleanPath !== '/' && breadcrumbs.length > 1) {
+        const existingBc = document.getElementById('seo-breadcrumb-bar');
+        if (existingBc) existingBc.remove();
+        const bcBar = document.createElement('nav');
+        bcBar.id = 'seo-breadcrumb-bar';
+        bcBar.setAttribute('aria-label', 'Breadcrumb');
+        bcBar.className = 'bg-slate-50 border-b border-slate-200/80 py-2.5 px-4 sm:px-6 lg:px-8 text-xs text-slate-500';
+        bcBar.innerHTML = `<div class="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">${breadcrumbs.map((b, idx) => idx === breadcrumbs.length - 1 ? `<span class="font-bold text-slate-800">${b.name}</span>` : `<a href="#${b.url.replace(baseDomain, '') || '/'}" class="hover:text-brand-600 font-medium">${b.name}</a><span>/</span>`).join('')}</div>`;
+        appView.prepend(bcBar);
+      }
+
+      // Inject JSON-LD Structured Data
+      const jsonLdEl = document.getElementById('dynamic-jsonld');
+      if (jsonLdEl) {
+        const graph = [
+          {
+            '@context': 'https://schema.org',
+            '@type': seo.schema_type || 'EducationalOrganization',
+            name: s.site_name || 'Web Nasir Academy',
+            url: baseDomain,
+            description: seo.meta_description || pageDesc,
+            founder: { '@type': 'Person', name: 'Nasir' },
+            contactPoint: { '@type': 'ContactPoint', telephone: s.whatsapp_number || '+91-7006334417', email: s.contact_email || 'hello@webnasir.com', contactType: 'customer support' }
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: s.site_name || 'Web Nasir Academy',
+            url: baseDomain,
+            potentialAction: { '@type': 'SearchAction', target: `${baseDomain}/#/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' }
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: breadcrumbs.map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b.name, item: b.url }))
+          }
+        ];
+        if (pageEntitySchema) graph.push(pageEntitySchema);
+        jsonLdEl.textContent = JSON.stringify(graph);
+      }
+    }
+
     function router() {
-      const hash = window.location.hash || '#/';
+      let hash = normalizeCleanPathToHash();
+      const redirects = (window.APP_STATE.cms && window.APP_STATE.cms.redirects) || [];
+      const rawPath = window.location.pathname || '/';
+      const matchedRedirect = redirects.find(r => r.from === rawPath || r.from === hash || ('#' + r.from) === hash);
+      if (matchedRedirect && matchedRedirect.to) {
+        const targetHash = matchedRedirect.to.startsWith('#') ? matchedRedirect.to : ('#' + matchedRedirect.to);
+        if (targetHash !== hash) {
+          window.location.hash = targetHash;
+          return;
+        }
+      }
+
       const appView = document.getElementById('app-view');
       window.scrollTo(0, 0);
 
@@ -1701,6 +1947,8 @@
       } else if (hash.startsWith('#/courses/')) {
         const courseId = hash.replace('#/courses/', '').trim();
         renderCourseDetailView(appView, courseId);
+      } else if (hash === '#/free-courses') {
+        renderFreeCoursesCatalogView(appView);
       } else if (hash.startsWith('#/courses')) {
         renderCoursesCatalogView(appView);
       } else if (hash.startsWith('#/tracks')) {
@@ -1733,13 +1981,19 @@
       } else if (hash === '#/privacy' || hash === '#/terms' || hash === '#/disclaimer' || hash === '#/faq' || hash === '#/payment-success' || hash === '#/payment-failure' || hash.startsWith('#/page/')) {
         renderCmsManagedPageView(appView, hash);
       } else {
-        renderHomeView(appView);
+        const customPage = ((window.APP_STATE.cms && window.APP_STATE.cms.pages) || []).find(p => p.slug === hash);
+        if (customPage) {
+          renderCmsManagedPageView(appView, hash);
+        } else {
+          renderHomeView(appView);
+        }
       }
 
       if (hash === '#/' || hash === '#' || hash === '') {
         applyHomepageSectionOverrides();
       }
 
+      updatePageSeoAndSchema(hash);
       lucide.createIcons();
     }
 

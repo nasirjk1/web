@@ -6,9 +6,29 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/api/sitemap.xml"
+  status = 200
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/.netlify/functions/api/robots.txt"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+
+[[redirects]]
+  from = "/articles"
+  to = "/guides"
+  status = 301
+
+[[redirects]]
+  from = "/articles/*"
+  to = "/guides/:splat"
+  status = 301
 
 [[redirects]]
   from = "/admin"
