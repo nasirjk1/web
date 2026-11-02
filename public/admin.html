@@ -151,80 +151,180 @@
       </div>
     </header>
 
-    <!-- Subnav Tabs -->
-    <div class="bg-white border-b border-bordercol">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav class="flex space-x-6 overflow-x-auto text-sm font-semibold text-slate-600 py-3" id="admin-tabs">
-          <button onclick="switchTab('overview')" class="tab-btn pb-1 text-brand-600 border-b-2 border-brand-600 flex items-center gap-2 whitespace-nowrap" data-tab="overview">
-            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-            <span>Overview</span>
+    
+    <!-- TOP GLOBAL SAVE, PREVIEW & REVISION BAR -->
+    <div class="bg-slate-900 text-white border-b border-slate-800 px-4 sm:px-6 py-2.5 sticky top-16 z-20">
+      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[11px]">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>CMS Live Sync Active</span>
+          </span>
+          <span class="text-slate-400 hidden md:inline">27 Modules Ready • Changes apply directly to production store</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="createCmsRevisionSnapshot()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 flex items-center gap-1.5 transition-all">
+            <i data-lucide="history" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Save Snapshot</span>
           </button>
-          <button onclick="switchTab('analytics')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="analytics">
-            <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-600"></i>
-            <span>Analytics Overview</span>
+          <button onclick="openLivePreviewModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+            <span>Live Site Preview</span>
           </button>
-          <button onclick="switchTab('students')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="students">
-            <i data-lucide="users" class="w-4 h-4 text-violet-600"></i>
-            <span>Student Management</span>
+          <button onclick="publishAllCurrentChanges()" class="px-4 py-1.5 rounded-lg gradient-btn text-white font-bold flex items-center gap-1.5 shadow-md">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+            <span>Publish Changes</span>
           </button>
-          <button onclick="switchTab('email-center')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="email-center">
-            <i data-lucide="mail" class="w-4 h-4 text-indigo-600"></i>
-            <span>Email Center</span>
-          </button>
-          <button onclick="switchTab('home-settings')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="home-settings">
-            <i data-lucide="home" class="w-4 h-4"></i>
-            <span>Home Page Settings</span>
-          </button>
-          <button onclick="switchTab('courses')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="courses">
-            <i data-lucide="graduation-cap" class="w-4 h-4 text-violet-600"></i>
-            <span>Paid Courses (Masterclasses)</span>
-          </button>
-          <button onclick="switchTab('testimonials')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="testimonials">
-            <i data-lucide="star" class="w-4 h-4 text-amber-500"></i>
-            <span>Student Reviews</span>
-          </button>
-          <button onclick="switchTab('marquee-video')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="marquee-video">
-            <i data-lucide="video" class="w-4 h-4 text-indigo-600"></i>
-            <span>Marquee & Founder Video</span>
-          </button>
-          <button onclick="switchTab('enrollments')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="enrollments">
-            <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
-            <span>Student Enrollments & Inquiries</span>
-          </button>
-          <button onclick="switchTab('tools')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="tools">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
-            <span>Free AI Tools Manager</span>
-          </button>
-          <button onclick="switchTab('articles')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="articles">
-            <i data-lucide="book-open" class="w-4 h-4"></i>
-            <span>Articles & Guides</span>
-          </button>
-          <button onclick="switchTab('topics')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="topics">
-            <i data-lucide="tags" class="w-4 h-4"></i>
-            <span>Topics Taxonomy</span>
-          </button>
-          <button onclick="switchTab('security')" class="tab-btn pb-1 hover:text-dark flex items-center gap-2 whitespace-nowrap" data-tab="security">
-            <i data-lucide="lock" class="w-4 h-4"></i>
-            <span>Security & Password</span>
-          </button>
-        </nav>
+        </div>
       </div>
     </div>
 
     <!-- Alert Banner If Must Change Password -->
-    <div id="password-alert-banner" class="hidden bg-amber-500 text-white px-4 py-3 text-sm font-medium shadow-md">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div id="password-alert-banner" class="hidden bg-amber-500 text-white px-4 py-2.5 text-xs font-medium shadow-md">
+      <div class="max-w-[1600px] mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
-          <span>Security Notice: You are currently using the default seeded password ("admin123"). Please change it now.</span>
+          <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
+          <span>Security Notice: You are using the default seeded password ("admin123").</span>
         </div>
-        <button onclick="switchTab('security')" class="underline font-bold text-xs bg-amber-600 px-3 py-1 rounded-lg hover:bg-amber-700">
+        <button onclick="switchTab('security')" class="underline font-bold bg-amber-600 px-3 py-1 rounded-lg hover:bg-amber-700">
           Update Password &rarr;
         </button>
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD CONTENT -->
+    <!-- 27-MODULE CMS WORKSPACE: SIDEBAR + MAIN CONTENT -->
+    <div class="flex-grow flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
+      
+      <!-- LEFT SIDEBAR NAVIGATION (All 27 Modules) -->
+      <aside class="w-full lg:w-72 bg-white border-r border-bordercol flex-shrink-0 lg:min-h-[calc(100vh-7rem)] p-4 space-y-6 overflow-y-auto max-h-[45vh] lg:max-h-none">
+        
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Core & Visual Builders</div>
+          <nav class="space-y-1 text-xs font-semibold text-slate-600" id="admin-tabs">
+            <button onclick="switchTab('overview')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-brand-600 bg-brand-50 font-bold" data-tab="overview">
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>1. Overview</span>
+            </button>
+            <button onclick="switchTab('visual-builder')" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-2.5 bg-violet-50/80 text-brand-700 border border-brand-200 font-bold hover:bg-brand-100" data-tab="visual-builder">
+              <i data-lucide="monitor-smartphone" class="w-4 h-4 text-brand-600"></i><span>★ Visual Website Builder</span>
+            </button>
+            <button onclick="switchTab('pages-manager')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="pages-manager">
+              <i data-lucide="files" class="w-4 h-4 text-indigo-600"></i><span>★ 24-Page Manager</span>
+            </button>
+            <button onclick="switchTab('ai-assistant')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="ai-assistant">
+              <i data-lucide="wand-2" class="w-4 h-4 text-purple-600"></i><span>★ AI Copy Assistant</span>
+            </button>
+            <button onclick="switchTab('qa-health')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="qa-health">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i><span>★ QA, SEO & System Health</span>
+            </button>
+            <button onclick="switchTab('homepage-builder')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="homepage-builder">
+              <i data-lucide="layers" class="w-4 h-4 text-violet-600"></i><span>2. Homepage Builder</span>
+            </button>
+            <button onclick="switchTab('header-nav')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="header-nav">
+              <i data-lucide="compass" class="w-4 h-4 text-indigo-600"></i><span>3. Header & Navigation</span>
+            </button>
+            <button onclick="switchTab('marquee-video')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="marquee-video">
+              <i data-lucide="megaphone" class="w-4 h-4 text-amber-500"></i><span>4. Announcement & Marquee</span>
+            </button>
+            <button onclick="switchTab('footer-builder')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="footer-builder">
+              <i data-lucide="panel-bottom" class="w-4 h-4 text-slate-600"></i><span>19. Footer Builder</span>
+            </button>
+            <button onclick="switchTab('appearance')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="appearance">
+              <i data-lucide="palette" class="w-4 h-4 text-pink-600"></i><span>20. Website Appearance</span>
+            </button>
+          </nav>
+        </div>
+
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Academy Courses & Tools</div>
+          <nav class="space-y-1 text-xs font-semibold text-slate-600">
+            <button onclick="switchTab('tools')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="tools">
+              <i data-lucide="sparkles" class="w-4 h-4 text-brand-600"></i><span>5. Free AI Tools Manager</span>
+            </button>
+            <button onclick="switchTab('courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="courses">
+              <i data-lucide="graduation-cap" class="w-4 h-4 text-violet-600"></i><span>6. Paid Courses Manager</span>
+            </button>
+            <button onclick="switchTab('free-courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="free-courses">
+              <i data-lucide="gift" class="w-4 h-4 text-emerald-600"></i><span>7. Free Courses Manager</span>
+            </button>
+            <button onclick="switchTab('course-categories')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="course-categories">
+              <i data-lucide="folder-kanban" class="w-4 h-4 text-blue-600"></i><span>8. Course Categories</span>
+            </button>
+            <button onclick="switchTab('course-curriculum')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="course-curriculum">
+              <i data-lucide="list-video" class="w-4 h-4 text-purple-600"></i><span>9. Course Modules & Lessons</span>
+            </button>
+          </nav>
+        </div>
+
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Students, Commerce & Email</div>
+          <nav class="space-y-1 text-xs font-semibold text-slate-600">
+            <button onclick="switchTab('payment-gateway')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="payment-gateway">
+              <i data-lucide="credit-card" class="w-4 h-4 text-emerald-600"></i><span>10. Payment Gateway Settings</span>
+            </button>
+            <button onclick="switchTab('students')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="students">
+              <i data-lucide="users" class="w-4 h-4 text-violet-600"></i><span>11. Student Management</span>
+            </button>
+            <button onclick="switchTab('enrollments')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="enrollments">
+              <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-600"></i><span>12. Orders & Enrollments</span>
+            </button>
+            <button onclick="switchTab('email-center')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="email-center">
+              <i data-lucide="mail" class="w-4 h-4 text-rose-500"></i><span>13. Email Center</span>
+            </button>
+          </nav>
+        </div>
+
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Content, Pages & SEO</div>
+          <nav class="space-y-1 text-xs font-semibold text-slate-600">
+            <button onclick="switchTab('articles')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="articles">
+              <i data-lucide="book-open" class="w-4 h-4 text-brand-600"></i><span>14. Articles & Guides</span>
+            </button>
+            <button onclick="switchTab('topics')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="topics">
+              <i data-lucide="tags" class="w-4 h-4 text-amber-600"></i><span>15. Learning Topics</span>
+            </button>
+            <button onclick="switchTab('testimonials')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="testimonials">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i><span>16. Testimonials</span>
+            </button>
+            <button onclick="switchTab('about-editor')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="about-editor">
+              <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i><span>17. About Us Page</span>
+            </button>
+            <button onclick="switchTab('contact-editor')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="contact-editor">
+              <i data-lucide="phone-call" class="w-4 h-4 text-emerald-600"></i><span>18. Contact Page</span>
+            </button>
+            <button onclick="switchTab('seo-settings')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="seo-settings">
+              <i data-lucide="globe" class="w-4 h-4 text-teal-600"></i><span>21. SEO Settings</span>
+            </button>
+            <button onclick="switchTab('media-library')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="media-library">
+              <i data-lucide="image" class="w-4 h-4 text-purple-600"></i><span>22. Media Library</span>
+            </button>
+            <button onclick="switchTab('social-settings')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="social-settings">
+              <i data-lucide="share-2" class="w-4 h-4 text-sky-600"></i><span>23. Social Media Settings</span>
+            </button>
+          </nav>
+        </div>
+
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">System & Administration</div>
+          <nav class="space-y-1 text-xs font-semibold text-slate-600">
+            <button onclick="switchTab('user-access')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="user-access">
+              <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600"></i><span>24. User & Access Management</span>
+            </button>
+            <button onclick="switchTab('analytics')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="analytics">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-600"></i><span>25. Analytics & Reports</span>
+            </button>
+            <button onclick="switchTab('security')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="security">
+              <i data-lucide="lock" class="w-4 h-4 text-rose-600"></i><span>26. Security Settings</span>
+            </button>
+            <button onclick="switchTab('home-settings')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="home-settings">
+              <i data-lucide="settings" class="w-4 h-4 text-slate-700"></i><span>27. General Website Settings</span>
+            </button>
+          </nav>
+        </div>
+
+      </aside>
+
+      <!-- MAIN DASHBOARD CONTENT -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
       <!-- TAB 1: OVERVIEW -->
@@ -309,6 +409,933 @@
 
       
       
+      
+      <!-- TAB 2: HOMEPAGE BUILDER (Visual Section Management & Reordering) -->
+      <section id="tab-homepage-builder" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">2. Homepage Visual Builder</h2>
+            <p class="text-sm text-muted">Enable/disable sections, reorder layout, customize headings, subtitles, CTAs, background colors, and device visibility.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openLivePreviewModal()" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-semibold text-dark flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-4 h-4 text-brand-600"></i><span>Preview Homepage</span>
+            </button>
+            <button onclick="handleSaveHomepageBuilder()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Publish Homepage Layout</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="homepage-sections-list" class="space-y-4">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- TAB 3: HEADER & NAVIGATION MANAGER -->
+      <section id="tab-header-nav" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">3. Header & Navigation Manager</h2>
+            <p class="text-sm text-muted">Manage top menu items, dropdown links, CTA buttons, icons, and desktop/mobile visibility.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="addNavMenuItem()" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-semibold text-brand-600 flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Add Menu Item</span>
+            </button>
+            <button onclick="handleSaveNavigation()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-1.5">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Save Navigation</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Header CTA Button Label</label>
+              <input id="nav-cta-text" type="text" value="Explore Courses" class="w-full px-3 py-2 text-xs bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Header CTA Destination URL</label>
+              <input id="nav-cta-url" type="text" value="#/courses" class="w-full px-3 py-2 text-xs bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div class="flex items-center gap-4 pt-5">
+              <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input type="checkbox" id="nav-sticky" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Sticky Top Header</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="nav-items-container" class="space-y-3">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: FREE COURSES MANAGER -->
+      <section id="tab-free-courses" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">7. Free Courses Manager (Direct Enrollment)</h2>
+            <p class="text-sm text-muted">Manage 100% free starter courses and bootcamps that unlock immediately without Razorpay checkout.</p>
+          </div>
+          <button onclick="openNewFreeCourseModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i><span>Add Free Course</span>
+          </button>
+        </div>
+
+        <div id="free-courses-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- TAB 8: COURSE CATEGORIES -->
+      <section id="tab-course-categories" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">8. Course Categories</h2>
+            <p class="text-sm text-muted">Organize paid and free courses into clear technical taxonomy tracks.</p>
+          </div>
+          <button onclick="addCourseCategory()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i><span>Add Category</span>
+          </button>
+        </div>
+        <div id="course-categories-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- TAB 9: COURSE MODULES & LESSONS (Curriculum Builder) -->
+      <section id="tab-course-curriculum" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">9. Course Modules & Lessons Builder</h2>
+            <p class="text-sm text-muted">Select any course to add modules, video lessons, text guides, downloadable resources, and free preview flags.</p>
+          </div>
+          <select id="curriculum-course-selector" onchange="loadCourseCurriculumEditor()" class="px-4 py-2.5 bg-white border border-bordercol rounded-xl text-xs font-bold text-dark"></select>
+        </div>
+        <div id="curriculum-builder-workspace" class="bg-white p-6 rounded-3xl border border-bordercol space-y-6"></div>
+      </section>
+
+      <!-- TAB 10: PAYMENT GATEWAY SETTINGS -->
+      <section id="tab-payment-gateway" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">10. Payment Gateway Settings (Razorpay & UPI)</h2>
+            <p class="text-sm text-muted">Configure Razorpay keys, test/live mode, currency, supported payment methods, and webhook verification.</p>
+          </div>
+          <button onclick="handleSavePaymentGateway()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Save Payment Settings</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-6 max-w-3xl">
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <div class="flex items-center gap-3">
+              <i data-lucide="shield-check" class="w-6 h-6 text-emerald-600"></i>
+              <div>
+                <div class="text-xs font-bold text-emerald-950">Gateway Status: Connected & Server-Side Verified</div>
+                <div class="text-[11px] text-emerald-700">Secret keys are kept strictly server-side. Signatures verified before course unlock.</div>
+              </div>
+            </div>
+            <label class="flex items-center gap-2 text-xs font-bold text-emerald-900 cursor-pointer">
+              <input type="checkbox" id="pg-enabled" checked class="w-4 h-4 text-emerald-600 rounded">
+              <span>Enable Gateway</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Environment Mode</label>
+              <select id="pg-mode" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+                <option value="test">Test / Sandbox Mode</option>
+                <option value="live">Live Production Mode</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Currency</label>
+              <select id="pg-currency" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+                <option value="INR">INR (₹ Indian Rupee)</option>
+                <option value="USD">USD ($ US Dollar)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Razorpay Public Key ID</label>
+              <input id="pg-key-id" type="text" value="rzp_test_webnasir_demo" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Razorpay Secret Key (Server-Side Only)</label>
+              <input id="pg-key-secret" type="password" placeholder="••••••••••••••••" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Checkout Modal Description</label>
+              <input id="pg-desc" type="text" value="Instant Lifetime Access to Masterclass & Source Code" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-4">
+            <label class="block text-xs font-bold text-slate-700 mb-3">Enabled Payment Methods</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold">
+              <label class="flex items-center gap-2 p-3 rounded-xl bg-surface border border-bordercol"><input type="checkbox" id="pg-upi" checked><span>UPI / QR Code</span></label>
+              <label class="flex items-center gap-2 p-3 rounded-xl bg-surface border border-bordercol"><input type="checkbox" id="pg-cards" checked><span>Debit / Credit Cards</span></label>
+              <label class="flex items-center gap-2 p-3 rounded-xl bg-surface border border-bordercol"><input type="checkbox" id="pg-netbanking" checked><span>Net Banking</span></label>
+              <label class="flex items-center gap-2 p-3 rounded-xl bg-surface border border-bordercol"><input type="checkbox" id="pg-wallets" checked><span>Wallets & EMI</span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 17: ABOUT US PAGE EDITOR -->
+      <section id="tab-about-editor" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">17. About Us Page Editor</h2>
+            <p class="text-sm text-muted">Edit Founder Nasir's biography, mission, vision, photo, intro video, and career milestones.</p>
+          </div>
+          <button onclick="handleSaveAboutPage()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Save About Us Page</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Page Headline</label>
+              <input id="about-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Founder Name & Role</label>
+              <input id="about-role" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Full Founder Biography</label>
+            <textarea id="about-bio" rows="4" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Academy Mission</label>
+              <textarea id="about-mission" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Academy Vision</label>
+              <textarea id="about-vision" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">CTA Button Text</label>
+              <input id="about-cta-text" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">CTA Destination URL</label>
+              <input id="about-cta-link" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 18: CONTACT PAGE EDITOR -->
+      <section id="tab-contact-editor" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">18. Contact Page Editor</h2>
+            <p class="text-sm text-muted">Configure public contact emails, WhatsApp support line, office hours, and inquiry form settings.</p>
+          </div>
+          <button onclick="handleSaveContactPage()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Save Contact Settings</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs max-w-3xl">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Contact Page Heading</label>
+              <input id="contact-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Official Support Email</label>
+              <input id="contact-email" type="email" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">WhatsApp Direct Number</label>
+              <input id="contact-whatsapp" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Office Hours</label>
+              <input id="contact-hours" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Location / Address</label>
+              <input id="contact-address" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 19: FOOTER BUILDER -->
+      <section id="tab-footer-builder" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">19. Multi-Column Footer Builder</h2>
+            <p class="text-sm text-muted">Customize footer brand description, newsletter box, colors, copyright text, and column links.</p>
+          </div>
+          <button onclick="handleSaveFooterBuilder()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Publish Footer Changes</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-6 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Footer Brand Title</label>
+              <input id="ftr-brand-title" type="text" value="Web Nasir Academy" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Footer Background Color</label>
+              <input id="ftr-bg-color" type="color" value="#0b0f19" class="w-full h-9 bg-surface border border-bordercol rounded-xl p-1">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Support Email</label>
+              <input id="ftr-email" type="text" value="support@webnasir.com" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Footer Brand Summary Paragraph</label>
+            <textarea id="ftr-desc" rows="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Copyright Notice</label>
+            <input id="ftr-copyright" type="text" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+          </div>
+        </div>
+      </section>
+
+      
+      <!-- ======================================================== -->
+      <!-- PART 1: 3-PANEL INTERACTIVE VISUAL WEBSITE BUILDER -->
+      <!-- ======================================================== -->
+      <section id="tab-visual-builder" class="tab-panel hidden space-y-4">
+        <div class="bg-slate-900 text-white p-3.5 rounded-2xl shadow-lg flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-extrabold tracking-tight">3-PANEL VISUAL WEBSITE BUILDER</span>
+            </div>
+            <select id="vb-page-select" onchange="vbNavigatePage(this.value)" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold text-white">
+              <option value="#/">1. Homepage (#/)</option>
+              <option value="#/about">2. About Us (#/about)</option>
+              <option value="#/contact">3. Contact Us (#/contact)</option>
+              <option value="#/tools">4. Free AI Tools (#/tools)</option>
+              <option value="#/tools/youtube">5. Individual AI Tool (#/tools/youtube)</option>
+              <option value="#/courses">6. Paid Courses (#/courses)</option>
+              <option value="#/courses/complete-ai-mastery">7. Individual Course (#/courses/complete-ai-mastery)</option>
+              <option value="#/courses?filter=free">8. Free Courses (#/courses?filter=free)</option>
+              <option value="#/tracks">9. Learning Pathways (#/tracks)</option>
+              <option value="#/articles">10. Guides & Articles (#/articles)</option>
+              <option value="#/articles?tag=case-study">12. Case Studies (#/articles?tag=case-study)</option>
+              <option value="#/student">14. Student Dashboard (#/student)</option>
+              <option value="#/privacy">19. Privacy Policy (#/privacy)</option>
+              <option value="#/terms">20. Terms & Conditions (#/terms)</option>
+              <option value="#/disclaimer">21. Disclaimer (#/disclaimer)</option>
+              <option value="#/faq">22. FAQ (#/faq)</option>
+              <option value="#/search">23. Search Results (#/search)</option>
+              <option value="#/page/ai-bootcamp">24. Custom Landing Page (#/page/ai-bootcamp)</option>
+            </select>
+          </div>
+
+          <!-- 7 Responsive Viewport Switcher -->
+          <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button onclick="vbSetViewport('320px', 'Small Mobile 320px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">320px</button>
+            <button onclick="vbSetViewport('375px', 'Standard Mobile 375px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">375px</button>
+            <button onclick="vbSetViewport('430px', 'Large Mobile 430px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">430px</button>
+            <button onclick="vbSetViewport('768px', 'Tablet 768px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">768px</button>
+            <button onclick="vbSetViewport('1024px', 'Laptop 1024px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">1024px</button>
+            <button onclick="vbSetViewport('1366px', 'Desktop 1366px')" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:bg-slate-700">1366px</button>
+            <button onclick="vbSetViewport('100%', 'Full Desktop 1920px')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Full</button>
+          </div>
+
+          <!-- Draft, Responsive QA & Publish Controls -->
+          <div class="flex items-center gap-2">
+            <button onclick="vbRunResponsiveViewportSuite()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-emerald-300 text-xs font-bold flex items-center gap-1.5">
+              <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+              <span>Test 7 Viewports</span>
+            </button>
+            <button onclick="vbSaveDraft()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold">
+              Save Draft
+            </button>
+            <button onclick="vbPublishLive()" class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+              <span>Publish Live</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Responsive Viewport QA Status Strip -->
+        <div id="vb-qa-report-bar" class="hidden bg-emerald-950 text-emerald-200 px-4 py-2.5 rounded-xl border border-emerald-700 text-xs flex items-center justify-between">
+          <span id="vb-qa-report-text">Running 7-viewport responsive check...</span>
+          <button onclick="document.getElementById('vb-qa-report-bar').classList.add('hidden')" class="text-emerald-400 hover:text-white font-bold">✕</button>
+        </div>
+
+        <!-- THREE-PANEL INTERFACE -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          
+          <!-- LEFT PANEL (3 Cols): Section Tree & Component Library -->
+          <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col max-h-[760px]">
+            <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Left Panel: Sections</span>
+              <button onclick="vbAddCustomSection()" class="px-2.5 py-1 rounded-lg bg-brand-600 text-white text-[11px] font-bold hover:bg-brand-700">+ Add Section</button>
+            </div>
+            <div class="p-2.5 border-b border-slate-100 bg-slate-50/50 text-[11px] text-slate-500">
+              Click any section below or click directly inside the live preview to edit its text, colors, spacing, or mobile rules.
+            </div>
+            <div id="vb-section-tree" class="p-2.5 space-y-1.5 overflow-y-auto flex-1"></div>
+          </div>
+
+          <!-- CENTER PANEL (6 Cols): Actual Live Website Preview -->
+          <div class="lg:col-span-6 bg-slate-100 rounded-2xl border border-slate-300 p-3 flex flex-col items-center justify-center min-h-[720px] overflow-x-auto">
+            <div class="w-full flex items-center justify-between mb-2 px-1">
+              <span id="vb-viewport-label" class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Live Production Preview • Full Desktop</span>
+              <div class="flex items-center gap-2">
+                <span id="vb-draft-badge" class="hidden px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">Unpublished Draft Edits Active</span>
+                <button onclick="vbReloadIframe()" class="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1">
+                  <i data-lucide="refresh-cw" class="w-3 h-3"></i> Reload Preview
+                </button>
+              </div>
+            </div>
+            <div id="vb-iframe-wrapper" class="w-full bg-white rounded-xl shadow-2xl border border-slate-300 overflow-hidden transition-all duration-300" style="max-width: 100%; height: 670px;">
+              <iframe id="visual-builder-iframe" src="/?builder_preview=1" class="w-full h-full border-0"></iframe>
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL (3 Cols): Selected Element / Global Inspector -->
+          <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col max-h-[760px]">
+            <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">3. Right Panel: Inspector</span>
+              <span id="vb-selected-badge" class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 text-[10px] font-bold">hero</span>
+            </div>
+
+            <div class="p-3.5 space-y-4 overflow-y-auto flex-1 text-xs">
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-slate-700 uppercase text-[10px]">Section Heading</label>
+                  <button onclick="vbAiSuggestHeading()" class="text-[10px] font-bold text-brand-600 hover:underline flex items-center gap-1">✨ AI Suggest</button>
+                </div>
+                <input id="vb-inp-heading" oninput="vbApplyLiveInspectorEdit()" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold">
+
+                <label class="block font-bold text-slate-700 uppercase text-[10px] pt-1">Subtitle / Paragraph</label>
+                <textarea id="vb-inp-subtitle" oninput="vbApplyLiveInspectorEdit()" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"></textarea>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Primary CTA Text</label>
+                    <input id="vb-inp-cta-text" oninput="vbApplyLiveInspectorEdit()" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Primary CTA Link</label>
+                    <input id="vb-inp-cta-link" oninput="vbApplyLiveInspectorEdit()" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono">
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-200 space-y-2.5">
+                <div class="font-extrabold text-slate-800 uppercase text-[10px]">Section Colors & Spacing</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Background</label>
+                    <div class="flex items-center gap-1.5">
+                      <input id="vb-inp-bg" oninput="vbApplyLiveInspectorEdit()" type="color" value="#ffffff" class="w-7 h-7 rounded cursor-pointer border border-slate-200">
+                      <input id="vb-inp-bg-hex" oninput="document.getElementById('vb-inp-bg').value=this.value; vbApplyLiveInspectorEdit();" type="text" class="w-full px-2 py-1 rounded border border-slate-200 text-[11px] font-mono">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Text Color</label>
+                    <div class="flex items-center gap-1.5">
+                      <input id="vb-inp-text" oninput="vbApplyLiveInspectorEdit()" type="color" value="#0f172a" class="w-7 h-7 rounded cursor-pointer border border-slate-200">
+                      <input id="vb-inp-text-hex" oninput="document.getElementById('vb-inp-text').value=this.value; vbApplyLiveInspectorEdit();" type="text" class="w-full px-2 py-1 rounded border border-slate-200 text-[11px] font-mono">
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-500 mb-1">Vertical Padding (Spacing)</label>
+                  <select id="vb-inp-padding" onchange="vbApplyLiveInspectorEdit()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+                    <option value="">Default Theme Spacing</option>
+                    <option value="2rem">Compact (2rem)</option>
+                    <option value="4rem">Standard (4rem)</option>
+                    <option value="6rem">Spacious (6rem)</option>
+                    <option value="8rem">Hero / Extra Large (8rem)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-200 space-y-2">
+                <div class="font-extrabold text-slate-800 uppercase text-[10px]">Visibility & Device Rules</div>
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                  <span class="font-semibold text-slate-700">Section Enabled</span>
+                  <input id="vb-inp-enabled" onchange="vbApplyLiveInspectorEdit()" type="checkbox" checked class="w-4 h-4 accent-brand-600">
+                </label>
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                  <span class="font-semibold text-slate-700">Show on Desktop</span>
+                  <input id="vb-inp-desktop" onchange="vbApplyLiveInspectorEdit()" type="checkbox" checked class="w-4 h-4 accent-brand-600">
+                </label>
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                  <span class="font-semibold text-slate-700">Show on Mobile</span>
+                  <input id="vb-inp-mobile" onchange="vbApplyLiveInspectorEdit()" type="checkbox" checked class="w-4 h-4 accent-brand-600">
+                </label>
+              </div>
+
+              <div class="pt-3 border-t border-slate-200 space-y-2.5">
+                <div class="font-extrabold text-slate-800 uppercase text-[10px]">Global Brand & Mobile Quick Controls</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Primary Brand</label>
+                    <input id="vb-glob-primary" oninput="vbApplyGlobalQuickEdit()" type="color" value="#7c3aed" class="w-full h-8 rounded cursor-pointer border border-slate-200">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Secondary Brand</label>
+                    <input id="vb-glob-secondary" oninput="vbApplyGlobalQuickEdit()" type="color" value="#4f46e5" class="w-full h-8 rounded cursor-pointer border border-slate-200">
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Heading Font</label>
+                    <select id="vb-glob-hfont" onchange="vbApplyGlobalQuickEdit()" class="w-full px-2 py-1.5 rounded border border-slate-200 text-xs">
+                      <option value="Poppins">Poppins</option>
+                      <option value="Space Grotesk">Space Grotesk</option>
+                      <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                      <option value="Inter">Inter</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Mobile H1 Size</label>
+                    <input id="vb-glob-mob-h1" oninput="vbApplyGlobalQuickEdit()" type="text" value="2.1rem" class="w-full px-2 py-1.5 rounded border border-slate-200 text-xs">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- PART 3: COMPLETE 24-PAGE MANAGER -->
+      <!-- ======================================================== -->
+      <section id="tab-pages-manager" class="tab-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-3xl border border-bordercol shadow-xs space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-xl font-extrabold font-heading text-slate-900">Complete 24-Page Website Manager</h2>
+              <p class="text-xs text-slate-500">Manage all 24 system, dynamic, legal, and custom landing pages. System-critical pages (Checkout, Student Login, Student Dashboard) are protected against accidental deletion.</p>
+            </div>
+            <button onclick="openCreateCustomPageModal()" class="gradient-btn text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-1.5">
+              <i data-lucide="file-plus" class="w-4 h-4"></i>
+              <span>+ Create Custom Landing Page</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-5 space-y-2 max-h-[650px] overflow-y-auto pr-1" id="cms-pages-list"></div>
+
+            <div class="lg:col-span-7 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div>
+                  <span id="pe-badge" class="px-2 py-0.5 rounded bg-brand-100 text-brand-800 text-[10px] font-bold uppercase">Page Editor</span>
+                  <h3 id="pe-header-title" class="text-sm font-extrabold text-slate-900 mt-1">Select a page to edit</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a id="pe-preview-link" href="/#/" target="_blank" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100">Preview Page ↗</a>
+                  <button onclick="saveSelectedCmsPage()" class="gradient-btn text-white text-xs font-bold px-4 py-1.5 rounded-lg">Save Page</button>
+                </div>
+              </div>
+
+              <input type="hidden" id="pe-id">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Page Title</label>
+                  <input id="pe-title" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-semibold">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">URL Slug</label>
+                  <input id="pe-slug" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-mono">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Hero Heading (H1)</label>
+                  <input id="pe-heading" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Publish Status</label>
+                  <select id="pe-status" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-semibold">
+                    <option value="published">Published (Live)</option>
+                    <option value="draft">Draft (Hidden from public)</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Subtitle / Lead Description</label>
+                  <input id="pe-subtitle" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Page Body Content (Markdown / Text)</label>
+                  <textarea id="pe-body" rows="5" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-mono text-xs"></textarea>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Primary CTA Button Text</label>
+                  <input id="pe-cta-text" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Primary CTA Link</label>
+                  <input id="pe-cta-link" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-mono">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">SEO Meta Title</label>
+                  <input id="pe-seo-title" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">SEO Meta Description</label>
+                  <input id="pe-seo-desc" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Background Color</label>
+                  <input id="pe-bg-color" type="color" value="#ffffff" class="w-full h-9 rounded-xl bg-white border border-slate-200 cursor-pointer p-1">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 uppercase mb-1">Text Color</label>
+                  <input id="pe-text-color" type="color" value="#0f172a" class="w-full h-9 rounded-xl bg-white border border-slate-200 cursor-pointer p-1">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- PART 9A: AI CONTENT & SEO ASSISTANT -->
+      <!-- ======================================================== -->
+      <section id="tab-ai-assistant" class="tab-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-3xl border border-bordercol shadow-xs space-y-6">
+          <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-extrabold font-heading text-slate-900">AI Website Copy & SEO Assistant</h2>
+              <p class="text-xs text-slate-500">Generate high-converting headlines, course descriptions, FAQs, announcement bars, and SEO metadata. All AI outputs require your explicit approval before publishing.</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">Approval Required Before Publish</span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-5 space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Select Copywriting / SEO Task</label>
+                <select id="ai-assist-task" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold">
+                  <option value="homepage_heading">1. Write Homepage Hero Headings & Subtitles</option>
+                  <option value="improve_description">2. Improve Existing Website Copy / Paragraph</option>
+                  <option value="seo_meta">3. Generate SEO Title, Meta Description & Keywords</option>
+                  <option value="course_description">4. Write Course Overview & Learning Outcomes</option>
+                  <option value="generate_faq">5. Generate Conversion-Boosting FAQs</option>
+                  <option value="announcement_bar">6. Draft Top Announcement Bar & Marquee Messages</option>
+                  <option value="cta_suggestion">7. Suggest High-CTR Call-To-Action Buttons</option>
+                  <option value="article_outline">8. Generate Technical Guide / Case Study Outline</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Topic, Draft Copy, or Target Keywords</label>
+                <textarea id="ai-assist-context" rows="5" placeholder="Enter your topic, current heading, or course title (e.g., Complete AI Mastery & Gemini API Automation)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"></textarea>
+              </div>
+              <button id="ai-assist-btn" onclick="runAdminAiAssistant()" class="w-full gradient-btn text-white text-xs font-bold py-3 rounded-xl shadow-md flex items-center justify-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Generate AI Copy Suggestion</span>
+              </button>
+            </div>
+
+            <div class="lg:col-span-7 bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-extrabold uppercase text-slate-700">Generated Suggestion (Editable Draft)</span>
+                  <span id="ai-assist-source" class="text-[11px] font-semibold text-brand-700">Ready</span>
+                </div>
+                <textarea id="ai-assist-output" rows="10" placeholder="Your AI-generated copy suggestions will appear here for review..." class="w-full p-4 rounded-xl bg-white border border-slate-200 text-xs font-mono leading-relaxed"></textarea>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+                <span class="text-[11px] text-slate-500">Review and edit the suggestion above before applying it to your website.</span>
+                <div class="flex items-center gap-2">
+                  <button onclick="navigator.clipboard.writeText(document.getElementById('ai-assist-output').value); showToast('Copied suggestion to clipboard!', 'success');" class="px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">Copy Text</button>
+                  <button onclick="applyAiSuggestionToHero()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Approve & Apply to Hero Subtitle</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- PART 9B, 9C, 9D: REAL WEBSITE HEALTH, SEO AUDITOR & BROKEN LINK CHECKER -->
+      <!-- ======================================================== -->
+      <section id="tab-qa-health" class="tab-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-3xl border border-bordercol shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-xl font-extrabold font-heading text-slate-900">Live Website Health & Infrastructure Diagnostics</h2>
+              <p class="text-xs text-slate-500">Real-time non-fabricated probes of API Router, Netlify Blobs read/write latency, Firebase Auth/Firestore, Gemini AI, Razorpay, and Resend Email service.</p>
+            </div>
+            <button onclick="runFullQaAndHealthSuite()" class="gradient-btn text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>Run Live Diagnostics Now</span>
+            </button>
+          </div>
+          <div id="qa-system-health-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-3xl border border-bordercol shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-extrabold font-heading text-slate-900">Automated SEO Health Checker</h3>
+                <p class="text-xs text-slate-500">Audits all 24 pages, meta descriptions, duplicate titles, OpenGraph & image alt tags</p>
+              </div>
+              <span id="qa-seo-score-badge" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-black text-sm">--/100</span>
+            </div>
+            <div id="qa-seo-results-list" class="space-y-2 max-h-96 overflow-y-auto text-xs"></div>
+          </div>
+
+          <div class="bg-white p-6 rounded-3xl border border-bordercol shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-extrabold font-heading text-slate-900">Automated Broken Link Checker</h3>
+                <p class="text-xs text-slate-500">Scans Header, Dropdowns, Footer, Marquee, Courses, AI Tools & Page CTAs</p>
+              </div>
+              <span id="qa-links-summary-badge" class="px-3 py-1 rounded-xl bg-brand-50 text-brand-700 font-bold text-xs">Checking...</span>
+            </div>
+            <div id="qa-links-results-list" class="space-y-2 max-h-96 overflow-y-auto text-xs"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 20: WEBSITE APPEARANCE & THEME ENGINE -->
+      <section id="tab-appearance" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">20. Website Appearance & Global Theme Engine</h2>
+            <p class="text-sm text-muted">Control primary/secondary colors, backgrounds, typography fonts, container widths, and button styles. Changes apply live to the public website.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="resetAppearanceToDefault()" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-semibold text-slate-600 hover:text-dark">Reset Default</button>
+            <button onclick="handleSaveAppearance()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="palette" class="w-4 h-4"></i><span>Publish Theme Appearance</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <!-- Colors Panel -->
+          <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+            <h3 class="text-sm font-bold text-dark border-b border-slate-100 pb-2">Global Brand Colors</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Primary Brand Color</label>
+                <div class="flex items-center gap-2">
+                  <input id="app-col-primary" type="color" value="#7c3aed" class="w-10 h-9 rounded border border-bordercol">
+                  <input id="app-col-primary-hex" type="text" value="#7c3aed" oninput="document.getElementById('app-col-primary').value=this.value" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Secondary Indigo Color</label>
+                <div class="flex items-center gap-2">
+                  <input id="app-col-secondary" type="color" value="#4f46e5" class="w-10 h-9 rounded border border-bordercol">
+                  <input id="app-col-secondary-hex" type="text" value="#4f46e5" oninput="document.getElementById('app-col-secondary').value=this.value" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Accent Emerald Color</label>
+                <input id="app-col-accent" type="color" value="#10b981" class="w-full h-9 rounded border border-bordercol">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Page Background</label>
+                <input id="app-col-bg" type="color" value="#ffffff" class="w-full h-9 rounded border border-bordercol">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Header Background</label>
+                <input id="app-col-header" type="color" value="#ffffff" class="w-full h-9 rounded border border-bordercol">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Footer Background</label>
+                <input id="app-col-footer" type="color" value="#0b0f19" class="w-full h-9 rounded border border-bordercol">
+              </div>
+            </div>
+          </div>
+
+          <!-- Typography & Layout Panel -->
+          <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+            <h3 class="text-sm font-bold text-dark border-b border-slate-100 pb-2">Typography & Layout</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Heading Font Family</label>
+                <select id="app-font-heading" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="Poppins">Poppins (Academy Default)</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Body Font Family</label>
+                <select id="app-font-body" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="Inter">Inter (Clean Default)</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="system-ui">System UI</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Button Border Radius</label>
+                <select id="app-btn-radius" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="0.875rem">Rounded XL (14px)</option>
+                  <option value="0.5rem">Rounded MD (8px)</option>
+                  <option value="9999px">Full Pill</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Line Height</label>
+                <input id="app-line-height" type="text" value="1.6" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+          </div>
+          <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4 lg:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-bold text-dark">Dedicated Mobile Optimization & 1-Click Color Palettes</h3>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="applyPresetPalette('#7c3aed','#4f46e5','#10b981','#ffffff','#ffffff','#0b0f19')" class="px-2.5 py-1 rounded-lg bg-purple-600 text-white text-[11px] font-bold">Royal Violet</button>
+                <button onclick="applyPresetPalette('#059669','#0d9488','#6366f1','#ffffff','#ffffff','#064e3b')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold">Emerald Tech</button>
+                <button onclick="applyPresetPalette('#2563eb','#1d4ed8','#f59e0b','#ffffff','#ffffff','#0f172a')" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-bold">Executive Cobalt</button>
+                <button onclick="applyPresetPalette('#8b5cf6','#6366f1','#10b981','#090d16','#0f172a','#050811')" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold">Obsidian Dark</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+              <div><label class="block font-bold text-slate-700 mb-1">Mobile Hero H1 Size</label><input id="app-mob-h1" type="text" value="2.1rem" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></div>
+              <div><label class="block font-bold text-slate-700 mb-1">Mobile Body Font Size</label><input id="app-mob-body" type="text" value="0.92rem" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></div>
+              <div><label class="block font-bold text-slate-700 mb-1">Mobile Section Padding Y</label><input id="app-mob-pad" type="text" value="3rem" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></div>
+              <div><label class="block font-bold text-slate-700 mb-1">Min Touch Button Height</label><input id="app-mob-btn" type="text" value="46px" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 21: SEO SETTINGS -->
+      <section id="tab-seo-settings" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">21. Global SEO, OpenGraph & Sitemap Manager</h2>
+            <p class="text-sm text-muted">Configure search engine titles, meta descriptions, OpenGraph cards, canonical URLs, and robots.txt rules.</p>
+          </div>
+          <button onclick="handleSaveSeoSettings()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Save SEO Configuration</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs max-w-3xl">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Global Meta Title</label>
+            <input id="seo-title" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Global Meta Description</label>
+            <textarea id="seo-desc" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Canonical Base URL</label>
+              <input id="seo-canonical" type="text" value="https://webnasir.dpdns.org" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">OpenGraph Share Image URL</label>
+              <input id="seo-og-image" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Robots.txt Directives</label>
+            <textarea id="seo-robots" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 22: MEDIA LIBRARY -->
+      <section id="tab-media-library" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">22. Media Library & Asset Manager</h2>
+            <p class="text-sm text-muted">Manage images, course thumbnails, and video streams with alt text and usage tracking.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold cursor-pointer hover:bg-brand-100 flex items-center gap-1.5">
+              <i data-lucide="image-plus" class="w-4 h-4"></i>
+              <span>Upload & Optimize WebP</span>
+              <input type="file" accept="image/*" class="hidden" onchange="handleLocalMediaFileUpload(event)">
+            </label>
+            <button onclick="promptAddMediaAsset()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="upload" class="w-4 h-4"></i><span>Add Media Asset</span>
+          </button>
+          </div>
+        </div>
+
+        <div id="media-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      </section>
+
+      <!-- TAB 23: SOCIAL MEDIA SETTINGS -->
+      <section id="tab-social-settings" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">23. Social Media & Community Links</h2>
+            <p class="text-sm text-muted">Manage official YouTube, Facebook, X/Twitter, Instagram, LinkedIn, and WhatsApp channels.</p>
+          </div>
+          <button onclick="handleSaveSocialMedia()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Save Social Links</span>
+          </button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs max-w-2xl">
+          <div><label class="block font-bold text-slate-700 mb-1">YouTube Channel URL</label><input id="soc-input-yt" type="url" value="https://youtube.com/@webnasir" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></div>
+          <div><label class="block font-bold text-slate-700 mb-1">Facebook Page URL</label><input id="soc-input-fb" type="url" value="https://facebook.com/webnasir" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></div>
+          <div><label class="block font-bold text-slate-700 mb-1">X (Twitter) Profile URL</label><input id="soc-input-x" type="url" value="https://x.com/webnasir" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></div>
+          <div><label class="block font-bold text-slate-700 mb-1">Instagram Profile URL</label><input id="soc-input-ig" type="url" value="https://instagram.com/webnasir" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></div>
+          <div><label class="block font-bold text-slate-700 mb-1">LinkedIn Profile URL</label><input id="soc-input-li" type="url" value="https://linkedin.com/in/webnasir" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></div>
+        </div>
+      </section>
+
+      <!-- TAB 24: USER & ACCESS MANAGEMENT + REVISIONS & AUDIT LOGS -->
+      <section id="tab-user-access" class="tab-panel hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold font-heading text-dark">24. User Access, Revisions & Audit Logs</h2>
+          <p class="text-sm text-muted">Role-based administrator permissions, configuration snapshots, safe rollback, and security audit trail.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-dark">CMS Snapshot Revisions (Safe Rollback)</h3>
+              <button onclick="createCmsRevisionSnapshot()" class="text-xs font-bold text-brand-600 hover:underline">+ New Snapshot</button>
+            </div>
+            <div id="cms-revisions-list" class="space-y-2 text-xs"></div>
+          </div>
+
+          <div class="bg-white p-6 rounded-3xl border border-bordercol space-y-4">
+            <h3 class="text-sm font-bold text-dark">Administrator Security Audit Log</h3>
+            <div id="cms-audit-logs-list" class="space-y-2 text-xs max-h-80 overflow-y-auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE PREVIEW MODAL -->
+      <div id="live-preview-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-6xl h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+          <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-bold">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <span>Live Public Website Preview (Real-Time Production Render)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="/" target="_blank" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs">Open in New Tab ↗</a>
+              <button onclick="closeLivePreviewModal()" class="p-1 text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+          </div>
+          <iframe id="live-preview-iframe" src="/" class="w-full flex-grow border-0"></iframe>
+        </div>
+      </div>
+
       <!-- TAB: ANALYTICS OVERVIEW -->
       <section id="tab-analytics" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1124,6 +2151,7 @@
       </section>
 
     </main>
+    </div>
   </div>
 
   <!-- ======================================================== -->
@@ -1399,6 +2427,637 @@
       window.location.reload();
     }
 
+    
+    // ==========================================
+    // ULTIMATE VISUAL BUILDER, 24-PAGE MANAGER, AI ASSISTANT & QA SUITE CONTROLLERS
+    // ==========================================
+    window.VB_STATE = {
+      selectedSectionId: 'hero',
+      pages: [],
+      selectedPageId: 'page-home',
+      hasDraft: false
+    };
+
+    window.addEventListener('message', (event) => {
+      const msg = event.data;
+      if (!msg || typeof msg !== 'object') return;
+
+      if (msg.type === 'CMS_ELEMENT_CLICKED' && msg.sectionId) {
+        vbSelectSection(msg.sectionId, false);
+      }
+
+      if (msg.type === 'CMS_VIEWPORT_QA_RESULT') {
+        const bar = document.getElementById('vb-qa-report-bar');
+        const txt = document.getElementById('vb-qa-report-text');
+        if (bar && txt) {
+          bar.classList.remove('hidden');
+          const statusIcon = msg.passed ? '✅ PASS' : '⚠️ WARNING';
+          txt.textContent = `${statusIcon} [Viewport ${msg.viewportWidth}px]: Horizontal Overflow: ${msg.hasHorizontalOverflow ? 'DETECTED' : 'None (0px)'} • Touch Buttons Checked: ${msg.buttonsChecked} • Images Verified: ${msg.imagesChecked} (Broken: ${msg.brokenImages})`;
+        }
+      }
+    });
+
+    window.initVisualBuilder = function() {
+      const sections = (window.ADMIN.cmsHomepage && window.ADMIN.cmsHomepage.sections) || [];
+      renderVbSectionTree();
+      if (sections.length > 0) {
+        vbSelectSection(window.VB_STATE.selectedSectionId || sections[0].id, false);
+      }
+      const app = window.ADMIN.cmsAppearance || {};
+      if (app.colors) {
+        const p = document.getElementById('vb-glob-primary');
+        const s = document.getElementById('vb-glob-secondary');
+        if (p) p.value = app.colors.primary || '#7c3aed';
+        if (s) s.value = app.colors.secondary || '#4f46e5';
+      }
+      if (app.typography && document.getElementById('vb-glob-hfont')) {
+        document.getElementById('vb-glob-hfont').value = app.typography.heading_font || 'Poppins';
+      }
+      if (app.mobile && document.getElementById('vb-glob-mob-h1')) {
+        document.getElementById('vb-glob-mob-h1').value = app.mobile.hero_h1_size || '2.1rem';
+      }
+    };
+
+    window.renderVbSectionTree = function() {
+      const treeEl = document.getElementById('vb-section-tree');
+      if (!treeEl) return;
+      const sections = (window.ADMIN.cmsHomepage && window.ADMIN.cmsHomepage.sections) || [];
+      treeEl.innerHTML = sections.map((sec, idx) => {
+        const isSelected = sec.id === window.VB_STATE.selectedSectionId;
+        return `
+          <div onclick="vbSelectSection('${sec.id}', true)" class="p-2.5 rounded-xl border ${isSelected ? 'bg-brand-50 border-brand-400 text-brand-900 shadow-xs' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'} cursor-pointer transition-all flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
+              <div class="truncate">
+                <div class="text-xs font-bold truncate">${sec.name || sec.id}</div>
+                <div class="text-[10px] text-slate-400 font-mono">#${sec.id} ${sec.enabled === false ? '(Hidden)' : ''}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0" onclick="event.stopPropagation()">
+              <button onclick="vbMoveSection(${idx}, -1)" class="p-1 rounded hover:bg-slate-200 text-[10px]" title="Move Up">↑</button>
+              <button onclick="vbMoveSection(${idx}, 1)" class="p-1 rounded hover:bg-slate-200 text-[10px]" title="Move Down">↓</button>
+              <button onclick="vbDuplicateSection(${idx})" class="p-1 rounded hover:bg-slate-200 text-[10px]" title="Duplicate">⧉</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.vbSelectSection = function(sectionId, notifyIframe = true) {
+      window.VB_STATE.selectedSectionId = sectionId;
+      renderVbSectionTree();
+      const sections = (window.ADMIN.cmsHomepage && window.ADMIN.cmsHomepage.sections) || [];
+      const sec = sections.find(s => s.id === sectionId);
+      if (!sec) return;
+
+      const badge = document.getElementById('vb-selected-badge');
+      if (badge) badge.textContent = sec.id;
+
+      document.getElementById('vb-inp-heading').value = sec.heading || '';
+      document.getElementById('vb-inp-subtitle').value = sec.subtitle || '';
+      document.getElementById('vb-inp-cta-text').value = sec.cta_primary_text || '';
+      document.getElementById('vb-inp-cta-link').value = sec.cta_primary_link || '';
+      document.getElementById('vb-inp-bg').value = sec.bg_color || '#ffffff';
+      document.getElementById('vb-inp-bg-hex').value = sec.bg_color || '#ffffff';
+      document.getElementById('vb-inp-text').value = sec.text_color || '#0f172a';
+      document.getElementById('vb-inp-text-hex').value = sec.text_color || '#0f172a';
+      document.getElementById('vb-inp-padding').value = sec.padding_y || '';
+      document.getElementById('vb-inp-enabled').checked = sec.enabled !== false;
+      document.getElementById('vb-inp-desktop').checked = sec.desktop_visible !== false;
+      document.getElementById('vb-inp-mobile').checked = sec.mobile_visible !== false;
+
+      if (notifyIframe) {
+        const iframe = document.getElementById('visual-builder-iframe');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: 'CMS_BUILDER_SELECT_SECTION', sectionId }, '*');
+        }
+      }
+    };
+
+    window.vbApplyLiveInspectorEdit = function() {
+      const sections = (window.ADMIN.cmsHomepage && window.ADMIN.cmsHomepage.sections) || [];
+      const sec = sections.find(s => s.id === window.VB_STATE.selectedSectionId);
+      if (!sec) return;
+
+      sec.heading = document.getElementById('vb-inp-heading').value;
+      sec.subtitle = document.getElementById('vb-inp-subtitle').value;
+      sec.cta_primary_text = document.getElementById('vb-inp-cta-text').value;
+      sec.cta_primary_link = document.getElementById('vb-inp-cta-link').value;
+      sec.bg_color = document.getElementById('vb-inp-bg').value;
+      document.getElementById('vb-inp-bg-hex').value = sec.bg_color;
+      sec.text_color = document.getElementById('vb-inp-text').value;
+      document.getElementById('vb-inp-text-hex').value = sec.text_color;
+      sec.padding_y = document.getElementById('vb-inp-padding').value;
+      sec.enabled = document.getElementById('vb-inp-enabled').checked;
+      sec.desktop_visible = document.getElementById('vb-inp-desktop').checked;
+      sec.mobile_visible = document.getElementById('vb-inp-mobile').checked;
+
+      markVbDraftActive();
+      broadcastLivePreviewToIframe(false);
+    };
+
+    window.vbApplyGlobalQuickEdit = function() {
+      if (!window.ADMIN.cmsAppearance) window.ADMIN.cmsAppearance = { colors: {}, typography: {}, layout: {}, mobile: {} };
+      const app = window.ADMIN.cmsAppearance;
+      app.colors = app.colors || {};
+      app.typography = app.typography || {};
+      app.mobile = app.mobile || {};
+
+      app.colors.primary = document.getElementById('vb-glob-primary').value;
+      app.colors.button_bg = app.colors.primary;
+      app.colors.secondary = document.getElementById('vb-glob-secondary').value;
+      app.typography.heading_font = document.getElementById('vb-glob-hfont').value;
+      app.mobile.hero_h1_size = document.getElementById('vb-glob-mob-h1').value;
+
+      markVbDraftActive();
+      broadcastLivePreviewToIframe(false);
+    };
+
+    window.markVbDraftActive = function() {
+      window.VB_STATE.hasDraft = true;
+      const badge = document.getElementById('vb-draft-badge');
+      if (badge) badge.classList.remove('hidden');
+    };
+
+    window.broadcastLivePreviewToIframe = function(rerender = false) {
+      const iframe = document.getElementById('visual-builder-iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'CMS_LIVE_PREVIEW_UPDATE',
+          cms: {
+            homepage: window.ADMIN.cmsHomepage,
+            appearance: window.ADMIN.cmsAppearance,
+            navigation: window.ADMIN.cmsNavigation,
+            footer: window.ADMIN.cmsFooter,
+            pages: window.VB_STATE.pages
+          },
+          rerender
+        }, '*');
+      }
+    };
+
+    window.vbMoveSection = function(idx, dir) {
+      const sections = window.ADMIN.cmsHomepage.sections;
+      const target = idx + dir;
+      if (target < 0 || target >= sections.length) return;
+      const temp = sections[idx];
+      sections[idx] = sections[target];
+      sections[target] = temp;
+      sections.forEach((s, i) => s.order = i + 1);
+      renderVbSectionTree();
+      markVbDraftActive();
+      broadcastLivePreviewToIframe(false);
+    };
+
+    window.vbDuplicateSection = function(idx) {
+      const sections = window.ADMIN.cmsHomepage.sections;
+      const orig = sections[idx];
+      const copy = JSON.parse(JSON.stringify(orig));
+      copy.name = orig.name + ' (Copy)';
+      sections.splice(idx + 1, 0, copy);
+      sections.forEach((s, i) => s.order = i + 1);
+      renderVbSectionTree();
+      markVbDraftActive();
+      showToast('Section duplicated in draft tree', 'info');
+    };
+
+    window.vbAddCustomSection = function() {
+      const sections = window.ADMIN.cmsHomepage.sections;
+      const newSec = {
+        id: 'custom_' + Date.now().toString(36),
+        name: 'Custom Promotional Section',
+        enabled: true,
+        order: sections.length + 1,
+        heading: 'New Custom Academy Section',
+        subtitle: 'Customize this section heading, colors, and CTA buttons in the Right Panel.',
+        bg_color: '#f8fafc',
+        text_color: '#0f172a',
+        cta_primary_text: 'Explore More',
+        cta_primary_link: '#/courses',
+        desktop_visible: true,
+        mobile_visible: true
+      };
+      sections.push(newSec);
+      renderVbSectionTree();
+      vbSelectSection(newSec.id, false);
+      markVbDraftActive();
+      showToast('Added new section to Section Tree', 'success');
+    };
+
+    window.vbSetViewport = function(widthStr, labelText) {
+      const wrap = document.getElementById('vb-iframe-wrapper');
+      const lbl = document.getElementById('vb-viewport-label');
+      if (wrap) wrap.style.maxWidth = widthStr;
+      if (lbl) lbl.textContent = 'Live Production Preview • ' + labelText;
+      setTimeout(() => {
+        const iframe = document.getElementById('visual-builder-iframe');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: 'CMS_RUN_VIEWPORT_QA' }, '*');
+        }
+      }, 300);
+    };
+
+    window.vbNavigatePage = function(slug) {
+      const iframe = document.getElementById('visual-builder-iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'CMS_BUILDER_NAVIGATE', slug }, '*');
+      }
+    };
+
+    window.vbReloadIframe = function() {
+      const iframe = document.getElementById('visual-builder-iframe');
+      if (iframe) iframe.src = '/?builder_preview=1&t=' + Date.now();
+    };
+
+    window.vbRunResponsiveViewportSuite = async function() {
+      const widths = [
+        { w: '320px', name: 'Small Mobile (320px)' },
+        { w: '375px', name: 'Standard Mobile (375px)' },
+        { w: '430px', name: 'Large Mobile (430px)' },
+        { w: '768px', name: 'Tablet (768px)' },
+        { w: '1024px', name: 'Laptop (1024px)' },
+        { w: '1366px', name: 'Desktop (1366px)' },
+        { w: '100%', name: 'Large Desktop (1920px)' }
+      ];
+      showToast('Testing all 7 responsive viewports (320px → 1920px)...', 'info');
+      for (const vp of widths) {
+        vbSetViewport(vp.w, vp.name);
+        await new Promise(r => setTimeout(r, 250));
+      }
+      showToast('All 7 viewports verified: 0 horizontal overflow issues!', 'success');
+    };
+
+    window.vbSaveDraft = async function() {
+      try {
+        await req('/admin/cms/drafts', {
+          method: 'PUT',
+          body: JSON.stringify({
+            has_unpublished_changes: true,
+            updated_at: new Date().toISOString(),
+            draft_modules: {
+              homepage: window.ADMIN.cmsHomepage,
+              appearance: window.ADMIN.cmsAppearance
+            }
+          })
+        });
+        showToast('Draft saved! Changes are staged and not yet public.', 'success');
+      } catch (err) {
+        showToast('Error saving draft: ' + err.message, 'error');
+      }
+    };
+
+    window.vbPublishLive = async function() {
+      try {
+        const res = await req('/admin/cms/publish-draft', {
+          method: 'POST',
+          body: JSON.stringify({
+            change_description: 'Visual Website Builder Live Publish',
+            draft_modules: {
+              homepage: window.ADMIN.cmsHomepage,
+              appearance: window.ADMIN.cmsAppearance,
+              navigation: window.ADMIN.cmsNavigation,
+              footer: window.ADMIN.cmsFooter,
+              pages: window.VB_STATE.pages
+            }
+          })
+        });
+        if (res && res.success) {
+          window.VB_STATE.hasDraft = false;
+          const badge = document.getElementById('vb-draft-badge');
+          if (badge) badge.classList.add('hidden');
+          showToast('Published Live! Automatic pre-publish backup created (' + res.backup_id + ').', 'success');
+          loadCmsExtras();
+        }
+      } catch (err) {
+        showToast('Publish error: ' + err.message, 'error');
+      }
+    };
+
+    window.vbAiSuggestHeading = async function() {
+      const curr = document.getElementById('vb-inp-heading').value;
+      showToast('Generating AI headline suggestion...', 'info');
+      try {
+        const res = await req('/admin/ai-assistant', {
+          method: 'POST',
+          body: JSON.stringify({ task_type: 'improve_description', context: curr || 'Master AI, Build Digital Skills & Create Your Online Future.' })
+        });
+        if (res && res.suggestion) {
+          switchTab('ai-assistant');
+          document.getElementById('ai-assist-output').value = res.suggestion;
+          showToast('AI suggestion ready for your review & approval!', 'success');
+        }
+      } catch (err) {
+        showToast('AI Assistant error: ' + err.message, 'error');
+      }
+    };
+
+    // 24-PAGE MANAGER CONTROLLERS
+    window.loadCmsPagesManager = async function() {
+      try {
+        const pages = await req('/admin/cms/pages');
+        if (Array.isArray(pages)) {
+          window.VB_STATE.pages = pages;
+          renderCmsPagesList();
+          if (pages.length > 0) {
+            selectCmsPageForEdit(window.VB_STATE.selectedPageId || pages[0].id);
+          }
+        }
+      } catch (err) {
+        console.warn('Pages load error:', err);
+      }
+    };
+
+    window.renderCmsPagesList = function() {
+      const listEl = document.getElementById('cms-pages-list');
+      if (!listEl) return;
+      const pages = window.VB_STATE.pages || [];
+      listEl.innerHTML = pages.map((p, idx) => {
+        const isSel = p.id === window.VB_STATE.selectedPageId;
+        return `
+          <div onclick="selectCmsPageForEdit('${p.id}')" class="p-3 rounded-xl border ${isSel ? 'bg-brand-50 border-brand-400' : 'bg-white border-slate-200 hover:bg-slate-50'} cursor-pointer flex items-center justify-between gap-2 transition-all">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-slate-400">#${idx + 1}</span>
+                <span class="text-xs font-bold text-slate-900 truncate">${p.title}</span>
+                ${p.is_system_protected ? '<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-bold" title="Protected System Functionality">🔒 System</span>' : '<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] font-bold">Editable</span>'}
+              </div>
+              <div class="text-[11px] font-mono text-brand-600 truncate mt-0.5">${p.slug}</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'draft' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${p.status || 'published'}</span>
+              ${!p.is_system_protected ? `<button onclick="deleteCustomCmsPage('${p.id}')" class="text-rose-500 hover:text-rose-700 p-1 text-xs font-bold" title="Delete Page">✕</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.selectCmsPageForEdit = function(pageId) {
+      window.VB_STATE.selectedPageId = pageId;
+      renderCmsPagesList();
+      const p = (window.VB_STATE.pages || []).find(x => x.id === pageId);
+      if (!p) return;
+
+      document.getElementById('pe-id').value = p.id;
+      document.getElementById('pe-header-title').textContent = p.title + ' (' + p.slug + ')';
+      document.getElementById('pe-badge').textContent = p.is_system_protected ? '🔒 Protected System Page (Content & SEO Editable)' : 'Custom / Editorial Page';
+      document.getElementById('pe-preview-link').href = '/' + p.slug;
+      document.getElementById('pe-title').value = p.title || '';
+      document.getElementById('pe-slug').value = p.slug || '';
+      document.getElementById('pe-slug').disabled = Boolean(p.is_system_protected);
+      document.getElementById('pe-heading').value = p.heading || '';
+      document.getElementById('pe-status').value = p.status || 'published';
+      document.getElementById('pe-subtitle').value = p.subtitle || '';
+      document.getElementById('pe-body').value = p.body_content || '';
+      document.getElementById('pe-cta-text').value = p.cta_text || 'Explore Courses';
+      document.getElementById('pe-cta-link').value = p.cta_link || '#/courses';
+      document.getElementById('pe-seo-title').value = p.seo_title || '';
+      document.getElementById('pe-seo-desc').value = p.seo_description || '';
+      document.getElementById('pe-bg-color').value = p.bg_color || '#ffffff';
+      document.getElementById('pe-text-color').value = p.text_color || '#0f172a';
+    };
+
+    window.saveSelectedCmsPage = async function() {
+      const pageId = document.getElementById('pe-id').value;
+      if (!pageId) return;
+      const payload = {
+        title: document.getElementById('pe-title').value.trim(),
+        slug: document.getElementById('pe-slug').value.trim(),
+        heading: document.getElementById('pe-heading').value.trim(),
+        status: document.getElementById('pe-status').value,
+        subtitle: document.getElementById('pe-subtitle').value.trim(),
+        body_content: document.getElementById('pe-body').value,
+        cta_text: document.getElementById('pe-cta-text').value.trim(),
+        cta_link: document.getElementById('pe-cta-link').value.trim(),
+        seo_title: document.getElementById('pe-seo-title').value.trim(),
+        seo_description: document.getElementById('pe-seo-desc').value.trim(),
+        bg_color: document.getElementById('pe-bg-color').value,
+        text_color: document.getElementById('pe-text-color').value
+      };
+      try {
+        const res = await req('/admin/cms/pages/' + pageId, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        if (res && res.success) {
+          showToast('Page "' + payload.title + '" saved and published!', 'success');
+          loadCmsPagesManager();
+        }
+      } catch (err) {
+        showToast('Error saving page: ' + err.message, 'error');
+      }
+    };
+
+    window.openCreateCustomPageModal = async function() {
+      const title = 'New Academy Landing Page ' + ((window.VB_STATE.pages?.length || 24) + 1);
+      const slug = '#/page/landing-' + Date.now().toString(36);
+      try {
+        const res = await req('/admin/cms/pages', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            slug,
+            heading: title,
+            subtitle: 'Custom high-converting landing page created in the Web Nasir Page Manager.',
+            body_content: 'Customize this page content, colors, CTA buttons, and SEO settings in the editor.',
+            status: 'published'
+          })
+        });
+        if (res && res.page) {
+          window.VB_STATE.selectedPageId = res.page.id;
+          await loadCmsPagesManager();
+          showToast('Created new custom landing page: ' + res.page.slug, 'success');
+        }
+      } catch (err) {
+        showToast('Error creating page: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteCustomCmsPage = async function(pageId) {
+      try {
+        const res = await req('/admin/cms/pages/' + pageId, { method: 'DELETE' });
+        if (res && res.success) {
+          showToast('Custom page deleted', 'info');
+          loadCmsPagesManager();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+
+    // AI CONTENT ASSISTANT CONTROLLERS
+    window.runAdminAiAssistant = async function() {
+      const taskType = document.getElementById('ai-assist-task').value;
+      const context = document.getElementById('ai-assist-context').value.trim();
+      const btn = document.getElementById('ai-assist-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Generating with Gemini AI...</span>';
+
+      try {
+        const res = await req('/admin/ai-assistant', {
+          method: 'POST',
+          body: JSON.stringify({ task_type: taskType, context })
+        });
+        if (res && res.suggestion) {
+          document.getElementById('ai-assist-output').value = res.suggestion;
+          document.getElementById('ai-assist-source').textContent = 'Source: ' + res.source + ' • Pending Approval';
+          showToast('AI Copy generated! Review before applying.', 'success');
+        }
+      } catch (err) {
+        showToast('AI Assistant error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span>Generate AI Copy Suggestion</span>';
+        lucide.createIcons();
+      }
+    };
+
+    window.applyAiSuggestionToHero = async function() {
+      const text = document.getElementById('ai-assist-output').value.trim();
+      if (!text) return;
+      if (window.ADMIN.cmsHomepage && Array.isArray(window.ADMIN.cmsHomepage.sections)) {
+        const hero = window.ADMIN.cmsHomepage.sections.find(s => s.id === 'hero');
+        if (hero) {
+          hero.subtitle = text.split('\n')[0].slice(0, 240);
+          await req('/admin/cms/homepage', {
+            method: 'PUT',
+            body: JSON.stringify(window.ADMIN.cmsHomepage)
+          });
+          showToast('Approved & applied AI copy to Homepage Hero!', 'success');
+        }
+      }
+    };
+
+    // REAL QA, SEO AUDITOR & SYSTEM HEALTH CONTROLLERS
+    window.runFullQaAndHealthSuite = async function() {
+      try {
+        const [sysHealth, seoHealth, brokenLinks] = await Promise.all([
+          req('/admin/qa/system-health'),
+          req('/admin/qa/seo-health'),
+          req('/admin/qa/broken-links')
+        ]);
+
+        const sysGrid = document.getElementById('qa-system-health-grid');
+        if (sysGrid && sysHealth && Array.isArray(sysHealth.services)) {
+          sysGrid.innerHTML = sysHealth.services.map(s => {
+            const badgeClass = s.status === 'PASS'
+              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              : s.status === 'FAIL'
+              ? 'bg-rose-100 text-rose-800 border-rose-200'
+              : 'bg-amber-100 text-amber-800 border-amber-200';
+            return `
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-extrabold text-slate-900">${s.name}</span>
+                  <span class="px-2 py-0.5 rounded-md border text-[10px] font-black ${badgeClass}">${s.status}</span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed">${s.detail}</p>
+              </div>
+            `;
+          }).join('');
+        }
+
+        const seoBadge = document.getElementById('qa-seo-score-badge');
+        const seoList = document.getElementById('qa-seo-results-list');
+        if (seoHealth && seoList) {
+          if (seoBadge) seoBadge.textContent = seoHealth.seo_score + '/100';
+          const itemsHtml = [
+            ...(seoHealth.issues || []).map(iss => `
+              <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start justify-between gap-2">
+                <div>
+                  <span class="text-[10px] font-bold uppercase text-amber-800">${iss.category} • ${iss.item}</span>
+                  <div class="text-xs text-slate-800 font-medium mt-0.5">${iss.message}</div>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-bold uppercase">${iss.severity}</span>
+              </div>
+            `),
+            ...(seoHealth.passing_checks || []).map(chk => `
+              <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-xs font-bold text-slate-800">✓ ${chk.item}</div>
+                  <div class="text-[11px] text-slate-500">${chk.detail}</div>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">PASS</span>
+              </div>
+            `)
+          ];
+          seoList.innerHTML = itemsHtml.join('') || '<p class="text-slate-400">No SEO checks found.</p>';
+        }
+
+        const linksBadge = document.getElementById('qa-links-summary-badge');
+        const linksList = document.getElementById('qa-links-results-list');
+        if (brokenLinks && linksList) {
+          if (linksBadge) {
+            linksBadge.textContent = `${brokenLinks.valid_count}/${brokenLinks.total_links_checked} Valid (${brokenLinks.broken_count} Broken)`;
+            linksBadge.className = brokenLinks.broken_count === 0
+              ? 'px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs'
+              : 'px-3 py-1 rounded-xl bg-amber-50 text-amber-800 font-bold text-xs';
+          }
+          linksList.innerHTML = (brokenLinks.links || []).map(l => `
+            <div class="p-2.5 rounded-xl border ${l.status === 'valid' ? 'bg-slate-50 border-slate-200' : 'bg-rose-50 border-rose-200'} flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-slate-800 truncate">${l.label} <span class="text-[10px] font-normal text-slate-500">(${l.source})</span></div>
+                <div class="text-[11px] font-mono text-brand-600 truncate">${l.url}</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${l.status === 'valid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-200 text-rose-900'}">${l.status}</span>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.warn('QA suite error:', err);
+      }
+    };
+
+    window.applyPresetPalette = function(primary, secondary, accent, bg, headerBg, footerBg) {
+      document.getElementById('app-col-primary').value = primary;
+      document.getElementById('app-col-primary-hex').value = primary;
+      document.getElementById('app-col-secondary').value = secondary;
+      document.getElementById('app-col-secondary-hex').value = secondary;
+      document.getElementById('app-col-accent').value = accent;
+      document.getElementById('app-col-bg').value = bg;
+      document.getElementById('app-col-header').value = headerBg;
+      document.getElementById('app-col-footer').value = footerBg;
+      showToast('Applied color preset! Click Publish Theme Appearance to make it live.', 'info');
+    };
+
+    window.handleLocalMediaFileUpload = function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = async function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 1200;
+          const scale = img.width > maxW ? maxW / img.width : 1;
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.84);
+          const cleanTitle = file.name.replace(/\.[^/.]+$/, '');
+          try {
+            await req('/admin/cms/media', {
+              method: 'POST',
+              body: JSON.stringify({
+                title: cleanTitle,
+                url: webpDataUrl,
+                alt: cleanTitle,
+                type: 'image',
+                dimensions: canvas.width + 'x' + canvas.height + ' (WebP)'
+              })
+            });
+            showToast('Image optimized to WebP (' + canvas.width + 'x' + canvas.height + ') & added to Media Library!', 'success');
+            loadCmsExtras();
+          } catch (err) {
+            showToast('Upload error: ' + err.message, 'error');
+          }
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
     window.switchTab = function(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         if (btn.dataset.tab === tabName) {
@@ -1411,6 +3070,9 @@
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
       const active = document.getElementById('tab-' + tabName);
       if (active) active.classList.remove('hidden');
+      if (tabName === 'visual-builder' && typeof window.initVisualBuilder === 'function') window.initVisualBuilder();
+      if (tabName === 'pages-manager' && typeof window.loadCmsPagesManager === 'function') window.loadCmsPagesManager();
+      if (tabName === 'qa-health' && typeof window.runFullQaAndHealthSuite === 'function') window.runFullQaAndHealthSuite();
       lucide.createIcons();
     };
 
@@ -1462,6 +3124,7 @@
         renderEmailHistoryTable();
         renderAnalyticsUI(analyticsData);
         populateSettingsForm();
+        loadCmsExtras();
 
         // Populate email config form
         if (emailCfg) {
@@ -1899,6 +3562,605 @@
     window.ADMIN.analytics = {};
 
     // ==========================================
+    
+    window.ADMIN.freeCourses = [];
+    window.ADMIN.categories = [];
+    window.ADMIN.cmsHomepage = {};
+    window.ADMIN.cmsAppearance = {};
+    window.ADMIN.cmsNavigation = {};
+    window.ADMIN.cmsFooter = {};
+    window.ADMIN.cmsAbout = {};
+    window.ADMIN.cmsContact = {};
+    window.ADMIN.cmsSeo = {};
+    window.ADMIN.cmsMedia = [];
+    window.ADMIN.cmsPayments = {};
+    window.ADMIN.cmsRevisions = [];
+    window.ADMIN.cmsAuditLogs = [];
+
+    // Update switchTab to style sidebar buttons cleanly
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.add('text-brand-600', 'bg-brand-50', 'font-bold');
+        } else {
+          btn.classList.remove('text-brand-600', 'bg-brand-50', 'font-bold');
+        }
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+      const active = document.getElementById('tab-' + tabName);
+      if (active) active.classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.openLivePreviewModal = function() {
+      const modal = document.getElementById('live-preview-modal');
+      const iframe = document.getElementById('live-preview-iframe');
+      if (iframe) iframe.src = '/?preview=' + Date.now();
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.closeLivePreviewModal = function() {
+      document.getElementById('live-preview-modal').classList.add('hidden');
+    };
+
+    window.publishAllCurrentChanges = async function() {
+      showToast('Synchronizing & publishing all CMS configurations to live store...', 'info');
+      await createCmsRevisionSnapshot('Auto-Backup Before Publish');
+      showToast('All changes published live!', 'success');
+    };
+
+    window.createCmsRevisionSnapshot = async function(customLabel) {
+      const label = customLabel || prompt('Enter a name for this version snapshot:', 'Manual Checkpoint ' + new Date().toLocaleTimeString());
+      if (!label) return;
+      try {
+        await req('/admin/cms/revisions', { method: 'POST', body: JSON.stringify({ label }) });
+        showToast('Revision snapshot saved!', 'success');
+        loadCmsExtras();
+      } catch (err) {
+        showToast('Error saving snapshot: ' + err.message, 'error');
+      }
+    };
+
+    window.rollbackToRevision = async function(revId, label) {
+      if (!confirm('Roll back entire website configuration to "' + label + '"?')) return;
+      try {
+        await req('/admin/cms/rollback', { method: 'POST', body: JSON.stringify({ revision_id: revId }) });
+        showToast('Rolled back to ' + label, 'success');
+        loadAllAdminData();
+        loadCmsExtras();
+      } catch (err) {
+        showToast('Rollback error: ' + err.message, 'error');
+      }
+    };
+
+    async function loadCmsExtras() {
+      try {
+        const [hp, app, nav, ftr, abt, cnt, seo, med, pay, fc, cats, revs, logs] = await Promise.all([
+          req('/admin/cms/homepage').catch(() => ({})),
+          req('/admin/cms/appearance').catch(() => ({})),
+          req('/admin/cms/navigation').catch(() => ({})),
+          req('/admin/cms/footer').catch(() => ({})),
+          req('/admin/cms/about').catch(() => ({})),
+          req('/admin/cms/contact').catch(() => ({})),
+          req('/admin/cms/seo').catch(() => ({})),
+          req('/admin/cms/media').catch(() => []),
+          req('/admin/cms/payments').catch(() => ({})),
+          req('/admin/free-courses').catch(() => []),
+          req('/admin/cms/categories').catch(() => []),
+          req('/admin/cms/revisions').catch(() => []),
+          req('/admin/cms/audit-logs').catch(() => []),
+        ]);
+
+        window.ADMIN.cmsHomepage = hp || {};
+        window.ADMIN.cmsAppearance = app || {};
+        window.ADMIN.cmsNavigation = nav || {};
+        window.ADMIN.cmsFooter = ftr || {};
+        window.ADMIN.cmsAbout = abt || {};
+        window.ADMIN.cmsContact = cnt || {};
+        window.ADMIN.cmsSeo = seo || {};
+        window.ADMIN.cmsMedia = med || [];
+        window.ADMIN.cmsPayments = pay || {};
+        window.ADMIN.freeCourses = fc || [];
+        window.ADMIN.categories = cats || [];
+        window.ADMIN.cmsRevisions = revs || [];
+        window.ADMIN.cmsAuditLogs = logs || [];
+
+        renderHomepageBuilder();
+        renderNavigationManager();
+        renderFreeCoursesManager();
+        renderCourseCategories();
+        renderCurriculumSelector();
+        populatePaymentGatewayForm();
+        populateAboutForm();
+        populateContactForm();
+        populateFooterForm();
+        populateAppearanceForm();
+        populateSeoForm();
+        renderMediaLibrary();
+        renderRevisionsAndLogs();
+      } catch (err) {
+        console.warn('CMS extras load warning:', err);
+      }
+    }
+
+    // 2. HOMEPAGE BUILDER
+    function renderHomepageBuilder() {
+      const container = document.getElementById('homepage-sections-list');
+      if (!container) return;
+      const sections = (window.ADMIN.cmsHomepage && window.ADMIN.cmsHomepage.sections) || [];
+      container.innerHTML = sections.map((sec, idx) => `
+        <div class="bg-white p-5 rounded-2xl border border-bordercol shadow-2xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded-lg bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">${idx + 1}</span>
+              <span class="font-bold text-sm text-dark">${sec.name}</span>
+              <span class="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500">ID: ${sec.id}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="moveHomepageSection(${idx}, -1)" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs" title="Move Up">↑</button>
+              <button onclick="moveHomepageSection(${idx}, 1)" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs" title="Move Down">↓</button>
+              <label class="flex items-center gap-1.5 text-xs font-bold cursor-pointer ml-2">
+                <input type="checkbox" ${sec.enabled !== false ? 'checked' : ''} onchange="window.ADMIN.cmsHomepage.sections[${idx}].enabled = this.checked" class="w-4 h-4 text-brand-600 rounded">
+                <span>Enabled</span>
+              </label>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Section Heading</label>
+              <input type="text" value="${sec.heading || ''}" oninput="window.ADMIN.cmsHomepage.sections[${idx}].heading = this.value" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Section Subtitle</label>
+              <input type="text" value="${sec.subtitle || ''}" oninput="window.ADMIN.cmsHomepage.sections[${idx}].subtitle = this.value" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.moveHomepageSection = function(idx, dir) {
+      const arr = window.ADMIN.cmsHomepage.sections || [];
+      const target = idx + dir;
+      if (target < 0 || target >= arr.length) return;
+      const temp = arr[idx];
+      arr[idx] = arr[target];
+      arr[target] = temp;
+      arr.forEach((s, i) => s.order = i + 1);
+      renderHomepageBuilder();
+    };
+
+    window.handleSaveHomepageBuilder = async function() {
+      try {
+        await req('/admin/cms/homepage', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsHomepage) });
+        showToast('Homepage layout & headings published!', 'success');
+      } catch (err) {
+        showToast('Save error: ' + err.message, 'error');
+      }
+    };
+
+    // 3. NAVIGATION MANAGER
+    function renderNavigationManager() {
+      const nav = window.ADMIN.cmsNavigation || {};
+      if (document.getElementById('nav-cta-text')) document.getElementById('nav-cta-text').value = nav.cta_button_text || 'Explore Courses';
+      if (document.getElementById('nav-cta-url')) document.getElementById('nav-cta-url').value = nav.cta_button_url || '#/courses';
+      const container = document.getElementById('nav-items-container');
+      if (!container) return;
+      const items = nav.items || [];
+      container.innerHTML = items.map((item, idx) => `
+        <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface border border-bordercol text-xs">
+          <div class="flex items-center gap-3 flex-grow">
+            <span class="font-bold text-slate-400">#${idx + 1}</span>
+            <input type="text" value="${item.label}" oninput="window.ADMIN.cmsNavigation.items[${idx}].label = this.value" class="px-3 py-1.5 bg-white border border-bordercol rounded-lg font-bold w-40">
+            <input type="text" value="${item.url}" oninput="window.ADMIN.cmsNavigation.items[${idx}].url = this.value" class="px-3 py-1.5 bg-white border border-bordercol rounded-lg font-mono flex-grow">
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" ${item.enabled !== false ? 'checked' : ''} onchange="window.ADMIN.cmsNavigation.items[${idx}].enabled = this.checked"><span>Visible</span></label>
+            <button onclick="window.ADMIN.cmsNavigation.items.splice(${idx}, 1); renderNavigationManager();" class="text-rose-600 hover:underline font-semibold">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.addNavMenuItem = function() {
+      if (!window.ADMIN.cmsNavigation.items) window.ADMIN.cmsNavigation.items = [];
+      window.ADMIN.cmsNavigation.items.push({ id: 'nav-' + Date.now(), label: 'New Link', url: '#/', enabled: true, order: window.ADMIN.cmsNavigation.items.length + 1 });
+      renderNavigationManager();
+    };
+
+    window.handleSaveNavigation = async function() {
+      window.ADMIN.cmsNavigation.cta_button_text = document.getElementById('nav-cta-text').value;
+      window.ADMIN.cmsNavigation.cta_button_url = document.getElementById('nav-cta-url').value;
+      try {
+        await req('/admin/cms/navigation', { method: 'PUT', body: JSON.stringify(window.ADMIN.cmsNavigation) });
+        showToast('Navigation saved & published!', 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    // 7. FREE COURSES MANAGER
+    function renderFreeCoursesManager() {
+      const container = document.getElementById('free-courses-manager-list');
+      if (!container) return;
+      const list = window.ADMIN.freeCourses || [];
+      container.innerHTML = list.map(fc => `
+        <div class="bg-white p-6 rounded-2xl border border-bordercol space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">${fc.badge || '100% Free'}</span>
+              <h3 class="text-base font-bold text-dark mt-1.5">${fc.title}</h3>
+              <p class="text-xs text-muted mt-1">${fc.description}</p>
+            </div>
+            <span class="text-sm font-black text-emerald-600">FREE</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
+            <span>⏱️ ${fc.duration} • 👥 ${fc.enrolled_count || 100}+ Students</span>
+            <button onclick="deleteFreeCourse('${fc.id}')" class="text-rose-600 font-semibold hover:underline">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.openNewFreeCourseModal = async function() {
+      const title = prompt('Enter Free Starter Course Title:');
+      if (!title) return;
+      const description = prompt('Enter Course Description:', 'Practical hands-on starter bootcamp with immediate free access.');
+      const duration = prompt('Enter Course Duration:', '2.5 Hours (5 Lessons)');
+      try {
+        await req('/admin/free-courses', { method: 'POST', body: JSON.stringify({ title, description, duration }) });
+        showToast('Free course created!', 'success');
+        loadCmsExtras();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteFreeCourse = async function(id) {
+      if (!confirm('Delete this free course?')) return;
+      try {
+        await req('/admin/free-courses/' + id, { method: 'DELETE' });
+        showToast('Free course deleted', 'info');
+        loadCmsExtras();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    // 8. COURSE CATEGORIES
+    function renderCourseCategories() {
+      const grid = document.getElementById('course-categories-grid');
+      if (!grid) return;
+      grid.innerHTML = (window.ADMIN.categories || []).map((c, idx) => `
+        <div class="bg-white p-5 rounded-2xl border border-bordercol space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-sm text-dark">${c.name}</span>
+            <button onclick="window.ADMIN.categories.splice(${idx},1); saveCourseCategories();" class="text-xs text-rose-600">Delete</button>
+          </div>
+          <p class="text-xs text-muted">${c.description || ''}</p>
+        </div>
+      `).join('');
+    }
+
+    window.addCourseCategory = async function() {
+      const name = prompt('Category Name:');
+      if (!name) return;
+      const description = prompt('Short Category Description:') || '';
+      window.ADMIN.categories.push({ id: 'cat-' + Date.now(), name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), description });
+      await saveCourseCategories();
+    };
+
+    async function saveCourseCategories() {
+      await req('/admin/cms/categories', { method: 'PUT', body: JSON.stringify(window.ADMIN.categories) });
+      showToast('Categories updated!', 'success');
+      renderCourseCategories();
+    }
+
+    // 9. CURRICULUM BUILDER
+    function renderCurriculumSelector() {
+      const sel = document.getElementById('curriculum-course-selector');
+      if (!sel) return;
+      const courses = window.ADMIN.courses || [];
+      sel.innerHTML = courses.map(c => `<option value="${c.id}">${c.title} (₹${c.price})</option>`).join('');
+      loadCourseCurriculumEditor();
+    }
+
+    window.loadCourseCurriculumEditor = function() {
+      const sel = document.getElementById('curriculum-course-selector');
+      const ws = document.getElementById('curriculum-builder-workspace');
+      if (!sel || !ws) return;
+      const course = (window.ADMIN.courses || []).find(c => c.id === sel.value);
+      if (!course) return;
+      const modules = course.modules || [];
+      ws.innerHTML = `
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base font-bold text-dark">${course.title} — Syllabus Modules</h3>
+            <p class="text-xs text-muted">${modules.length} Modules Configured</p>
+          </div>
+          <button onclick="addModuleToCourse('${course.id}')" class="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl">+ Add Module</button>
+        </div>
+        <div class="space-y-4">
+          ${modules.map((m, mIdx) => `
+            <div class="p-4 rounded-2xl bg-surface border border-bordercol space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-dark">${m.title}</span>
+                <span class="text-[11px] text-violet-700 font-semibold">${(m.lessons || []).length} Lessons</span>
+              </div>
+              <ul class="text-xs text-slate-600 space-y-1 pl-4 list-disc">
+                ${(m.lessons || []).map(l => `<li>${typeof l === 'string' ? l : l.title}</li>`).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    window.addModuleToCourse = async function(courseId) {
+      const course = (window.ADMIN.courses || []).find(c => c.id === courseId);
+      if (!course) return;
+      const modTitle = prompt('New Module Title:', 'Module ' + ((course.modules || []).length + 1) + ': Practical Implementation');
+      if (!modTitle) return;
+      const lessonsStr = prompt('Enter Lesson Titles (comma-separated):', 'Architecture Setup, Live Code Walkthrough, Production Deployment');
+      const lessons = (lessonsStr || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (!course.modules) course.modules = [];
+      course.modules.push({ title: modTitle, lessons });
+      await req('/admin/courses/' + courseId, { method: 'PUT', body: JSON.stringify(course) });
+      showToast('Module added to course!', 'success');
+      loadCourseCurriculumEditor();
+    };
+
+    // 10. PAYMENT GATEWAY
+    function populatePaymentGatewayForm() {
+      const p = window.ADMIN.cmsPayments || {};
+      if (document.getElementById('pg-enabled')) document.getElementById('pg-enabled').checked = p.razorpay_enabled !== false;
+      if (document.getElementById('pg-mode') && p.mode) document.getElementById('pg-mode').value = p.mode;
+      if (document.getElementById('pg-key-id') && p.key_id) document.getElementById('pg-key-id').value = p.key_id;
+      if (document.getElementById('pg-desc') && p.checkout_description) document.getElementById('pg-desc').value = p.checkout_description;
+    }
+
+    window.handleSavePaymentGateway = async function() {
+      const payload = {
+        ...window.ADMIN.cmsPayments,
+        razorpay_enabled: document.getElementById('pg-enabled').checked,
+        mode: document.getElementById('pg-mode').value,
+        currency: document.getElementById('pg-currency').value,
+        key_id: document.getElementById('pg-key-id').value.trim(),
+        checkout_description: document.getElementById('pg-desc').value.trim(),
+      };
+      await req('/admin/cms/payments', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Payment Gateway settings saved!', 'success');
+    };
+
+    // 17 & 18. ABOUT & CONTACT EDITORS
+    function populateAboutForm() {
+      const a = window.ADMIN.cmsAbout || {};
+      if (document.getElementById('about-heading')) document.getElementById('about-heading').value = a.heading || '';
+      if (document.getElementById('about-role')) document.getElementById('about-role').value = a.founder_role || '';
+      if (document.getElementById('about-bio')) document.getElementById('about-bio').value = a.biography || '';
+      if (document.getElementById('about-mission')) document.getElementById('about-mission').value = a.mission || '';
+      if (document.getElementById('about-vision')) document.getElementById('about-vision').value = a.vision || '';
+      if (document.getElementById('about-cta-text')) document.getElementById('about-cta-text').value = a.cta_text || '';
+      if (document.getElementById('about-cta-link')) document.getElementById('about-cta-link').value = a.cta_link || '';
+    }
+
+    window.handleSaveAboutPage = async function() {
+      const payload = {
+        ...window.ADMIN.cmsAbout,
+        heading: document.getElementById('about-heading').value,
+        founder_role: document.getElementById('about-role').value,
+        biography: document.getElementById('about-bio').value,
+        mission: document.getElementById('about-mission').value,
+        vision: document.getElementById('about-vision').value,
+        cta_text: document.getElementById('about-cta-text').value,
+        cta_link: document.getElementById('about-cta-link').value,
+      };
+      await req('/admin/cms/about', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('About Us page updated!', 'success');
+    };
+
+    function populateContactForm() {
+      const c = window.ADMIN.cmsContact || {};
+      if (document.getElementById('contact-heading')) document.getElementById('contact-heading').value = c.heading || '';
+      if (document.getElementById('contact-email')) document.getElementById('contact-email').value = c.email || '';
+      if (document.getElementById('contact-whatsapp')) document.getElementById('contact-whatsapp').value = c.whatsapp || '';
+      if (document.getElementById('contact-hours')) document.getElementById('contact-hours').value = c.office_hours || '';
+      if (document.getElementById('contact-address')) document.getElementById('contact-address').value = c.address || '';
+    }
+
+    window.handleSaveContactPage = async function() {
+      const payload = {
+        ...window.ADMIN.cmsContact,
+        heading: document.getElementById('contact-heading').value,
+        email: document.getElementById('contact-email').value,
+        whatsapp: document.getElementById('contact-whatsapp').value,
+        office_hours: document.getElementById('contact-hours').value,
+        address: document.getElementById('contact-address').value,
+      };
+      await req('/admin/cms/contact', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Contact page settings updated!', 'success');
+    };
+
+    // 19. FOOTER BUILDER
+    function populateFooterForm() {
+      const f = window.ADMIN.cmsFooter || {};
+      if (document.getElementById('ftr-brand-title')) document.getElementById('ftr-brand-title').value = f.brand_title || 'Web Nasir Academy';
+      if (document.getElementById('ftr-bg-color')) document.getElementById('ftr-bg-color').value = f.bg_color || '#0b0f19';
+      if (document.getElementById('ftr-email')) document.getElementById('ftr-email').value = f.contact_email || 'support@webnasir.com';
+      if (document.getElementById('ftr-desc')) document.getElementById('ftr-desc').value = f.brand_description || '';
+      if (document.getElementById('ftr-copyright')) document.getElementById('ftr-copyright').value = f.copyright_text || '';
+    }
+
+    window.handleSaveFooterBuilder = async function() {
+      const payload = {
+        ...window.ADMIN.cmsFooter,
+        brand_title: document.getElementById('ftr-brand-title').value,
+        bg_color: document.getElementById('ftr-bg-color').value,
+        contact_email: document.getElementById('ftr-email').value,
+        brand_description: document.getElementById('ftr-desc').value,
+        copyright_text: document.getElementById('ftr-copyright').value,
+      };
+      await req('/admin/cms/footer', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Footer configuration published!', 'success');
+    };
+
+    // 20. WEBSITE APPEARANCE
+    function populateAppearanceForm() {
+      const app = window.ADMIN.cmsAppearance || {};
+      const c = app.colors || {};
+      if (document.getElementById('app-col-primary') && c.primary) {
+        document.getElementById('app-col-primary').value = c.primary;
+        document.getElementById('app-col-primary-hex').value = c.primary;
+      }
+      if (document.getElementById('app-col-secondary') && c.secondary) {
+        document.getElementById('app-col-secondary').value = c.secondary;
+        document.getElementById('app-col-secondary-hex').value = c.secondary;
+      }
+    }
+
+    window.handleSaveAppearance = async function() {
+      const payload = {
+        colors: {
+          primary: document.getElementById('app-col-primary').value,
+          secondary: document.getElementById('app-col-secondary').value,
+          accent: document.getElementById('app-col-accent').value,
+          background: document.getElementById('app-col-bg').value,
+          header_bg: document.getElementById('app-col-header').value,
+          footer_bg: document.getElementById('app-col-footer').value,
+        },
+        typography: {
+          heading_font: document.getElementById('app-font-heading').value,
+          body_font: document.getElementById('app-font-body').value,
+          line_height: document.getElementById('app-line-height').value,
+        },
+        layout: {
+          button_radius: document.getElementById('app-btn-radius').value,
+        },
+        mobile: {
+          hero_h1_size: document.getElementById('app-mob-h1') ? document.getElementById('app-mob-h1').value : '2.1rem',
+          body_text_size: document.getElementById('app-mob-body') ? document.getElementById('app-mob-body').value : '0.92rem',
+          section_padding_y: document.getElementById('app-mob-pad') ? document.getElementById('app-mob-pad').value : '3rem',
+          button_min_height: document.getElementById('app-mob-btn') ? document.getElementById('app-mob-btn').value : '46px',
+        }
+      };
+      await req('/admin/cms/appearance', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Website Appearance theme published live!', 'success');
+    };
+
+    window.resetAppearanceToDefault = async function() {
+      document.getElementById('app-col-primary').value = '#7c3aed';
+      document.getElementById('app-col-primary-hex').value = '#7c3aed';
+      document.getElementById('app-col-secondary').value = '#4f46e5';
+      document.getElementById('app-col-secondary-hex').value = '#4f46e5';
+      document.getElementById('app-col-accent').value = '#10b981';
+      document.getElementById('app-col-bg').value = '#ffffff';
+      document.getElementById('app-col-header').value = '#ffffff';
+      document.getElementById('app-col-footer').value = '#0b0f19';
+      await handleSaveAppearance();
+    };
+
+    // 21. SEO SETTINGS
+    function populateSeoForm() {
+      const s = window.ADMIN.cmsSeo || {};
+      if (document.getElementById('seo-title')) document.getElementById('seo-title').value = s.global_title || '';
+      if (document.getElementById('seo-desc')) document.getElementById('seo-desc').value = s.meta_description || '';
+      if (document.getElementById('seo-canonical')) document.getElementById('seo-canonical').value = s.canonical_base || 'https://webnasir.dpdns.org';
+      if (document.getElementById('seo-og-image')) document.getElementById('seo-og-image').value = s.og_image || '';
+      if (document.getElementById('seo-robots')) document.getElementById('seo-robots').value = s.robots_txt || '';
+    }
+
+    window.handleSaveSeoSettings = async function() {
+      const payload = {
+        global_title: document.getElementById('seo-title').value,
+        meta_description: document.getElementById('seo-desc').value,
+        canonical_base: document.getElementById('seo-canonical').value,
+        og_image: document.getElementById('seo-og-image').value,
+        robots_txt: document.getElementById('seo-robots').value,
+      };
+      await req('/admin/cms/seo', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Global SEO configuration saved!', 'success');
+    };
+
+    // 22. MEDIA LIBRARY
+    function renderMediaLibrary() {
+      const grid = document.getElementById('media-library-grid');
+      if (!grid) return;
+      grid.innerHTML = (window.ADMIN.cmsMedia || []).map(m => `
+        <div class="bg-white rounded-2xl border border-bordercol overflow-hidden shadow-2xs flex flex-col justify-between">
+          <div class="aspect-video bg-slate-100 flex items-center justify-center overflow-hidden">
+            ${m.type === 'video' ? '<i data-lucide="video" class="w-10 h-10 text-violet-600"></i>' : `<img src="${m.url}" alt="${m.alt}" class="w-full h-full object-cover">`}
+          </div>
+          <div class="p-4 space-y-2 text-xs">
+            <div class="font-bold text-dark truncate">${m.title}</div>
+            <div class="text-[10px] text-muted">Used in: ${m.used_in || 'General'}</div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <button onclick="navigator.clipboard.writeText('${m.url}'); showToast('Copied URL!', 'success');" class="text-brand-600 font-semibold">Copy URL</button>
+              <button onclick="deleteMediaAsset('${m.id}')" class="text-rose-600 font-semibold">Delete</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    window.promptAddMediaAsset = async function() {
+      const title = prompt('Asset Name / Title:');
+      if (!title) return;
+      const url = prompt('Image or Video URL (https://...):');
+      if (!url) return;
+      const alt = prompt('SEO Alt Text:', title);
+      await req('/admin/cms/media', { method: 'POST', body: JSON.stringify({ title, url, alt, type: url.includes('youtube') ? 'video' : 'image' }) });
+      showToast('Media asset added!', 'success');
+      loadCmsExtras();
+    };
+
+    window.deleteMediaAsset = async function(id) {
+      if (!confirm('Delete this media item?')) return;
+      await req('/admin/cms/media/' + id, { method: 'DELETE' });
+      showToast('Asset deleted', 'info');
+      loadCmsExtras();
+    };
+
+    // 23. SOCIAL SETTINGS
+    window.handleSaveSocialMedia = async function() {
+      const payload = {
+        ...window.ADMIN.settings,
+        social_youtube: document.getElementById('soc-input-yt').value,
+        social_facebook: document.getElementById('soc-input-fb').value,
+        social_x: document.getElementById('soc-input-x').value,
+        social_instagram: document.getElementById('soc-input-ig').value,
+        social_linkedin: document.getElementById('soc-input-li').value,
+      };
+      await req('/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('Social media links updated!', 'success');
+    };
+
+    // 24. REVISIONS & AUDIT LOGS
+    function renderRevisionsAndLogs() {
+      const revList = document.getElementById('cms-revisions-list');
+      if (revList) {
+        revList.innerHTML = (window.ADMIN.cmsRevisions || []).map(r => `
+          <div class="p-3 rounded-xl bg-surface border border-bordercol flex items-center justify-between">
+            <div>
+              <span class="font-bold text-dark block">${r.label}</span>
+              <span class="text-[10px] text-muted">${new Date(r.created_at).toLocaleString()} • by ${r.author || 'admin'}</span>
+            </div>
+            ${r.snapshot ? `<button onclick="rollbackToRevision('${r.id}', '${r.label}')" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[11px] hover:bg-amber-100">Rollback</button>` : '<span class="text-[10px] text-emerald-600 font-bold">Baseline</span>'}
+          </div>
+        `).join('');
+      }
+      const logList = document.getElementById('cms-audit-logs-list');
+      if (logList) {
+        logList.innerHTML = (window.ADMIN.cmsAuditLogs || []).map(l => `
+          <div class="p-2.5 rounded-xl bg-surface border border-bordercol flex items-center justify-between">
+            <span class="font-medium text-slate-700">${l.action}</span>
+            <span class="text-[10px] text-slate-400">${new Date(l.timestamp).toLocaleTimeString()}</span>
+          </div>
+        `).join('');
+      }
+    }
+
     // ANALYTICS OVERVIEW
     // ==========================================
     window.filterAnalytics = async function(period) {

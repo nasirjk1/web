@@ -10,15 +10,18 @@ export async function ensureSeeded() {
   const existingAuth = await getBlob('auth');
 
   const existingCourses = await getBlob('courses_index');
+  const existingFreeCourses = await getBlob('free_courses_index');
   const existingTestimonials = await getBlob('testimonials_index');
   const existingMarquee = await getBlob('marquee_items');
+  const existingCms = await getBlob('cms_appearance');
 
-  // If already seeded and all indices are present, we don't need to re-seed
-  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth && existingCourses?.length >= 8 && existingTestimonials?.length >= 4 && existingMarquee?.length >= 6) {
+  // If already seeded and all indices are present, ensure extended Phase 1-6 collections exist
+  if (meta && meta.seeded === true && existingTools?.length >= 11 && existingTopics?.length >= 6 && existingArticles?.length >= 3 && existingSettings && existingAuth && existingCourses?.length >= 8 && existingFreeCourses?.length >= 3 && existingTestimonials?.length >= 4 && existingMarquee?.length >= 6 && existingCms) {
+    await ensureExtendedCmsSeeded();
     return;
   }
 
-  console.log('Seeding initial data for Web Nasir (all collections verification)...');
+  console.log('Seeding initial data for Web Nasir (all collections & CMS verification)...');
 
   // 1. Admin Authentication
   if (!existingAuth) {
@@ -1057,11 +1060,589 @@ The mathematical key is **longer retention on 3+ minute videos**:
     ]);
   }
 
-  // 14. Meta Seed Marker
+  // 14. Free Courses Index (Direct Free Enrollment without Razorpay)
+  const freeCourses = [
+    {
+      id: 'free-ai-prompt-foundations',
+      title: 'AI Prompt Engineering & Gemini API Foundations',
+      slug: 'free-ai-prompt-foundations',
+      category: 'AI Engineering',
+      level: 'Beginner Friendly',
+      duration: '3 Hours (6 Lessons)',
+      price: 0,
+      original_price: 1999,
+      is_free: true,
+      rating: 4.9,
+      enrolled_count: 840,
+      badge: '100% Free Course',
+      instructor: 'Nasir',
+      description: 'Learn the core principles of structured prompt design, system instructions, JSON output formatting, and building your first free AI utility.',
+      outcomes: [
+        'Write deterministic system instructions',
+        'Parse structured JSON from Gemini Flash',
+        'Deploy a serverless AI endpoint on Netlify'
+      ],
+      modules: [
+        {
+          title: 'Module 1: Prompt Architecture Fundamentals',
+          lessons: [
+            { title: 'Zero-shot vs Few-shot Prompting', type: 'video', duration: '25m', free_preview: true },
+            { title: 'Structuring System Instructions for Web Apps', type: 'text', duration: '30m', free_preview: true },
+            { title: 'Building Your First AI Micro-Utility', type: 'video', duration: '45m', free_preview: true }
+          ]
+        }
+      ],
+      is_published: true,
+      sort_order: 1,
+    },
+    {
+      id: 'free-adsense-approval-checklist',
+      title: 'Google AdSense Fast-Track Approval & Setup Bootcamp',
+      slug: 'free-adsense-approval-checklist',
+      category: 'Monetization & AdSense',
+      level: 'All Levels',
+      duration: '2.5 Hours (5 Lessons)',
+      price: 0,
+      original_price: 1499,
+      is_free: true,
+      rating: 4.9,
+      enrolled_count: 1120,
+      badge: 'Free Bootcamp',
+      instructor: 'Nasir',
+      description: 'Avoid the dreaded "Low Value Content" rejection. Follow our 20-point pre-application technical audit to get your domain approved cleanly.',
+      outcomes: [
+        'Configure mandatory legal & trust pages',
+        'Fix Core Web Vitals & crawl budget bottlenecks',
+        'Set up ads.txt and high-viewability ad slots'
+      ],
+      modules: [
+        {
+          title: 'Module 1: Pre-Approval Technical Audit',
+          lessons: [
+            { title: 'Fixing Low Value Content Triggers', type: 'video', duration: '35m', free_preview: true },
+            { title: 'Site Architecture & Navigation Signals', type: 'text', duration: '25m', free_preview: true }
+          ]
+        }
+      ],
+      is_published: true,
+      sort_order: 2,
+    },
+    {
+      id: 'free-jamstack-netlify-starter',
+      title: 'Serverless Web Deployment on Netlify & GitHub',
+      slug: 'free-jamstack-netlify-starter',
+      category: 'Web Engineering',
+      level: 'Beginner',
+      duration: '2 Hours (4 Lessons)',
+      price: 0,
+      original_price: 1299,
+      is_free: true,
+      rating: 4.8,
+      enrolled_count: 690,
+      badge: 'Free Starter',
+      instructor: 'Nasir',
+      description: 'Go from local code to a globally distributed production web app with custom DNS, automatic SSL, and serverless Node.js edge functions.',
+      outcomes: [
+        'Connect GitHub repositories to Netlify CI/CD',
+        'Write serverless Node.js API handlers',
+        'Use Netlify Blobs for zero-config persistence'
+      ],
+      modules: [
+        {
+          title: 'Module 1: Production Deployment Workflow',
+          lessons: [
+            { title: 'Git Workflow & Automated Builds', type: 'video', duration: '30m', free_preview: true },
+            { title: 'Configuring netlify.toml & Redirects', type: 'text', duration: '25m', free_preview: true }
+          ]
+        }
+      ],
+      is_published: true,
+      sort_order: 3,
+    }
+  ];
+  await setBlob('free_courses_index', freeCourses);
+
+  // 15. Course Categories
+  const courseCategories = [
+    { id: 'cat-ai', name: 'AI Engineering', slug: 'ai-engineering', description: 'LLMs, Prompt Engineering, Agents & AI SaaS', count: 3, sort_order: 1 },
+    { id: 'cat-web', name: 'Web Engineering', slug: 'web-engineering', description: 'Full-Stack, Serverless, Jamstack & UI Design', count: 2, sort_order: 2 },
+    { id: 'cat-seo', name: 'SEO & Organic Growth', slug: 'seo-growth', description: 'Technical SEO, Programmatic Pages & Topical Authority', count: 2, sort_order: 3 },
+    { id: 'cat-adsense', name: 'Monetization & AdSense', slug: 'monetization', description: 'High-RPM AdSense, Traffic Arbitrage & Digital Publishing', count: 2, sort_order: 4 },
+    { id: 'cat-marketing', name: 'Digital Marketing & Video', slug: 'digital-marketing', description: 'YouTube Automation, Social Media & Performance Ads', count: 2, sort_order: 5 }
+  ];
+  await setBlob('course_categories', courseCategories);
+
+  // 16. CMS Homepage Builder (Ordered Sections & Visual Settings)
+  const cmsHomepage = {
+    status: 'published',
+    updated_at: now,
+    sections: [
+      { id: 'hero', name: 'Hero Banner & Verified Stats', enabled: true, order: 1, heading: 'Master AI, Build Digital Skills & Create Your Online Future.', subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir.', bg_color: '#ffffff', text_color: '#0f172a', cta_primary_text: 'Explore Paid Courses', cta_primary_link: '#/courses', cta_secondary_text: 'Explore 11+ Free AI Tools', cta_secondary_link: '#/tools', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'marquee', name: 'Animated Announcement Marquee (Below Hero)', enabled: true, order: 2, heading: 'Live Announcements', subtitle: '', bg_color: '#0f172a', text_color: '#ffffff', speed: 34, pause_on_hover: true, desktop_visible: true, mobile_visible: true, spacing: 'compact' },
+      { id: 'tools', name: '11 Free AI & Webmaster Utilities', enabled: true, order: 3, heading: 'Free AI & Webmaster Utilities', subtitle: 'Interactive generators, calculators, and SEO utilities designed for web developers, content creators, and digital publishers.', bg_color: '#ffffff', text_color: '#0f172a', cta_primary_text: 'View Complete Free Tools Directory', cta_primary_link: '#/tools', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'paid_courses', name: 'Paid Academy Masterclasses', enabled: true, order: 4, heading: 'Industry-Ready Flagship Masterclasses', subtitle: 'Structured, project-driven courses with lifetime access, source code templates, and direct mentorship.', bg_color: '#f8fafc', text_color: '#0f172a', cta_primary_text: 'View All Masterclasses', cta_primary_link: '#/courses', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'free_courses', name: 'Free Starter Courses (Direct Enrollment)', enabled: true, order: 5, heading: '100% Free Starter Courses & Bootcamps', subtitle: 'Start learning immediately without payment. Sign in with Google or Email for instant access.', bg_color: '#ffffff', text_color: '#0f172a', cta_primary_text: 'Enroll Free Today', cta_primary_link: '#/courses', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'why_choose', name: 'Why Choose Web Nasir Comparison', enabled: true, order: 6, heading: 'Why Serious Builders Choose Web Nasir Academy', subtitle: 'How our practical engineering mentorship compares to generic theoretical video courses.', bg_color: '#f8fafc', text_color: '#0f172a', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'learning_pathways', name: 'Outcome-Driven Learning Pathways', enabled: true, order: 7, heading: 'Everything You Need to Build & Monetize', subtitle: 'Structured career tracks and topic roadmaps connected directly to our technical library.', bg_color: '#ffffff', text_color: '#0f172a', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'founder_video', name: 'Founder Nasir Video Presenter Introduction', enabled: true, order: 8, heading: 'Meet Founder Nasir — Web Nasir Academy Mission', subtitle: 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.', bg_color: '#f8fafc', text_color: '#ffffff', cta_primary_text: 'Watch Full Introduction Video', cta_primary_link: '#video', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'guides_articles', name: 'Battle-Tested Case Studies & Technical Guides', enabled: true, order: 9, heading: 'Battle-Tested Case Studies & Blueprints', subtitle: 'Deep-dive architectural breakdowns, high-RPM AdSense studies, and production code guides.', bg_color: '#ffffff', text_color: '#0f172a', cta_primary_text: 'Read All Guides', cta_primary_link: '#/articles', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'testimonials', name: 'Verified Student & Mentee Reviews', enabled: true, order: 10, heading: 'Verified Student Outcomes & Reviews', subtitle: 'Real feedback from developers, publishers, and creators who trained at Web Nasir Academy.', bg_color: '#f8fafc', text_color: '#0f172a', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' },
+      { id: 'final_cta', name: 'Final Call To Action Banner', enabled: true, order: 11, heading: 'Ready to Build Real Digital Assets & Income?', subtitle: 'Join thousands of learners using Web Nasir free AI tools and flagship technical courses.', bg_color: '#0f172a', text_color: '#ffffff', cta_primary_text: 'Explore Masterclasses', cta_primary_link: '#/courses', cta_secondary_text: 'Try Free AI Tools', cta_secondary_link: '#/tools', show_badges: true, desktop_visible: true, mobile_visible: true, spacing: 'normal' }
+    ]
+  };
+  await setBlob('cms_homepage', cmsHomepage);
+
+  // 17. CMS Appearance & Centralized Theme Configuration
+  const cmsAppearance = {
+    colors: {
+      primary: '#7c3aed',
+      secondary: '#4f46e5',
+      accent: '#10b981',
+      background: '#ffffff',
+      surface: '#f8fafc',
+      header_bg: '#ffffff',
+      footer_bg: '#0b0f19',
+      card_bg: '#ffffff',
+      heading_text: '#0f172a',
+      body_text: '#334155',
+      button_bg: '#7c3aed',
+      button_text: '#ffffff',
+      border_color: '#e2e8f0'
+    },
+    typography: {
+      heading_font: 'Poppins',
+      body_font: 'Inter',
+      h1_size: '3.25rem',
+      h2_size: '2.25rem',
+      h3_size: '1.35rem',
+      body_size: '0.95rem',
+      button_text_size: '0.85rem',
+      nav_text_size: '0.82rem',
+      footer_text_size: '0.8rem',
+      font_weight_heading: '800',
+      line_height: '1.6'
+    },
+    layout: {
+      container_width: '1280px',
+      section_spacing: '5rem',
+      card_radius: '1.5rem',
+      button_radius: '0.875rem',
+      card_shadow: 'subtle',
+      header_height: '5rem',
+      grid_columns_desktop: 3,
+      grid_columns_tablet: 2,
+      grid_columns_mobile: 1
+    },
+    buttons: {
+      primary_bg: '#7c3aed',
+      primary_text: '#ffffff',
+      primary_hover: '#6d28d9',
+      primary_radius: '0.875rem',
+      primary_size: 'md'
+    }
+  };
+  await setBlob('cms_appearance', cmsAppearance);
+
+  // 18. CMS Header & Navigation Manager
+  const cmsNavigation = {
+    sticky_header: true,
+    show_announcement_bar: true,
+    cta_button_text: 'Explore Courses',
+    cta_button_url: '#/courses',
+    items: [
+      { id: 'nav-home', label: 'Home', url: '#/', icon: 'home', enabled: true, order: 1, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-tools', label: 'Free AI Tools', url: '#/tools', icon: 'sparkles', enabled: true, order: 2, desktop: true, mobile: true, new_tab: false, has_mega_menu: true, dropdown: [
+        { label: 'YouTube Hook & Title Crafter', url: '#/tools/youtube' },
+        { label: 'SEO Blog Outline Strategist', url: '#/tools/blogoutline' },
+        { label: 'Code & Regex Explainer', url: '#/tools/codeexplainer' },
+        { label: 'AdSense Revenue Estimator', url: '#/tools/business' },
+        { label: 'View All 11 Free Tools →', url: '#/tools' }
+      ]},
+      { id: 'nav-courses', label: 'Paid Courses', url: '#/courses', icon: 'graduation-cap', enabled: true, order: 3, desktop: true, mobile: true, new_tab: false, has_mega_menu: true, dropdown: [
+        { label: 'Complete AI Mastery & Automation', url: '#/courses/complete-ai-mastery' },
+        { label: 'Production Full-Stack Web Dev', url: '#/courses/fullstack-web-dev' },
+        { label: 'Technical SEO Mastery', url: '#/courses/seo-mastery' },
+        { label: 'Google AdSense High-RPM Blueprint', url: '#/courses/adsense-blogging' },
+        { label: 'Browse All 8 Masterclasses →', url: '#/courses' }
+      ]},
+      { id: 'nav-free-courses', label: 'Free Courses', url: '#/courses?filter=free', icon: 'gift', enabled: true, order: 4, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-tracks', label: 'Career Tracks', url: '#/tracks', icon: 'compass', enabled: true, order: 5, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-articles', label: 'Guides & Articles', url: '#/articles', icon: 'book-open', enabled: true, order: 6, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-about', label: 'About Us', url: '#/about', icon: 'user-check', enabled: true, order: 7, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-contact', label: 'Contact', url: '#/contact', icon: 'mail', enabled: true, order: 8, desktop: true, mobile: true, new_tab: false, dropdown: [] },
+      { id: 'nav-student', label: 'Student Portal', url: '#/student', icon: 'layout', enabled: true, order: 9, desktop: true, mobile: true, new_tab: false, dropdown: [] }
+    ]
+  };
+  await setBlob('cms_navigation', cmsNavigation);
+
+  // 19. CMS Footer Builder
+  const cmsFooter = {
+    brand_title: 'Web Nasir Academy',
+    brand_badge: 'OFFICIAL',
+    brand_description: 'A practical technology academy and engineering platform built by 10-year veteran Nasir. We empower serious creators, software engineers, and digital publishers to master modern AI utilities, full-stack web engineering, and battle-tested monetization architectures.',
+    bg_color: '#0b0f19',
+    text_color: '#cbd5e1',
+    show_newsletter: true,
+    newsletter_title: 'Join Web Nasir Academy Community',
+    newsletter_subtitle: 'Get practical engineering guides on autonomous AI agents, Google AdSense high-RPM architectures, and production Jamstack systems directly to your inbox.',
+    contact_email: 'support@webnasir.com',
+    contact_whatsapp: '+91 7006334417',
+    copyright_text: 'Web Nasir Academy. Built with Netlify Serverless Architecture & Firebase Authentication.',
+    columns: [
+      {
+        id: 'col-tools',
+        title: 'Free AI Utilities',
+        links: [
+          { label: 'YouTube Hook & Title Crafter', url: '#/tools/youtube' },
+          { label: 'SEO Blog Outline Strategist', url: '#/tools/blogoutline' },
+          { label: 'Code & Regex Explainer', url: '#/tools/codeexplainer' },
+          { label: 'High-CTR Ad Copy Crafter', url: '#/tools/adcopy' },
+          { label: 'AdSense Revenue Estimator', url: '#/tools/business' },
+          { label: 'Brand Name Generator', url: '#/tools/name' },
+          { label: 'AdSense Arbitrage Calculator', url: '#/tools/arbitrage' }
+        ]
+      },
+      {
+        id: 'col-courses',
+        title: 'Paid Masterclasses',
+        links: [
+          { label: 'Complete AI Mastery (₹4,999)', url: '#/courses/complete-ai-mastery' },
+          { label: 'Full-Stack Web Dev (₹6,499)', url: '#/courses/fullstack-web-dev' },
+          { label: 'Technical SEO Mastery (₹3,999)', url: '#/courses/seo-mastery' },
+          { label: 'Digital Marketing with AI (₹3,499)', url: '#/courses/digital-marketing-ai' },
+          { label: 'Google AdSense High RPM (₹4,499)', url: '#/courses/adsense-blogging' },
+          { label: 'YouTube Automation (₹3,999)', url: '#/courses/youtube-automation' }
+        ]
+      },
+      {
+        id: 'col-legal',
+        title: 'Academy & Legal',
+        links: [
+          { label: 'About Founder Nasir', url: '#/about' },
+          { label: 'Admissions & Contact', url: '#/contact' },
+          { label: 'Career Pathways', url: '#/tracks' },
+          { label: 'Guides & Case Studies', url: '#/articles' },
+          { label: 'Student Dashboard', url: '#/student' },
+          { label: 'Privacy Policy', url: '#/privacy' },
+          { label: 'Terms & Conditions', url: '#/terms' }
+        ]
+      }
+    ]
+  };
+  await setBlob('cms_footer', cmsFooter);
+
+  // 20. CMS About Us Page Editor
+  const cmsAbout = {
+    badge: '10+ Years Full-Stack & Publishing Track Record',
+    heading: 'Built by a Practitioner, Not a Theoretical Lecturer.',
+    subtitle: 'Meet Nasir — Senior Full-Stack Engineer, AI Systems Architect, and High-RPM Digital Publisher.',
+    founder_name: 'Nasir',
+    founder_role: 'Founder & Lead Technical Mentor',
+    founder_photo: '',
+    biography: 'Over the past decade, Nasir has architected production web applications processing millions of monthly requests, scaled content networks to $35+ AdSense RPMs across Tier-1 geographies, and mentored hundreds of developers into profitable independent careers.',
+    mission: 'To eliminate theoretical fluff from technical education and give every student hands-on, deployable software engineering and digital monetization systems.',
+    vision: 'Building South Asia’s most practical, project-driven AI and Web Engineering Academy where students graduate with live commercial assets.',
+    video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    cta_text: 'Explore Nasir’s Flagship Courses',
+    cta_link: '#/courses',
+    milestones: [
+      { year: '2015', title: 'Started Full-Stack Engineering', desc: 'Built custom web platforms and early content publishing properties.' },
+      { year: '2019', title: 'Scaled High-RPM AdSense Portfolios', desc: 'Crossed $35+ session RPMs targeting US/UK/CA search intent.' },
+      { year: '2023', title: 'Launched AI Micro-SaaS Utilities', desc: 'Engineered lightweight LLM wrappers and automated content pipelines.' },
+      { year: '2025', title: 'Founded Web Nasir Academy', desc: 'Opened direct mentorship, 11 free AI tools, and 8 flagship masterclasses.' }
+    ]
+  };
+  await setBlob('cms_about', cmsAbout);
+
+  // 21. CMS Contact Page Editor
+  const cmsContact = {
+    heading: 'Get in Touch with Admissions & Support',
+    subtitle: 'Have questions about a masterclass, enterprise mentorship, or technical consulting? Reach out directly.',
+    email: 'hello@webnasir.com',
+    support_email: 'support@webnasir.com',
+    whatsapp: '+91 7006334417',
+    phone: '+91 7006334417',
+    address: 'Srinagar, Jammu & Kashmir — Operating Globally Online',
+    office_hours: 'Monday – Saturday: 10:00 AM – 8:00 PM IST',
+    form_enabled: true,
+    whatsapp_cta_enabled: true
+  };
+  await setBlob('cms_contact', cmsContact);
+
+  // 22. CMS SEO Settings
+  const cmsSeo = {
+    global_title: 'Web Nasir Academy — Practical AI Tools, Full-Stack Web Dev & High-RPM Monetization',
+    meta_description: 'Learn practical AI engineering, full-stack web development, technical SEO, and Google AdSense monetization with 10-year veteran Nasir. Access 11 free AI tools.',
+    og_image: 'https://webnasir.dpdns.org/og-banner.png',
+    twitter_card: 'summary_large_image',
+    canonical_base: 'https://webnasir.dpdns.org',
+    robots_txt: 'User-agent: *\nAllow: /\nDisallow: /admin',
+    sitemap_enabled: true,
+    schema_org_enabled: true
+  };
+  await setBlob('cms_seo', cmsSeo);
+
+  // 23. CMS Media Library
+  const cmsMedia = [
+    { id: 'med-1', title: 'Academy Hero Banner', url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80', type: 'image', alt: 'Web Nasir Academy Collaborative Learning', used_in: 'Homepage Hero', created_at: now },
+    { id: 'med-2', title: 'AI Mastery Course Cover', url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80', type: 'image', alt: 'Complete AI Mastery Course Thumbnail', used_in: 'Courses Catalog', created_at: now },
+    { id: 'med-3', title: 'Full-Stack Web Dev Cover', url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80', type: 'image', alt: 'Full-Stack Web Development Thumbnail', used_in: 'Courses Catalog', created_at: now },
+    { id: 'med-4', title: 'Founder Intro Video Stream', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', type: 'video', alt: 'Founder Nasir Welcome Video', used_in: 'Founder Video Section', created_at: now }
+  ];
+  await setBlob('cms_media', cmsMedia);
+
+  // 24. CMS Payment Gateway Settings
+  const cmsPayments = {
+    razorpay_enabled: true,
+    mode: 'test',
+    key_id: 'rzp_test_webnasir_demo',
+    key_secret_masked: '••••••••••••••••',
+    currency: 'INR',
+    currency_symbol: '₹',
+    checkout_brand_name: 'Web Nasir Academy',
+    checkout_description: 'Instant Lifetime Access to Masterclass & Source Code',
+    methods: {
+      upi: true,
+      cards: true,
+      netbanking: true,
+      wallets: true
+    },
+    success_redirect: '#/student',
+    failure_redirect: '#/courses',
+    webhook_url: 'https://webnasir.dpdns.org/api/webhooks/razorpay',
+    connection_status: 'Connected (Test Mode Ready)'
+  };
+  await setBlob('cms_payments', cmsPayments);
+
+  // 25. CMS Users & Role Access Management
+  const cmsUsers = [
+    { id: 'adm-1', username: 'admin', email: 'muharim6@gmail.com', role: 'Super Admin', permissions: 'Full CMS, Payments, Security & Student Access', status: 'active', last_active: now }
+  ];
+  await setBlob('cms_users', cmsUsers);
+
+  // 26. CMS Revisions & Audit Logs
+  await setBlob('cms_revisions', [
+    { id: 'rev-initial', label: 'Initial Production Academy State', created_at: now, author: 'admin' }
+  ]);
+  await setBlob('cms_audit_logs', [
+    { id: 'log-1', action: 'System Seeded with Complete 27-Module CMS Control Center', actor: 'system', timestamp: now }
+  ]);
+
+  await ensureExtendedCmsSeeded();
+
+  // 27. Meta Seed Marker
   await setBlob('meta', {
     seeded: true,
     seeded_at: now,
   });
 
-  console.log('Web Nasir Academy extended seeding completed.');
+  console.log('Web Nasir Academy extended 27-module CMS seeding completed.');
 }
+
+async function ensureExtendedCmsSeeded() {
+  const now = new Date().toISOString();
+
+  // A. Top Announcement Bar Detailed Config
+  const existingAnnouncement = await getBlob('cms_announcement');
+  if (!existingAnnouncement) {
+    await setBlob('cms_announcement', {
+      enabled: true,
+      mobile_visible: true,
+      badge: 'New 2025 Edition',
+      text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
+      button_text: 'Explore Courses →',
+      link_url: '#/courses',
+      icon: 'sparkles',
+      bg_color: '#0f172a',
+      text_color: '#ffffff',
+      badge_bg: '#7c3aed',
+      font_size: '0.78rem',
+      font_weight: '600',
+      height: '40px',
+      padding_y: '8px',
+      animation: 'none',
+      start_date: '',
+      end_date: ''
+    });
+  }
+
+  // B. Marquee Manager Detailed Config
+  const existingMarqueeCfg = await getBlob('cms_marquee_config');
+  if (!existingMarqueeCfg) {
+    await setBlob('cms_marquee_config', {
+      enabled: true,
+      mobile_visible: true,
+      speed_seconds: 32,
+      direction: 'left',
+      bg_color: '#0f172a',
+      text_color: '#f8fafc',
+      accent_color: '#a78bfa',
+      font_size: '0.82rem',
+      pause_on_hover: true,
+      position: 'below_hero',
+      start_date: '',
+      end_date: ''
+    });
+  }
+
+  // C. Sidebar Manager Configuration
+  const existingSidebars = await getBlob('cms_sidebars');
+  if (!existingSidebars) {
+    await setBlob('cms_sidebars', {
+      global_enabled: true,
+      position: 'left',
+      width: '280px',
+      bg_color: '#ffffff',
+      text_color: '#0f172a',
+      sticky: true,
+      default_collapsed: false,
+      mobile_drawer: true,
+      page_visibility: {
+        tools: true,
+        courses: true,
+        articles: true,
+        student: true,
+        homepage: false
+      },
+      sections: [
+        {
+          id: 'sb-quick-nav',
+          heading: 'Academy Navigation',
+          items: [
+            { label: '11 Free AI Utilities', url: '#/tools', icon: 'cpu', enabled: true },
+            { label: '8 Flagship Masterclasses', url: '#/courses', icon: 'graduation-cap', enabled: true },
+            { label: 'Free Starter Bootcamps', url: '#/courses?filter=free', icon: 'gift', enabled: true },
+            { label: 'Career Learning Tracks', url: '#/tracks', icon: 'compass', enabled: true },
+            { label: 'Case Studies & Guides', url: '#/articles', icon: 'book-open', enabled: true },
+            { label: 'Student Portal', url: '#/student', icon: 'user', enabled: true }
+          ]
+        }
+      ]
+    });
+  }
+
+  // D. Upgrade cms_appearance with Mobile Optimization Tokens & Color Palettes
+  const appearance = (await getBlob('cms_appearance')) || {};
+  if (!appearance.mobile) {
+    appearance.theme_mode = appearance.theme_mode || 'light';
+    appearance.colors = {
+      primary: '#7c3aed',
+      secondary: '#4f46e5',
+      accent: '#10b981',
+      background: '#ffffff',
+      surface: '#f8fafc',
+      header_bg: '#ffffff',
+      header_text: '#0f172a',
+      footer_bg: '#0b0f19',
+      footer_text: '#cbd5e1',
+      card_bg: '#ffffff',
+      heading_text: '#0f172a',
+      body_text: '#334155',
+      link_color: '#7c3aed',
+      button_bg: '#7c3aed',
+      button_text: '#ffffff',
+      button_hover: '#6d28d9',
+      border_color: '#e2e8f0',
+      ...(appearance.colors || {})
+    };
+    appearance.typography = {
+      heading_font: 'Poppins',
+      body_font: 'Inter',
+      nav_font: 'Inter',
+      button_font: 'Inter',
+      h1_size: '3.25rem',
+      h2_size: '2.25rem',
+      h3_size: '1.35rem',
+      h4_size: '1.125rem',
+      body_size: '0.95rem',
+      small_size: '0.82rem',
+      button_text_size: '0.85rem',
+      nav_text_size: '0.82rem',
+      footer_text_size: '0.8rem',
+      font_weight_heading: '800',
+      line_height: '1.6',
+      letter_spacing: '-0.02em',
+      ...(appearance.typography || {})
+    };
+    appearance.layout = {
+      container_width: '1280px',
+      section_spacing: '5rem',
+      section_margin: '0rem',
+      card_spacing: '1.5rem',
+      card_radius: '1.5rem',
+      button_radius: '0.875rem',
+      card_shadow: 'subtle',
+      header_height: '5rem',
+      image_aspect_ratio: '16/9',
+      grid_columns_desktop: 3,
+      grid_columns_tablet: 2,
+      grid_columns_mobile: 1,
+      ...(appearance.layout || {})
+    };
+    appearance.mobile = {
+      header_height: '4rem',
+      logo_size: '2.25rem',
+      menu_style: 'slide_drawer',
+      hero_h1_size: '2.1rem',
+      hero_subtitle_size: '0.95rem',
+      body_text_size: '0.92rem',
+      card_columns: 1,
+      button_full_width: true,
+      button_min_height: '46px',
+      section_padding_y: '3rem',
+      footer_stack: 'vertical',
+      video_aspect_ratio: '16/9',
+      hide_announcement_on_small: false
+    };
+    appearance.palettes = [
+      { id: 'pal-default', name: 'Web Nasir Royal Violet (Default)', primary: '#7c3aed', secondary: '#4f46e5', accent: '#10b981', background: '#ffffff', surface: '#f8fafc', heading_text: '#0f172a', body_text: '#334155' },
+      { id: 'pal-emerald', name: 'Emerald Engineering Studio', primary: '#059669', secondary: '#0d9488', accent: '#6366f1', background: '#ffffff', surface: '#f0fdf4', heading_text: '#064e3b', body_text: '#1e293b' },
+      { id: 'pal-ocean', name: 'Executive Cobalt Blue', primary: '#2563eb', secondary: '#1d4ed8', accent: '#f59e0b', background: '#ffffff', surface: '#f8fafc', heading_text: '#0f172a', body_text: '#334155' },
+      { id: 'pal-dark', name: 'Midnight Obsidian Dark', primary: '#8b5cf6', secondary: '#6366f1', accent: '#10b981', background: '#090d16', surface: '#111827', heading_text: '#f8fafc', body_text: '#cbd5e1' }
+    ];
+    await setBlob('cms_appearance', appearance);
+  }
+
+  // E. Complete 24-Page Manager Catalog (cms_pages)
+  const existingPages = await getBlob('cms_pages');
+  if (!existingPages || existingPages.length < 24) {
+    const defaultPages = [
+      { id: 'page-home', title: 'Homepage', slug: '#/', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Master AI, Build Digital Skills & Create Your Online Future.', subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir.', seo_title: 'Web Nasir Academy — Practical AI Tools, Full-Stack Web Dev & High-RPM Monetization', seo_description: 'Access 11 free AI tools, 8 flagship masterclasses, and battle-tested AdSense & SEO blueprints.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'full-width', updated_at: now },
+      { id: 'page-about', title: 'About Us', slug: '#/about', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Built by a Practitioner, Not a Theoretical Lecturer.', subtitle: 'Meet Nasir — 10+ Years Full-Stack Engineer, AI Architect & High-RPM Digital Publisher.', seo_title: 'About Founder Nasir — Web Nasir Academy', seo_description: 'Learn about Founder Nasir’s 10+ year track record in full-stack software engineering and high-RPM publishing.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
+      { id: 'page-contact', title: 'Contact Us', slug: '#/contact', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Get in Touch with Admissions & Support', subtitle: 'Have questions about a masterclass, enterprise mentorship, or technical consulting?', seo_title: 'Contact Admissions & Support — Web Nasir Academy', seo_description: 'Reach Web Nasir Academy support via Email or WhatsApp (+91 7006334417).', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
+      { id: 'page-tools', title: 'Free AI Tools', slug: '#/tools', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: '11 Free AI & Webmaster Utilities', subtitle: 'Production-grade AI generators, SEO analyzers, and revenue calculators.', seo_title: '11 Free AI & SEO Tools — Web Nasir Academy', seo_description: 'Use 11 free AI & webmaster utilities powered by Gemini Flash and deterministic calculators.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-tool-detail', title: 'Individual AI Tool Pages', slug: '#/tools/:id', route_type: 'dynamic', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Interactive AI Utility Workspace', subtitle: 'Configure inputs, generate real-time results, and save to your student workspace.', seo_title: 'AI Tool Workspace — Web Nasir Academy', seo_description: 'Interactive AI generator and webmaster utility workspace.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'workspace', updated_at: now },
+      { id: 'page-courses', title: 'Paid Courses', slug: '#/courses', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Industry-Ready Flagship Masterclasses', subtitle: 'Structured engineering and digital monetization courses with lifetime access.', seo_title: 'Flagship Masterclasses & Courses — Web Nasir Academy', seo_description: 'Enroll in practical AI engineering, full-stack web dev, technical SEO, and AdSense masterclasses.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-course-detail', title: 'Individual Course Pages', slug: '#/courses/:id', route_type: 'dynamic', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Masterclass Syllabus & Enrollment', subtitle: 'Explore full module breakdown, learning outcomes, and instant checkout.', seo_title: 'Course Curriculum & Enrollment — Web Nasir Academy', seo_description: 'Detailed course syllabus, video lessons, and instant Razorpay/UPI enrollment.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'split', updated_at: now },
+      { id: 'page-free-courses', title: 'Free Courses', slug: '#/courses?filter=free', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: '100% Free Starter Courses & Bootcamps', subtitle: 'Enroll with one click using your Google or Email student account.', seo_title: 'Free AI & Web Dev Starter Courses — Web Nasir Academy', seo_description: 'Start learning AI prompt engineering, AdSense approval, and Jamstack deployment for free.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-tracks', title: 'Learning Pathways', slug: '#/tracks', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Outcome-Driven Learning Pathways', subtitle: 'Step-by-step roadmaps from foundational concepts to commercial deployment.', seo_title: 'Career Learning Pathways — Web Nasir Academy', seo_description: 'Structured learning tracks for AI builders, full-stack developers, and digital publishers.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
+      { id: 'page-articles', title: 'Guides & Articles', slug: '#/articles', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Technical Guides & Engineering Blueprints', subtitle: 'In-depth tutorials on AI architectures, SEO, and high-RPM monetization.', seo_title: 'Technical Guides & Tutorials — Web Nasir Academy', seo_description: 'Read practical engineering guides and digital publishing blueprints by Nasir.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-article-detail', title: 'Individual Article Pages', slug: '#/articles/:slug', route_type: 'dynamic', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Technical Deep-Dive Article', subtitle: 'Detailed architecture notes, benchmarks, and implementation steps.', seo_title: 'Technical Article — Web Nasir Academy', seo_description: 'In-depth technical article and engineering breakdown.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'editorial', updated_at: now },
+      { id: 'page-case-studies', title: 'Case Studies', slug: '#/articles?tag=case-study', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Verified Production Case Studies', subtitle: 'Real traffic, RPM, and architecture case studies from live web properties.', seo_title: 'Production Case Studies — Web Nasir Academy', seo_description: 'Verified AdSense RPM, SEO growth, and AI SaaS case studies.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-student-login', title: 'Student Login', slug: '#/student-login', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Sign In to Your Student Account', subtitle: 'Continue with Google or Email & Password to access your enrolled courses and saved AI generations.', seo_title: 'Student Sign In — Web Nasir Academy', seo_description: 'Sign in or create your free Web Nasir Academy student account.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'auth', updated_at: now },
+      { id: 'page-student-dashboard', title: 'Student Dashboard', slug: '#/student', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'authenticated', heading: 'Student Learning Portal & Saved AI Workspace', subtitle: 'Access your enrolled paid and free courses, progress tracker, and saved AI outputs.', seo_title: 'Student Portal — Web Nasir Academy', seo_description: 'Your personal learning dashboard and saved AI generations.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'dashboard', updated_at: now },
+      { id: 'page-my-courses', title: 'My Courses', slug: '#/student?tab=courses', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'authenticated', heading: 'My Enrolled Courses & Bootcamps', subtitle: 'Resume your video lessons, download source code templates, and track completion.', seo_title: 'My Enrolled Courses — Web Nasir Academy', seo_description: 'Access your enrolled Web Nasir Academy courses and lessons.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'dashboard', updated_at: now },
+      { id: 'page-checkout', title: 'Checkout', slug: '#/checkout', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Secure Course Enrollment & Checkout', subtitle: 'Instant enrollment via UPI, Debit/Credit Cards, NetBanking, or Razorpay.', seo_title: 'Secure Checkout — Web Nasir Academy', seo_description: 'Complete your course enrollment securely via Razorpay or UPI.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'checkout', updated_at: now },
+      { id: 'page-payment-success', title: 'Payment Success', slug: '#/payment-success', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Enrollment Confirmed! Welcome to the Masterclass.', subtitle: 'Your payment has been verified and instant course access is unlocked in your Student Portal.', seo_title: 'Enrollment Confirmed — Web Nasir Academy', seo_description: 'Payment confirmed and course unlocked.', bg_color: '#f0fdf4', text_color: '#064e3b', layout: 'centered', updated_at: now },
+      { id: 'page-payment-failure', title: 'Payment Failure', slug: '#/payment-failure', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Payment Could Not Be Completed', subtitle: 'No worries — if any amount was debited, it will be automatically refunded or verified by support.', seo_title: 'Payment Status — Web Nasir Academy', seo_description: 'Retry your course enrollment or contact WhatsApp support.', bg_color: '#fef2f2', text_color: '#7f1d1d', layout: 'centered', updated_at: now },
+      { id: 'page-privacy', title: 'Privacy Policy', slug: '#/privacy', route_type: 'legal', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Privacy Policy & Data Protection', subtitle: 'How Web Nasir Academy collects, secures, and processes student and visitor data.', body_content: 'Web Nasir Academy respects your privacy. We use Firebase Authentication for secure student sign-in and store only essential profile, course enrollment, and saved AI generation data. We never sell personal data to third parties.', seo_title: 'Privacy Policy — Web Nasir Academy', seo_description: 'Privacy policy and student data protection standards at Web Nasir Academy.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'editorial', updated_at: now },
+      { id: 'page-terms', title: 'Terms & Conditions', slug: '#/terms', route_type: 'legal', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Terms & Conditions of Use', subtitle: 'Academic integrity, course licensing, refund policies, and acceptable use of AI utilities.', body_content: 'By accessing Web Nasir Academy, you agree to use our 11 free AI tools and paid masterclasses for lawful educational and commercial building purposes. Paid courses include lifetime single-user access and source code usage rights.', seo_title: 'Terms & Conditions — Web Nasir Academy', seo_description: 'Terms of service and course licensing policies for Web Nasir Academy.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'editorial', updated_at: now },
+      { id: 'page-disclaimer', title: 'Disclaimer', slug: '#/disclaimer', route_type: 'legal', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Educational & Earnings Disclaimer', subtitle: 'Transparency regarding technical outcomes, AdSense RPMs, and commercial results.', body_content: 'All revenue calculators, AdSense RPM benchmarks, and traffic case studies shared on Web Nasir Academy represent real historical engineering data. Individual student results depend on niche selection, execution quality, and traffic volume.', seo_title: 'Disclaimer — Web Nasir Academy', seo_description: 'Educational and earnings disclaimer for Web Nasir Academy.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'editorial', updated_at: now },
+      { id: 'page-faq', title: 'FAQ', slug: '#/faq', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Frequently Asked Questions', subtitle: 'Everything you need to know about our free AI utilities, paid masterclasses, certificates, and mentorship.', body_content: 'Q: Are the 11 AI tools completely free?\nA: Yes, all 11 AI & webmaster utilities are 100% free to use.\n\nQ: How do I access paid courses after payment?\nA: Immediately after Razorpay or UPI verification, the course unlocks inside your Student Portal with lifetime access.\n\nQ: Do I get source code templates?\nA: Yes, all engineering and AI masterclasses include downloadable production templates.', seo_title: 'Frequently Asked Questions — Web Nasir Academy', seo_description: 'Answers to common questions about Web Nasir Academy courses, AI tools, and payments.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'editorial', updated_at: now },
+      { id: 'page-search', title: 'Search Results', slug: '#/search', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Search Courses, AI Tools & Guides', subtitle: 'Find any tool, course module, or technical blueprint across Web Nasir Academy.', seo_title: 'Search — Web Nasir Academy', seo_description: 'Search across all courses, AI tools, and articles on Web Nasir Academy.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
+      { id: 'page-custom-landing', title: 'Custom Landing Pages (AI SaaS Bootcamp)', slug: '#/page/ai-bootcamp', route_type: 'custom', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Build & Launch Your First Profitable AI Micro-SaaS in 14 Days', subtitle: 'A dedicated intensive workshop by Founder Nasir with deployable Netlify serverless templates and Gemini API integration.', cta_text: 'Enroll in Complete AI Mastery →', cta_link: '#/courses/complete-ai-mastery', body_content: 'This custom landing page is 100% managed from the Web Nasir Page Builder. You can duplicate this page, customize its hero banner, add custom sections, or create unlimited promotional landing pages without touching code.', seo_title: 'AI Micro-SaaS 14-Day Bootcamp — Web Nasir Academy', seo_description: 'Launch a production AI Micro-SaaS using Gemini Flash and Netlify Serverless Functions.', bg_color: '#0f172a', text_color: '#ffffff', layout: 'landing', updated_at: now }
+    ];
+    await setBlob('cms_pages', defaultPages);
+  }
+
+  // F. Draft Staging Store (cms_drafts)
+  const existingDrafts = await getBlob('cms_drafts');
+  if (!existingDrafts) {
+    await setBlob('cms_drafts', {
+      has_unpublished_changes: false,
+      updated_at: now,
+      draft_modules: {}
+    });
+  }
+}
+
