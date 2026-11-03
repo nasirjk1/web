@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getBlob, setBlob, deleteBlob, initBlobEnvironment } from './lib/store.js';
+import { getBlob, setBlob, deleteBlob, listBlobs, initBlobEnvironment } from './lib/store.js';
 import {
   hashPassword,
   verifyPassword,
@@ -200,16 +200,16 @@ export const handler = async (event, context) => {
 
       const toolSlugMap = {
         youtube: 'youtube-title-generator',
-        blog: 'seo-blog-outline-generator',
-        code: 'code-and-regex-explainer',
-        adcopy: 'high-converting-ad-copy-generator',
-        adsense: 'adsense-rpm-revenue-calculator',
-        words: 'seo-word-and-keyword-density-counter',
-        meta: 'meta-tag-and-opengraph-generator',
-        utm: 'campaign-utm-link-builder',
-        privacy: 'website-privacy-policy-generator',
-        roas: 'facebook-and-google-ads-roas-calculator',
-        password: 'cryptographic-password-generator',
+        blogoutline: 'seo-blog-outline-generator',
+        codeexplainer: 'code-regex-explainer',
+        adcopy: 'ad-copy-generator',
+        business: 'adsense-revenue-calculator',
+        name: 'domain-brand-name-generator',
+        instagram: 'social-media-caption-generator',
+        wordcount: 'word-count-seo-analyzer',
+        password: 'password-generator',
+        age: 'age-milestone-calculator',
+        arbitrage: 'adsense-arbitrage-calculator',
       };
 
       const urls = [
@@ -219,16 +219,21 @@ export const handler = async (event, context) => {
         { loc: `${base}/tools`, priority: '0.9', changefreq: 'weekly' },
         { loc: `${base}/courses`, priority: '0.9', changefreq: 'weekly' },
         { loc: `${base}/free-courses`, priority: '0.9', changefreq: 'weekly' },
-        { loc: `${base}/guides`, priority: '0.9', changefreq: 'daily' },
+        { loc: `${base}/articles`, priority: '0.9', changefreq: 'daily' },
         { loc: `${base}/topics`, priority: '0.8', changefreq: 'weekly' },
+        { loc: `${base}/learning-pathways`, priority: '0.8', changefreq: 'weekly' },
         { loc: `${base}/faq`, priority: '0.7', changefreq: 'monthly' },
         { loc: `${base}/privacy`, priority: '0.5', changefreq: 'yearly' },
         { loc: `${base}/terms`, priority: '0.5', changefreq: 'yearly' },
+        { loc: `${base}/refund-policy`, priority: '0.5', changefreq: 'yearly' },
         { loc: `${base}/disclaimer`, priority: '0.5', changefreq: 'yearly' },
       ];
 
       tools.filter((t) => t.is_enabled !== false).forEach((t) => {
-        const cleanSlug = t.seo_slug || toolSlugMap[t.key] || t.key;
+        const cleanSlug =
+          t.seo_slug && t.seo_slug !== t.key
+            ? t.seo_slug
+            : toolSlugMap[t.key] || t.seo_slug || t.key;
         urls.push({ loc: `${base}/tools/${cleanSlug}`, priority: '0.85', changefreq: 'weekly' });
       });
 
@@ -241,7 +246,7 @@ export const handler = async (event, context) => {
       });
 
       articles.filter((a) => a.is_published !== false).forEach((a) => {
-        urls.push({ loc: `${base}/guides/${a.slug}`, priority: '0.8', changefreq: 'weekly' });
+        urls.push({ loc: `${base}/articles/${a.slug}`, priority: '0.8', changefreq: 'weekly' });
       });
 
       pages.filter((p) => p.status !== 'draft' && !p.is_system_protected && p.slug && p.slug.includes('/page/')).forEach((p) => {
@@ -273,7 +278,7 @@ export const handler = async (event, context) => {
       const base = (seo.canonical_base || 'https://webnasir.dpdns.org').replace(/\/+$/, '');
       const robotsContent =
         seo.robots_txt ||
-        `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/admin/\nSitemap: ${base}/sitemap.xml`;
+        `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /student\nDisallow: /student/dashboard\nDisallow: /checkout\nDisallow: /api/admin/\nSitemap: ${base}/sitemap.xml`;
       return {
         statusCode: 200,
         headers: {
@@ -283,6 +288,38 @@ export const handler = async (event, context) => {
         },
         body: robotsContent,
       };
+    }
+
+    // GET /api/health (Portability, Storage & Payment Readiness Check)
+    if (method === 'GET' && cleanPath === '/health') {
+      const isNetlify = !!(
+        event.blobs ||
+        process.env.NETLIFY ||
+        process.env.NETLIFY_BLOBS_CONTEXT ||
+        globalThis.netlifyBlobsContext ||
+        (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN)
+      );
+      return jsonResponse(200, {
+        status: 'ok',
+        service: 'web-nasir-platform',
+        timestamp: new Date().toISOString(),
+        runtime: isNetlify ? 'netlify-functions' : 'nodejs-server',
+        storage: {
+          production_cms: 'netlify-blobs',
+          store_name: 'webnasir',
+          consistency: 'strong',
+          active_mode: isNetlify ? 'netlify-blobs' : 'local-filesystem-fallback (.netlify-blobs-data)',
+          local_storage_dir_required_on_netlify: false,
+        },
+        payments: {
+          primary_gateway: 'razorpay',
+          currency: 'INR',
+          stripe_required: false,
+        },
+        firebase: {
+          student_auth_and_data_isolated: true,
+        },
+      });
     }
 
     // GET /api/media/file/:idWithExt (Persistent Media File Binary Streamer)
@@ -363,10 +400,26 @@ export const handler = async (event, context) => {
 
     // GET /api/articles/:slug
     if (method === 'GET' && cleanPath.startsWith('/articles/')) {
-      const slug = cleanPath.replace('/articles/', '').trim();
-      if (!slug) return jsonResponse(400, { error: 'Article slug is required' });
+      const rawSlug = cleanPath.replace('/articles/', '').trim();
+      if (!rawSlug) return jsonResponse(400, { error: 'Article slug is required' });
 
-      const article = await getBlob(`article:${slug}`);
+      const aliasMap = {
+        'adsense-high-rpm-guide': 'google-adsense-high-rpm',
+      };
+      const resolvedSlug = aliasMap[rawSlug] || rawSlug;
+
+      let article = (await getBlob(`article:${resolvedSlug}`)) || (await getBlob(`article:${rawSlug}`));
+      if (!article && rawSlug === 'seo-for-beginners') {
+        article = {
+          slug: 'seo-for-beginners',
+          tag: 'blogging',
+          title: 'SEO for Beginners: Complete Step-by-Step Guide to Ranking Websites in 2025',
+          meta: 'Learn how search engines work, how to find low-competition keywords, structure helpful articles, and grow organic traffic from scratch.',
+          is_published: true,
+          author: 'Nasir',
+          body: `# Complete Step-by-Step SEO Guide for Beginners\n\nSearch Engine Optimization (SEO) is the most reliable way to attract consistent, high-intent visitors to your website without paying for ads every day.\n\n---\n\n## 1. Understand Search Intent First\nBefore writing a single paragraph, ask what the reader is trying to accomplish:\n- **Informational Intent:** Looking for a clear tutorial, checklist, or definition.\n- **Commercial Intent:** Comparing tools, platforms, or courses before making a decision.\n- **Transactional Intent:** Ready to use a tool, enroll, or purchase immediately.\n\n---\n\n## 2. Structure Your Page Clearly\n- Use one clear **H1** headline that directly matches the topic.\n- Organize subtopics with **H2** and **H3** headings so readers and search engines can scan effortlessly.\n- Keep paragraphs concise and include real examples, tables, and actionable steps.\n\n---\n\n## 3. Technical SEO Essentials\n- **Fast Page Speed:** Keep Core Web Vitals (LCP, CLS, INP) clean with lightweight assets.\n- **Internal Linking:** Connect related guides, tools, and courses with descriptive anchor text.\n- **Clean URLs:** Use readable URLs like \`/articles/seo-for-beginners\` and \`/tools/seo-blog-outline-generator\`.`,
+        };
+      }
       if (!article || article.is_published === false) {
         return jsonResponse(404, { error: 'Article not found' });
       }
@@ -426,9 +479,9 @@ export const handler = async (event, context) => {
       return jsonResponse(200, published);
     }
 
-    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, redirects, social, and SEO)
+    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, featured_announcements, redirects, social, and SEO)
     if (method === 'GET' && cleanPath === '/cms-bundle') {
-      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, redirects, socialProfiles, settings] = await Promise.all([
+      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, featuredAnnouncements, redirects, socialProfiles, settings] = await Promise.all([
         getBlob('cms_homepage').then((r) => r || {}),
         getBlob('cms_appearance').then((r) => r || {}),
         getBlob('cms_navigation').then((r) => r || {}),
@@ -442,6 +495,7 @@ export const handler = async (event, context) => {
         getBlob('cms_sidebars').then((r) => r || {}),
         getBlob('cms_announcement').then((r) => r || {}),
         getBlob('cms_marquee_config').then((r) => r || {}),
+        getBlob('cms_featured_announcements').then((r) => (Array.isArray(r) ? r : [])),
         getBlob('cms_redirects').then((r) => r || []),
         getBlob('cms_social_profiles').then((r) => r || []),
         getBlob('settings').then((r) => r || {}),
@@ -455,8 +509,9 @@ export const handler = async (event, context) => {
           const s = new Date(item.start_date).getTime();
           if (!isNaN(s) && nowMs < s) return false;
         }
-        if (item.end_date) {
-          const e = new Date(item.end_date).getTime();
+        const endDateVal = item.end_date || item.expiry_date;
+        if (endDateVal) {
+          const e = new Date(endDateVal).getTime();
           if (!isNaN(e) && nowMs > e) return false;
         }
         return true;
@@ -470,6 +525,10 @@ export const handler = async (event, context) => {
         ...marqueeConfig,
         schedule_active: checkScheduleActive(marqueeConfig),
       };
+
+      const activeFeaturedAnnouncements = featuredAnnouncements
+        .filter((fa) => fa && fa.enabled === true && fa.status !== 'draft' && checkScheduleActive(fa))
+        .sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
 
       return jsonResponse(200, {
         homepage,
@@ -485,32 +544,111 @@ export const handler = async (event, context) => {
         sidebars,
         announcement: resolvedAnnouncement,
         marquee_config: resolvedMarqueeConfig,
+        featured_announcements: activeFeaturedAnnouncements,
         redirects,
         social_profiles: socialProfiles,
         settings,
       });
     }
 
+    // GET /api/featured-announcements (Public active announcements endpoint + optional preview_id)
+    if (method === 'GET' && cleanPath === '/featured-announcements') {
+      const list = (await getBlob('cms_featured_announcements')) || [];
+      const previewId = event.queryStringParameters && event.queryStringParameters.preview_id;
+      if (previewId) {
+        const match = (Array.isArray(list) ? list : []).find((x) => x.id === previewId);
+        return jsonResponse(200, match ? [match] : []);
+      }
+      const nowMs = Date.now();
+      const active = (Array.isArray(list) ? list : [])
+        .filter((fa) => {
+          if (!fa || !fa.enabled || fa.status === 'draft') return false;
+          if (fa.start_date) {
+            const s = new Date(fa.start_date).getTime();
+            if (!isNaN(s) && nowMs < s) return false;
+          }
+          if (fa.expiry_date) {
+            const e = new Date(fa.expiry_date).getTime();
+            if (!isNaN(e) && nowMs > e) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
+      return jsonResponse(200, active);
+    }
+
     // POST /api/contact
     if (method === 'POST' && cleanPath === '/contact') {
       const body = parseJsonBody(event.body);
       if (!body) return jsonResponse(400, { error: 'Invalid payload' });
-      const { name, email, subject, message } = body;
-      if (!name || !email || !message) {
-        return jsonResponse(400, { error: 'Name, email, and message are required' });
+
+      // Honeypot spam protection
+      if (body.website_url || body.company_honeypot) {
+        return jsonResponse(201, { success: true, message: 'Message sent successfully.' });
       }
+
+      const name = String(body.name || '').trim();
+      const email = String(body.email || '').trim();
+      const subject = String(body.subject || 'General Inquiry').trim();
+      const message = String(body.message || '').trim();
+
+      if (!name || !email || !message) {
+        return jsonResponse(400, { error: 'Full Name, Email Address, and Message are required.' });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return jsonResponse(400, { error: 'Please enter a valid email address.' });
+      }
+
+      if (message.length < 5) {
+        return jsonResponse(400, { error: 'Please enter a message with at least 5 characters.' });
+      }
+
       const contacts = (await getBlob('contacts_list')) || [];
+      const nowIso = new Date().toISOString();
       const newSubmission = {
-        id: 'contact-' + Date.now(),
-        name: String(name).slice(0, 100),
-        email: String(email).slice(0, 150),
-        subject: String(subject || 'General Inquiry').slice(0, 200),
-        message: String(message).slice(0, 3000),
-        created_at: new Date().toISOString(),
+        id: 'contact-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        name: name.slice(0, 120),
+        email: email.slice(0, 160),
+        subject: (subject || 'General Inquiry').slice(0, 220),
+        message: message.slice(0, 5000),
+        read: false,
+        status: 'unread',
+        replies: [],
+        ip_hint: (event.headers && (event.headers['x-forwarded-for'] || event.headers['client-ip'])) || 'web',
+        user_agent: (event.headers && event.headers['user-agent']) ? String(event.headers['user-agent']).slice(0, 180) : '',
+        created_at: nowIso,
+        updated_at: nowIso,
       };
       contacts.unshift(newSubmission);
-      await setBlob('contacts_list', contacts.slice(0, 100));
-      return jsonResponse(201, { success: true, message: 'Message sent successfully. Nasir or our team will get back to you shortly!' });
+      await setBlob('contacts_list', contacts.slice(0, 500));
+
+      // Dispatch admin email notification asynchronously / safely
+      try {
+        const [cmsContact, settings] = await Promise.all([
+          getBlob('cms_contact').then((r) => r || {}),
+          getBlob('settings').then((r) => r || {}),
+        ]);
+        const adminEmail = cmsContact.email || cmsContact.support_email || settings.email || 'support@webnasir.com';
+        await sendEmailMessage({
+          to: adminEmail,
+          recipientName: 'Web Nasir Admin',
+          subject: `[New Contact Message] ${newSubmission.subject} — from ${newSubmission.name}`,
+          body: `Hello Admin,\n\nYou have received a new message via the Web Nasir Contact Page:\n\n• Sender Name: ${newSubmission.name}\n• Sender Email: ${newSubmission.email}\n• Subject: ${newSubmission.subject}\n• Received At: ${nowIso}\n\nMessage:\n----------------------------------------\n${newSubmission.message}\n----------------------------------------\n\nYou can view and reply directly from the Admin Dashboard → Contact Messages section.`,
+          templateId: 'contact_admin_notification',
+        });
+      } catch (notifyErr) {
+        console.warn('Admin contact notification warning:', notifyErr.message);
+      }
+
+      return jsonResponse(201, {
+        ok: true,
+        success: true,
+        id: newSubmission.id,
+        contact: newSubmission,
+        message: "Thank you for reaching out! Your message has been received and the Web Nasir team will get back to you shortly.",
+      });
     }
 
     // POST /api/student/sync (Sync student authentication event from Google or Email)
@@ -584,7 +722,7 @@ export const handler = async (event, context) => {
       return jsonResponse(200, { success: true, isNew, student });
     }
 
-    // POST /api/courses/create-order (Razorpay Order creation)
+    // POST /api/courses/create-order (Razorpay INR Order creation — Stripe not required)
     if (method === 'POST' && cleanPath === '/courses/create-order') {
       const body = parseJsonBody(event.body);
       if (!body || !body.course_id) return jsonResponse(400, { error: 'course_id is required' });
@@ -593,18 +731,29 @@ export const handler = async (event, context) => {
       const course = courses.find((c) => c.id === body.course_id);
       if (!course) return jsonResponse(404, { error: 'Course not found' });
 
-      const settings = (await getBlob('settings')) || {};
+      const [settings, cmsPayments] = await Promise.all([
+        getBlob('settings').then((r) => r || {}),
+        getBlob('cms_payments').then((r) => r || {}),
+      ]);
+
+      const keyId =
+        cmsPayments.key_id ||
+        settings.razorpay_key_id ||
+        process.env.RAZORPAY_KEY_ID ||
+        'rzp_test_webnasir_demo';
+
       const orderId = 'order_' + Date.now().toString(36).toUpperCase() + '_' + Math.random().toString(36).substring(2, 7).toUpperCase();
 
       return jsonResponse(200, {
         success: true,
+        gateway: 'razorpay',
         order_id: orderId,
         amount: course.price,
         amount_paise: course.price * 100,
         currency: 'INR',
         course_id: course.id,
         course_title: course.title,
-        key_id: settings.razorpay_key_id || 'rzp_test_webnasir_demo',
+        key_id: keyId,
       });
     }
 
@@ -1887,7 +2036,166 @@ export const handler = async (event, context) => {
       // GET /api/admin/contacts
       if (method === 'GET' && cleanPath === '/admin/contacts') {
         const list = (await getBlob('contacts_list')) || [];
-        return jsonResponse(200, list);
+        const search = (queryParams.search || '').toLowerCase().trim();
+        const status = (queryParams.status || 'all').toLowerCase().trim();
+        const filtered = list.filter((c) => {
+          if (status === 'unread' && c.read === true) return false;
+          if (status === 'read' && !c.read) return false;
+          if (status === 'replied' && (!Array.isArray(c.replies) || c.replies.length === 0)) return false;
+          if (search) {
+            const hay = `${c.name || ''} ${c.email || ''} ${c.subject || ''} ${c.message || ''}`.toLowerCase();
+            if (!hay.includes(search)) return false;
+          }
+          return true;
+        });
+        return jsonResponse(200, filtered);
+      }
+
+      // PUT /api/admin/contacts/:id (Mark as read / unread or update status)
+      if (method === 'PUT' && cleanPath.startsWith('/admin/contacts/') && !cleanPath.endsWith('/reply')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/contacts/', '').trim());
+        const body = parseJsonBody(event.body) || {};
+        const list = (await getBlob('contacts_list')) || [];
+        const idx = list.findIndex((c) => c.id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Contact message not found' });
+        list[idx] = {
+          ...list[idx],
+          read: body.read !== undefined ? Boolean(body.read) : list[idx].read,
+          status: body.status || (body.read ? 'read' : 'unread'),
+          updated_at: new Date().toISOString(),
+        };
+        await setBlob('contacts_list', list);
+        return jsonResponse(200, { success: true, contact: list[idx], contacts: list });
+      }
+
+      // POST /api/admin/contacts/:id/reply (Reply to sender via email and store in thread)
+      if (method === 'POST' && cleanPath.startsWith('/admin/contacts/') && cleanPath.endsWith('/reply')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/contacts/', '').replace(/\/reply$/, '').trim());
+        const body = parseJsonBody(event.body) || {};
+        const replyMessage = String(body.reply_message || body.message || '').trim();
+        const replySubject = String(body.subject || '').trim();
+        if (!replyMessage) return jsonResponse(400, { error: 'Reply message is required' });
+
+        const list = (await getBlob('contacts_list')) || [];
+        const idx = list.findIndex((c) => c.id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Contact message not found' });
+
+        const target = list[idx];
+        const finalSubject = replySubject || `Re: ${target.subject || 'Your Inquiry to Web Nasir'}`;
+        const emailResult = await sendEmailMessage({
+          to: target.email,
+          recipientName: target.name || 'Valued Visitor',
+          subject: finalSubject,
+          body: replyMessage,
+          templateId: 'contact_reply',
+        });
+
+        const replyEntry = {
+          id: 'rep-' + Date.now(),
+          subject: finalSubject,
+          message: replyMessage,
+          sent_at: new Date().toISOString(),
+          delivery_status: emailResult.status || 'simulated',
+        };
+        if (!Array.isArray(list[idx].replies)) list[idx].replies = [];
+        list[idx].replies.push(replyEntry);
+        list[idx].read = true;
+        list[idx].status = 'replied';
+        list[idx].updated_at = new Date().toISOString();
+
+        await setBlob('contacts_list', list);
+        return jsonResponse(200, {
+          success: true,
+          contact: list[idx],
+          reply: replyEntry,
+          email_status: emailResult.status,
+          contacts: list,
+        });
+      }
+
+      // DELETE /api/admin/contacts/:id
+      if (method === 'DELETE' && cleanPath.startsWith('/admin/contacts/')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/contacts/', '').trim());
+        const list = (await getBlob('contacts_list')) || [];
+        const filtered = list.filter((c) => c.id !== id);
+        await setBlob('contacts_list', filtered);
+        return jsonResponse(200, { success: true, contacts: filtered });
+      }
+
+      // ==========================================
+      // FEATURED ANNOUNCEMENTS POPUP MANAGER CRUD (/api/admin/featured-announcements)
+      // ==========================================
+      if (cleanPath === '/admin/featured-announcements') {
+        if (method === 'GET') {
+          const list = (await getBlob('cms_featured_announcements')) || [];
+          return jsonResponse(200, Array.isArray(list) ? list : []);
+        }
+        if (method === 'POST') {
+          const body = parseJsonBody(event.body);
+          if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+          const list = (await getBlob('cms_featured_announcements')) || [];
+          const nowIso = new Date().toISOString();
+          const newItem = {
+            id: body.id || 'feat-ann-' + Date.now(),
+            title: String(body.title || 'Untitled Announcement').trim(),
+            description: String(body.description || '').trim(),
+            highlight_text: String(body.highlighted_text || body.highlight_text || '').trim(),
+            highlighted_text: String(body.highlighted_text || body.highlight_text || '').trim(),
+            content_type: body.content_type || 'text', // 'image' | 'video' | 'text'
+            image_url: String(body.image_url || '').trim(),
+            video_url: String(body.video_url || '').trim(),
+            cta_enabled: body.cta_enabled !== false,
+            cta_text: String(body.cta_text || 'Learn More').trim(),
+            cta_url: String(body.cta_url || '/courses').trim(),
+            animation: body.animation || 'zoom-in', // 'fade-in' | 'zoom-in' | 'slide-up' | 'slide-down'
+            priority: Number(body.priority) || 1,
+            start_date: body.start_date || '',
+            expiry_date: body.expiry_date || '',
+            delay_seconds: Number(body.delay_seconds ?? 1),
+            duration_seconds: Number(body.duration_seconds ?? body.display_duration_seconds ?? 0),
+            display_duration_seconds: Number(body.duration_seconds ?? body.display_duration_seconds ?? 0),
+            frequency: body.frequency || 'once_per_session', // 'once_per_visitor' | 'once_per_session' | 'every_visit'
+            target_audience: body.target_audience || 'all', // 'all' | 'logged_in'
+            show_on_mobile: body.show_on_mobile !== false,
+            show_on_desktop: body.show_on_desktop !== false,
+            enabled: Boolean(body.enabled),
+            status: body.status || 'published', // 'draft' | 'published'
+            created_at: nowIso,
+            updated_at: nowIso,
+          };
+          list.unshift(newItem);
+          await setBlob('cms_featured_announcements', list);
+          return jsonResponse(201, { ok: true, success: true, item: newItem, announcement: newItem, announcements: list });
+        }
+        if (method === 'PUT') {
+          const body = parseJsonBody(event.body);
+          if (!body || !Array.isArray(body.announcements)) return jsonResponse(400, { error: 'Expected announcements array' });
+          await setBlob('cms_featured_announcements', body.announcements);
+          return jsonResponse(200, { success: true, announcements: body.announcements });
+        }
+      }
+
+      if (cleanPath.startsWith('/admin/featured-announcements/')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/featured-announcements/', '').trim());
+        const list = (await getBlob('cms_featured_announcements')) || [];
+        if (method === 'PUT') {
+          const body = parseJsonBody(event.body) || {};
+          const idx = list.findIndex((x) => x.id === id);
+          if (idx === -1) return jsonResponse(404, { error: 'Featured announcement not found' });
+          list[idx] = {
+            ...list[idx],
+            ...body,
+            id: list[idx].id,
+            updated_at: new Date().toISOString(),
+          };
+          await setBlob('cms_featured_announcements', list);
+          return jsonResponse(200, { success: true, announcement: list[idx], announcements: list });
+        }
+        if (method === 'DELETE') {
+          const filtered = list.filter((x) => x.id !== id);
+          await setBlob('cms_featured_announcements', filtered);
+          return jsonResponse(200, { success: true, announcements: filtered });
+        }
       }
 
       // ==========================================
@@ -2321,6 +2629,7 @@ export const handler = async (event, context) => {
         '/admin/cms/drafts': 'cms_drafts',
         '/admin/cms/redirects': 'cms_redirects',
         '/admin/cms/social-profiles': 'cms_social_profiles',
+        '/admin/cms/featured-announcements': 'cms_featured_announcements',
       };
 
       if (cmsMap[cleanPath]) {
@@ -3152,6 +3461,43 @@ export const handler = async (event, context) => {
       if (cleanPath === '/admin/subscribers' && method === 'GET') {
         const subs = (await getBlob('subscribers_list')) || [];
         return jsonResponse(200, subs);
+      }
+
+      // Full Database & Media Portability Export (/api/admin/backup/export)
+      if (cleanPath === '/admin/backup/export' && method === 'GET') {
+        const allKeys = await listBlobs();
+        const exportData = {};
+        for (const key of allKeys) {
+          if (key.startsWith('_')) continue;
+          exportData[key] = await getBlob(key);
+        }
+        return jsonResponse(200, {
+          exported_at: new Date().toISOString(),
+          version: 'web-nasir-portable-v1',
+          keys_count: Object.keys(exportData).length,
+          data: exportData,
+        });
+      }
+
+      // Full Database & Media Portability Restore (/api/admin/backup/restore)
+      if (cleanPath === '/admin/backup/restore' && method === 'POST') {
+        const body = parseJsonBody(event.body);
+        const restoreMap = body?.data || body;
+        if (!restoreMap || typeof restoreMap !== 'object') {
+          return jsonResponse(400, { error: 'Valid backup JSON payload is required' });
+        }
+        let restoredCount = 0;
+        for (const [k, v] of Object.entries(restoreMap)) {
+          if (k.startsWith('_') || k === 'exported_at' || k === 'version' || k === 'keys_count') continue;
+          await setBlob(k, v);
+          restoredCount++;
+        }
+        await appendAuditLog(`Restored full database backup (${restoredCount} records)`);
+        return jsonResponse(200, {
+          success: true,
+          restored_keys: restoredCount,
+          message: `Successfully restored ${restoredCount} database records.`,
+        });
       }
     }
 

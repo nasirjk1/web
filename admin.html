@@ -47,10 +47,12 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body {
+    html, body {
       font-family: 'Inter', sans-serif;
       color: #0f172a;
       background-color: #f8fafc;
+      overflow-x: hidden;
+      max-width: 100vw;
     }
     h1, h2, h3, h4, h5, h6, .font-heading {
       font-family: 'Poppins', sans-serif;
@@ -127,19 +129,22 @@
   <div id="dashboard-section" class="hidden min-h-screen flex flex-col">
     
     <header class="bg-white border-b border-bordercol sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <button type="button" onclick="toggleAdminMobileSidebar()" id="admin-mobile-menu-btn" aria-label="Toggle Admin Navigation" class="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md shrink-0">
             <i data-lucide="zap" class="w-5 h-5"></i>
           </div>
           <div>
-            <span class="text-base font-bold font-heading text-dark">Web Nasir</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 ml-1.5">ADMIN</span>
+            <span class="text-sm sm:text-base font-bold font-heading text-dark">Web Nasir</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 ml-1">ADMIN</span>
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
-          <a href="/" target="_blank" class="text-xs font-semibold text-slate-600 hover:text-brand-600 flex items-center gap-1.5">
+        <div class="flex items-center gap-2 sm:gap-4">
+          <a href="/" target="_blank" class="text-xs font-semibold text-slate-600 hover:text-brand-600 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 sm:border-0">
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">View Live Site</span>
           </a>
@@ -153,9 +158,9 @@
 
     
     <!-- TOP GLOBAL SAVE, PREVIEW & REVISION BAR -->
-    <div class="bg-slate-900 text-white border-b border-slate-800 px-4 sm:px-6 py-2.5 sticky top-16 z-20">
-      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-3">
+    <div class="bg-slate-900 text-white border-b border-slate-800 px-3 sm:px-6 py-2.5 sticky top-16 z-20">
+      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 sm:gap-3">
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[11px]">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>CMS Live Sync Active</span>
@@ -163,16 +168,16 @@
           <span class="text-slate-400 hidden md:inline">27 Modules Ready • Changes apply directly to production store</span>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button onclick="createCmsRevisionSnapshot()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 flex items-center gap-1.5 transition-all">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <button onclick="createCmsRevisionSnapshot()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 flex items-center gap-1.5 transition-all">
             <i data-lucide="history" class="w-3.5 h-3.5 text-violet-400"></i>
             <span>Save Snapshot</span>
           </button>
-          <button onclick="openLivePreviewModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+          <button onclick="openLivePreviewModal()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold flex items-center gap-1.5 transition-all shadow-xs">
             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
             <span>Live Site Preview</span>
           </button>
-          <button onclick="publishAllCurrentChanges()" class="px-4 py-1.5 rounded-lg gradient-btn text-white font-bold flex items-center gap-1.5 shadow-md">
+          <button onclick="publishAllCurrentChanges()" class="px-3 sm:px-4 py-1.5 rounded-lg gradient-btn text-white font-bold flex items-center gap-1.5 shadow-md">
             <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
             <span>Publish Changes</span>
           </button>
@@ -197,7 +202,7 @@
     <div class="flex-grow flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
       
       <!-- LEFT SIDEBAR NAVIGATION (All 27 Modules) -->
-      <aside class="w-full lg:w-72 bg-white border-r border-bordercol flex-shrink-0 lg:min-h-[calc(100vh-7rem)] p-4 space-y-6 overflow-y-auto max-h-[45vh] lg:max-h-none">
+      <aside id="admin-sidebar" class="hidden lg:block w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-bordercol flex-shrink-0 lg:min-h-[calc(100vh-7rem)] p-4 space-y-6 overflow-y-auto max-h-[65vh] lg:max-h-none">
         
         <div>
           <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Core & Visual Builders</div>
@@ -402,6 +407,31 @@
             </div>
             <div id="overview-articles-list" class="divide-y divide-slate-100 text-sm">
               <p class="text-muted text-xs py-4">Loading guides...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portable Database Backup, Restore & Hosting Migration -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-bordercol shadow-xs">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 text-brand-700 border border-brand-200 text-[11px] font-bold mb-1.5">
+                <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                <span>Hostinger VPS • Docker • Node.js • Netlify Portable</span>
+              </div>
+              <h3 class="text-base font-bold font-heading text-dark">Database Backup, Restore &amp; Hosting Migration</h3>
+              <p class="text-xs text-muted mt-1 max-w-2xl">Export your complete Web Nasir database (all tools, courses, articles, pages, student records, media, and settings) as a portable JSON file or restore a backup onto any server.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" onclick="exportDatabaseBackup()" class="px-4 py-2.5 rounded-xl gradient-btn text-white text-xs font-bold flex items-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Export Full Backup (.JSON)</span>
+              </button>
+              <label class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 cursor-pointer transition-all">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span>Restore Backup (.JSON)</span>
+                <input type="file" id="backup-restore-file" accept=".json,application/json" class="hidden" onchange="restoreDatabaseBackup(event)">
+              </label>
             </div>
           </div>
         </div>
@@ -6315,6 +6345,69 @@
         document.getElementById('pwd-confirm').value = '';
       } catch (err) {
         showToast('Password update error: ' + err.message, 'error');
+      }
+    };
+
+    // MOBILE ADMIN SIDEBAR TOGGLE & AUTO-CLOSE
+    window.toggleAdminMobileSidebar = function(forceClose) {
+      const sidebar = document.getElementById('admin-sidebar');
+      if (!sidebar) return;
+      if (forceClose === true) {
+        sidebar.classList.add('hidden');
+      } else {
+        sidebar.classList.toggle('hidden');
+      }
+    };
+
+    const _origSwitchTab = window.switchTab;
+    if (typeof _origSwitchTab === 'function') {
+      window.switchTab = function(tabId) {
+        _origSwitchTab(tabId);
+        if (window.innerWidth < 1024) {
+          window.toggleAdminMobileSidebar(true);
+        }
+      };
+    }
+
+    // PORTABLE DATABASE BACKUP & RESTORE
+    window.exportDatabaseBackup = async function() {
+      try {
+        showToast('Preparing full database backup...', 'info');
+        const res = await req('/admin/backup/export');
+        const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `webnasir-backup-${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Full database backup exported!', 'success');
+      } catch (err) {
+        showToast('Backup export error: ' + err.message, 'error');
+      }
+    };
+
+    window.restoreDatabaseBackup = async function(event) {
+      const file = event && event.target && event.target.files ? event.target.files[0] : null;
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const collections = parsed.collections || parsed;
+        showToast('Restoring database backup...', 'info');
+        const res = await req('/admin/backup/restore', {
+          method: 'POST',
+          body: JSON.stringify({ collections })
+        });
+        showToast(`Restored ${res.restoredCount || 0} collections successfully!`, 'success');
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Backup restore error: ' + err.message, 'error');
+      } finally {
+        event.target.value = '';
       }
     };
 

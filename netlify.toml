@@ -21,17 +21,32 @@
   status = 200
 
 [[redirects]]
-  from = "/articles"
-  to = "/guides"
+  from = "/guides"
+  to = "/articles"
   status = 301
 
 [[redirects]]
-  from = "/articles/*"
-  to = "/guides/:splat"
+  from = "/guides/*"
+  to = "/articles/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/tracks"
+  to = "/learning-pathways"
+  status = 301
+
+[[redirects]]
+  from = "/student"
+  to = "/student/dashboard"
   status = 301
 
 [[redirects]]
   from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
   to = "/admin.html"
   status = 200
 

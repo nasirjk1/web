@@ -1,125 +1,117 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
-// @ts-ignore
-import { handler } from './netlify/functions/api.js';
+import { handler as netlifyApiHandler } from './netlify/functions/api.js';
+import { resolveRouteSeoData, injectSeoIntoHtml } from './netlify/functions/lib/seo-ssr.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+async function startServer() {
+  const app = express();
+  const PORT = Number(process.env.PORT) || 3000;
 
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+  // Parse JSON and URL-encoded bodies (50MB limit to support base64 image/video uploads in Media Library)
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Global CORS middleware
-app.use((req, res, next) => {
-  const reqOrigin = req.headers.origin || req.headers.referer;
-  let origin = '';
-  if (reqOrigin) {
+  // Bridge adapter to invoke the Netlify Function (exports.handler) directly from Express
+  const invokeNetlifyFunction = async (req: express.Request, res: express.Response) => {
     try {
-      origin = new URL(reqOrigin as string).origin;
-    } catch {
-      origin = reqOrigin as string;
-    }
-  }
-
-  if (origin && origin !== '*') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Access-Token');
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
-// Serve Firebase Applet Config explicitly
-app.get('/firebase-applet-config.json', (req, res) => {
-  const configPath = path.join(__dirname, 'public', 'firebase-applet-config.json');
-  res.sendFile(configPath);
-});
-
-// Admin direct routes
-app.get(['/admin', '/admin.html'], (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// Forward /sitemap.xml, /robots.txt, /api/*, and /.netlify/functions/api/* to the Netlify function handler
-app.all(
-  ['/sitemap.xml', '/robots.txt', '/api', '/api/*', '/.netlify/functions/api', '/.netlify/functions/api/*'],
-  async (req, res) => {
-    try {
-      const rawPath = req.originalUrl.split('?')[0];
       const event = {
+        path: req.originalUrl.split('?')[0],
         httpMethod: req.method,
-        path: rawPath,
-        queryStringParameters: req.query as Record<string, string>,
         headers: req.headers as Record<string, string>,
-        body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : null,
+        queryStringParameters: req.query as Record<string, string>,
+        body: req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : null,
+        isBase64Encoded: false,
       };
 
-      const response = await handler(event, {});
+      const result: any = await netlifyApiHandler(event, {});
 
-      if (response.headers) {
-        for (const [key, value] of Object.entries(response.headers)) {
+      if (result.headers) {
+        for (const [key, value] of Object.entries(result.headers)) {
           if (value !== undefined) {
-            if (key.toLowerCase() === 'access-control-allow-origin' && value === '*' && req.headers.origin) {
-              res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-              res.setHeader('Access-Control-Allow-Credentials', 'true');
-            } else {
-              res.setHeader(key, value as string);
-            }
+            res.setHeader(key, value as string);
           }
         }
       }
 
-      const multiHeaders = (response as any).multiValueHeaders;
-      if (multiHeaders) {
-        for (const [key, values] of Object.entries(multiHeaders)) {
-          if (Array.isArray(values)) {
-            res.setHeader(key, values);
-          }
-        }
+      const status = result.statusCode || 200;
+      if (result.isBase64Encoded && result.body) {
+        return res.status(status).send(Buffer.from(result.body, 'base64'));
       }
-
-      if ((response as any).isBase64Encoded && response.body) {
-        const buf = Buffer.from(response.body, 'base64');
-        return res.status(response.statusCode).send(buf);
-      }
-
-      res.status(response.statusCode).send(response.body);
-    } catch (err: any) {
-      console.error('Server bridge error:', err);
-      res.status(500).json({ error: 'Server bridge error', details: err.message });
+      return res.status(status).send(result.body);
+    } catch (error) {
+      console.error('Error in Netlify API Bridge:', error);
+      return res.status(500).json({ error: 'Internal Server Bridge Error' });
     }
-  }
-);
+  };
 
-// 301 Redirects for legacy query URLs or /articles -> /guides
-app.get('/articles', (req, res) => {
-  res.redirect(301, '/guides');
-});
-app.get('/articles/:slug', (req, res) => {
-  res.redirect(301, `/guides/${req.params.slug}`);
-});
+  // Mount API routes to match Netlify redirects (/api/* and /.netlify/functions/api/*)
+  app.all('/api/*', invokeNetlifyFunction);
+  app.all('/.netlify/functions/api/*', invokeNetlifyFunction);
+  app.get('/sitemap.xml', invokeNetlifyFunction);
+  app.get('/robots.txt', invokeNetlifyFunction);
 
-// Serve static directory
-app.use(express.static(path.join(__dirname, 'public')));
+  // Serve static files from /public (disable automatic index.html on '/' so SSR metadata injection runs)
+  const publicDir = path.join(__dirname, 'public');
+  app.use(express.static(publicDir, { index: false }));
 
-// Fallback to public/index.html for all clean SPA routes (/about, /contact, /tools, /tools/:slug, /courses, /courses/:slug, /free-courses, /guides, /guides/:slug, /topics, etc.)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+  // Serve firebase-applet-config.json if present in root
+  app.get('/firebase-applet-config.json', (req, res) => {
+    const configPath = path.join(__dirname, 'firebase-applet-config.json');
+    if (fs.existsSync(configPath)) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.sendFile(configPath);
+    }
+    return res.status(404).json({ error: 'Firebase config not found' });
+  });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Web Nasir server running on http://0.0.0.0:${PORT}`);
-});
+  // Clean URL route for /admin
+  app.get(['/admin', '/admin/'], (req, res) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.sendFile(path.join(publicDir, 'admin.html'));
+  });
+
+  // Canonical 301 Redirects for legacy paths
+  app.get('/guides', (req, res) => {
+    return res.redirect(301, '/articles');
+  });
+  app.get('/guides/:slug', (req, res) => {
+    return res.redirect(301, `/articles/${req.params.slug}`);
+  });
+  app.get('/tracks', (req, res) => {
+    return res.redirect(301, '/learning-pathways');
+  });
+  app.get('/student', (req, res) => {
+    return res.redirect(301, '/student/dashboard');
+  });
+
+  // Dynamic SSR Metadata + Clean URL Handler for all frontend routes
+  app.get('*', async (req, res) => {
+    try {
+      const indexHtmlPath = path.join(publicDir, 'index.html');
+      const rawHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+      const seoData = await resolveRouteSeoData(req.path);
+      const enrichedHtml = injectSeoIntoHtml(rawHtml, seoData);
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      if (seoData.robots.includes('noindex')) {
+        res.setHeader('X-Robots-Tag', seoData.robots);
+      }
+      return res.status(seoData.statusCode || 200).send(enrichedHtml);
+    } catch (err) {
+      console.error('SSR injection fallback notice:', err);
+      return res.sendFile(path.join(publicDir, 'index.html'));
+    }
+  });
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Web Nasir server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();

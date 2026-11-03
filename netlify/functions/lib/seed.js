@@ -1429,24 +1429,41 @@ The mathematical key is **longer retention on 3+ minute videos**:
 
   // 20. CMS About Us Page Editor
   const cmsAbout = {
-    badge: '10+ Years Full-Stack & Publishing Track Record',
-    heading: 'Built by a Practitioner, Not a Theoretical Lecturer.',
-    subtitle: 'Meet Nasir — Senior Full-Stack Engineer, AI Systems Architect, and High-RPM Digital Publisher.',
+    badge: 'Digital Learning & Technology Platform',
+    heading: 'Empowering Your Digital Future with AI, Technology & Practical Skills.',
+    subtitle: 'Web Nasir is a digital learning and technology platform built to make modern digital skills accessible to everyone. We bring together practical AI tools, website development resources, SEO strategies, digital marketing education and professional online courses in one place.',
+    cta_primary_text: 'Explore Our Free Tools',
+    cta_primary_link: '/tools',
+    cta_secondary_text: 'Explore Our Courses',
+    cta_secondary_link: '/courses',
+    founder_heading: 'Meet Nasir — Founder of Web Nasir',
     founder_name: 'Nasir',
-    founder_role: 'Founder & Lead Technical Mentor',
+    founder_role: 'Founder of Web Nasir',
     founder_photo: '',
-    biography: 'Over the past decade, Nasir has architected production web applications processing millions of monthly requests, scaled content networks to $35+ AdSense RPMs across Tier-1 geographies, and mentored hundreds of developers into profitable independent careers.',
-    mission: 'To eliminate theoretical fluff from technical education and give every student hands-on, deployable software engineering and digital monetization systems.',
-    vision: 'Building South Asia’s most practical, project-driven AI and Web Engineering Academy where students graduate with live commercial assets.',
-    video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    cta_text: 'Explore Nasir’s Flagship Courses',
-    cta_link: '#/courses',
-    milestones: [
-      { year: '2015', title: 'Started Full-Stack Engineering', desc: 'Built custom web platforms and early content publishing properties.' },
-      { year: '2019', title: 'Scaled High-RPM AdSense Portfolios', desc: 'Crossed $35+ session RPMs targeting US/UK/CA search intent.' },
-      { year: '2023', title: 'Launched AI Micro-SaaS Utilities', desc: 'Engineered lightweight LLM wrappers and automated content pipelines.' },
-      { year: '2025', title: 'Founded Web Nasir Academy', desc: 'Opened direct mentorship, 11 free AI tools, and 8 flagship masterclasses.' }
-    ]
+    founder_description: "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.",
+    biography: "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.",
+    mission: 'To make practical digital education, AI-powered resources and technology accessible through useful tools and straightforward learning experiences.',
+    vision: 'To build a trusted digital learning platform where people can explore technology, develop practical skills and discover new opportunities in the digital world.',
+    video_url: '',
+    offerings: [
+      { title: 'Free AI Tools', description: 'Ready-to-use online utilities for content creation, SEO planning, code explanation, and productivity.', icon: 'sparkles', link: '/tools' },
+      { title: 'Website Development', description: 'Practical resources and step-by-step training for building fast, modern, mobile-friendly websites.', icon: 'code', link: '/courses/fullstack-web-dev' },
+      { title: 'SEO & Blogging', description: 'Clear search optimization strategies, keyword research frameworks, and content publishing guides.', icon: 'search', link: '/courses/seo-mastery' },
+      { title: 'Digital Marketing', description: 'Actionable digital growth, audience building, and online campaign strategies for creators and businesses.', icon: 'trending-up', link: '/courses/digital-marketing-ai' },
+      { title: 'AI & Automation', description: 'Learn how to apply AI workflows and modern automation tools to save time and scale projects.', icon: 'cpu', link: '/courses/complete-ai-mastery' },
+      { title: 'Professional Online Courses', description: 'Structured, beginner-to-advanced learning pathways designed for real-world skill development.', icon: 'graduation-cap', link: '/courses' }
+    ],
+    why_items: [
+      'Practical learning resources.',
+      'Useful free AI tools.',
+      'Technology-focused education.',
+      'Professional learning pathways.',
+      'Regular guides and tutorials.',
+      'Beginner-friendly resources.'
+    ],
+    final_cta_heading: 'Start Building Your Digital Future Today.',
+    cta_text: 'Explore Free Tools',
+    cta_link: '/tools'
   };
   if (!(await getBlob('cms_about'))) {
     await setBlob('cms_about', cmsAbout);
@@ -1454,9 +1471,9 @@ The mathematical key is **longer retention on 3+ minute videos**:
 
   // 21. CMS Contact Page Editor
   const cmsContact = {
-    heading: 'Get in Touch with Admissions & Support',
-    subtitle: 'Have questions about a masterclass, enterprise mentorship, or technical consulting? Reach out directly.',
-    email: 'hello@webnasir.com',
+    heading: "Let's Connect — We're Here to Help.",
+    subtitle: "Have a question about our AI tools, online courses, website development or learning resources? Get in touch with the Web Nasir team. We're here to help you find the right information and support.",
+    email: 'support@webnasir.com',
     support_email: 'support@webnasir.com',
     whatsapp: '+91 7006334417',
     phone: '+91 7006334417',
@@ -1471,8 +1488,8 @@ The mathematical key is **longer retention on 3+ minute videos**:
 
   // 22. CMS SEO Settings
   const cmsSeo = {
-    global_title: 'Web Nasir Academy — Practical AI Tools, Full-Stack Web Dev & High-RPM Monetization',
-    meta_description: 'Learn practical AI engineering, full-stack web development, technical SEO, and Google AdSense monetization with 10-year veteran Nasir. Access 11 free AI tools.',
+    global_title: 'Web Nasir — Learn Digital Skills, Build Websites & Grow Your Online Business',
+    meta_description: 'Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.',
     og_image: 'https://webnasir.dpdns.org/og-banner.png',
     twitter_card: 'summary_large_image',
     canonical_base: 'https://webnasir.dpdns.org',
@@ -1578,7 +1595,7 @@ async function ensureExtendedCmsSeeded() {
     });
   }
 
-  // B. Marquee Manager Detailed Config
+  // B. Marquee / News Ticker Detailed Config (White Background & Black Text)
   const existingMarqueeCfg = await getBlob('cms_marquee_config');
   if (!existingMarqueeCfg) {
     await setBlob('cms_marquee_config', {
@@ -1586,15 +1603,49 @@ async function ensureExtendedCmsSeeded() {
       mobile_visible: true,
       speed_seconds: 32,
       direction: 'left',
-      bg_color: '#0f172a',
-      text_color: '#f8fafc',
-      accent_color: '#a78bfa',
+      bg_color: '#ffffff',
+      text_color: '#000000',
+      border_color: '#e2e8f0',
+      accent_color: '#7c3aed',
       font_size: '0.82rem',
       pause_on_hover: true,
       position: 'below_hero',
       start_date: '',
       end_date: ''
     });
+  }
+
+  // B2. Featured Announcements Popup System (cms_featured_announcements)
+  const existingFeaturedAnnouncements = await getBlob('cms_featured_announcements');
+  if (!existingFeaturedAnnouncements || !Array.isArray(existingFeaturedAnnouncements)) {
+    await setBlob('cms_featured_announcements', [
+      {
+        id: 'feat-ann-welcome',
+        title: 'Explore Free AI Tools & Digital Skills Courses',
+        description: 'Build websites, master SEO, and use 11+ free AI tools designed for real-world digital growth with Web Nasir.',
+        highlight_text: 'Featured Update',
+        content_type: 'text', // 'image' | 'video' | 'text'
+        image_url: '',
+        video_url: '',
+        cta_enabled: true,
+        cta_text: 'Explore Free Tools',
+        cta_url: '/tools',
+        animation: 'zoom-in', // 'fade-in' | 'zoom-in' | 'slide-up' | 'slide-down'
+        priority: 1,
+        start_date: '',
+        expiry_date: '',
+        delay_seconds: 2,
+        display_duration_seconds: 0,
+        frequency: 'once_per_session', // 'once_per_visitor' | 'once_per_session' | 'every_visit'
+        target_audience: 'all', // 'all' | 'logged_in'
+        show_on_mobile: true,
+        show_on_desktop: true,
+        enabled: false,
+        status: 'published', // 'draft' | 'published'
+        created_at: now,
+        updated_at: now
+      }
+    ]);
   }
 
   // C. Sidebar Manager Configuration
@@ -1720,8 +1771,8 @@ async function ensureExtendedCmsSeeded() {
   if (!existingPages || !Array.isArray(existingPages) || existingPages.length === 0) {
     const defaultPages = [
       { id: 'page-home', title: 'Homepage', slug: '#/', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Master AI, Build Digital Skills & Create Your Online Future.', subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir.', seo_title: 'Web Nasir Academy — Practical AI Tools, Full-Stack Web Dev & High-RPM Monetization', seo_description: 'Access 11 free AI tools, 8 flagship masterclasses, and battle-tested AdSense & SEO blueprints.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'full-width', updated_at: now },
-      { id: 'page-about', title: 'About Us', slug: '#/about', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Built by a Practitioner, Not a Theoretical Lecturer.', subtitle: 'Meet Nasir — 10+ Years Full-Stack Engineer, AI Architect & High-RPM Digital Publisher.', seo_title: 'About Founder Nasir — Web Nasir Academy', seo_description: 'Learn about Founder Nasir’s 10+ year track record in full-stack software engineering and high-RPM publishing.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
-      { id: 'page-contact', title: 'Contact Us', slug: '#/contact', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Get in Touch with Admissions & Support', subtitle: 'Have questions about a masterclass, enterprise mentorship, or technical consulting?', seo_title: 'Contact Admissions & Support — Web Nasir Academy', seo_description: 'Reach Web Nasir Academy support via Email or WhatsApp (+91 7006334417).', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
+      { id: 'page-about', title: 'About Us', slug: '#/about', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: 'Empowering Your Digital Future with AI, Technology & Practical Skills.', subtitle: 'Web Nasir is a digital learning and technology platform built to make modern digital skills accessible to everyone.', seo_title: 'About Us — Web Nasir', seo_description: 'Web Nasir is a digital learning and technology platform built to make modern digital skills accessible to everyone.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
+      { id: 'page-contact', title: 'Contact Us', slug: '#/contact', route_type: 'system', is_system_protected: false, status: 'published', visibility: 'public', heading: "Let's Connect — We're Here to Help.", subtitle: 'Have a question about our AI tools, online courses, website development or learning resources? Get in touch with the Web Nasir team.', seo_title: 'Contact Us — Web Nasir', seo_description: 'Reach Web Nasir support via Email or WhatsApp (+91 7006334417).', bg_color: '#ffffff', text_color: '#0f172a', layout: 'standard', updated_at: now },
       { id: 'page-tools', title: 'Free AI Tools', slug: '#/tools', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: '11 Free AI & Webmaster Utilities', subtitle: 'Production-grade AI generators, SEO analyzers, and revenue calculators.', seo_title: '11 Free AI & SEO Tools — Web Nasir Academy', seo_description: 'Use 11 free AI & webmaster utilities powered by Gemini Flash and deterministic calculators.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'grid', updated_at: now },
       { id: 'page-tool-detail', title: 'Individual AI Tool Pages', slug: '#/tools/:id', route_type: 'dynamic', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Interactive AI Utility Workspace', subtitle: 'Configure inputs, generate real-time results, and save to your student workspace.', seo_title: 'AI Tool Workspace — Web Nasir Academy', seo_description: 'Interactive AI generator and webmaster utility workspace.', bg_color: '#ffffff', text_color: '#0f172a', layout: 'workspace', updated_at: now },
       { id: 'page-courses', title: 'Paid Courses', slug: '#/courses', route_type: 'system', is_system_protected: true, status: 'published', visibility: 'public', heading: 'Industry-Ready Flagship Masterclasses', subtitle: 'Structured engineering and digital monetization courses with lifetime access.', seo_title: 'Flagship Masterclasses & Courses — Web Nasir Academy', seo_description: 'Enroll in practical AI engineering, full-stack web dev, technical SEO, and AdSense masterclasses.', bg_color: '#f8fafc', text_color: '#0f172a', layout: 'grid', updated_at: now },
@@ -1774,10 +1825,31 @@ async function ensureExtendedCmsSeeded() {
       age: { custom_prompt: '', input_fields: 'Date of Birth', output_format: 'Years, Months, Days, Total Days & Next Birthday Countdown', is_featured: false },
       arbitrage: { custom_prompt: '', input_fields: 'Paid Clicks, CPC ($), Pageviews/Visit, AdSense Session RPM ($)', output_format: 'Gross Revenue, Ad Spend, Net Profit & ROI % Breakdown', is_featured: false },
     };
+    const cleanSlugByKey = {
+      youtube: 'youtube-title-generator',
+      blogoutline: 'seo-blog-outline-generator',
+      codeexplainer: 'code-and-regex-explainer',
+      adcopy: 'high-converting-ad-copy-generator',
+      business: 'adsense-rpm-revenue-calculator',
+      name: 'brand-and-domain-name-generator',
+      instagram: 'social-media-caption-generator',
+      wordcount: 'seo-word-and-keyword-density-counter',
+      password: 'cryptographic-password-generator',
+      age: 'exact-age-and-milestone-calculator',
+      arbitrage: 'adsense-arbitrage-profit-calculator',
+    };
     for (const t of currentTools) {
       const def = defaultMetaByKey[t.key] || {};
       if (!t.id) { t.id = t.key; schemaBackfilled = true; }
-      if (!t.seo_slug) { t.seo_slug = t.key; schemaBackfilled = true; }
+      if (!t.seo_slug || t.seo_slug === t.key) {
+        if (cleanSlugByKey[t.key]) {
+          t.seo_slug = cleanSlugByKey[t.key];
+          schemaBackfilled = true;
+        } else if (!t.seo_slug) {
+          t.seo_slug = t.key;
+          schemaBackfilled = true;
+        }
+      }
       if (t.is_featured === undefined) { t.is_featured = def.is_featured ?? false; schemaBackfilled = true; }
       if (t.custom_prompt === undefined) { t.custom_prompt = def.custom_prompt ?? ''; schemaBackfilled = true; }
       if (t.input_fields === undefined) { t.input_fields = def.input_fields ?? 'User Input'; schemaBackfilled = true; }
@@ -1787,5 +1859,256 @@ async function ensureExtendedCmsSeeded() {
       await setBlob('tools_index', currentTools);
     }
   }
+
+  // H. Ensure 'seo-for-beginners' article is seeded so /articles/seo-for-beginners works out-of-the-box
+  const articlesIdx = (await getBlob('articles_index')) || [];
+  if (!articlesIdx.some((a) => a.slug === 'seo-for-beginners')) {
+    const seoBegArticle = {
+      slug: 'seo-for-beginners',
+      tag: 'blogging',
+      title: 'SEO for Beginners: Complete Step-by-Step Guide to Ranking Websites on Google',
+      meta: 'A practical, beginner-friendly guide to keyword research, on-page SEO, helpful content structure, and building steady search traffic.',
+      sort_order: articlesIdx.length + 1,
+      is_published: true,
+      created_at: now,
+      updated_at: now,
+      body: `# SEO for Beginners: How Search Engines Really Work\n\nSearch Engine Optimization (SEO) does not need to be complicated or filled with confusing technical jargon. At its core, SEO is about understanding what real people are searching for and creating the clearest, most helpful page on the internet to answer their question.\n\n## 1. Choose Topics Real People Search For\n\nBefore writing a single paragraph, look at the exact questions beginners and customers ask in your niche. Focus on specific long-tail topics where you can provide genuine, first-hand answers.\n\n## 2. Structure Your Page Clearly\n\n- Use one clear **H1 heading** that states the main topic of the page.\n- Break your guide into logical **H2 and H3 subheadings**.\n- Keep paragraphs short and easy to read on mobile phones.\n- Include practical examples, checklists, and internal links to related tools and tutorials.\n\n## 3. Technical Essentials That Matter\n\n- **Clean URLs**: Use simple, readable URLs like \`/articles/seo-for-beginners\`.\n- **Fast Mobile Loading**: Over 90% of readers browse on mobile devices—keep layouts lightweight and responsive.\n- **Unique Titles & Descriptions**: Give every page a clear meta title and summary so searchers know why to click.`,
+    };
+    articlesIdx.push({
+      slug: seoBegArticle.slug,
+      tag: seoBegArticle.tag,
+      title: seoBegArticle.title,
+      meta: seoBegArticle.meta,
+      sort_order: seoBegArticle.sort_order,
+      is_published: true,
+      created_at: now,
+      updated_at: now,
+    });
+    await setBlob('articles_index', articlesIdx);
+    await setBlob('article:seo-for-beginners', seoBegArticle);
+  }
+
+  // I. Ensure 'refund-policy' page exists in cms_pages
+  const cmsPagesList = (await getBlob('cms_pages')) || [];
+  if (!cmsPagesList.some((p) => p.slug === '/refund-policy' || p.slug === '#/refund-policy')) {
+    cmsPagesList.push({
+      id: 'page-refund-policy',
+      title: 'Refund Policy',
+      slug: '/refund-policy',
+      route_type: 'legal',
+      is_system_protected: false,
+      status: 'published',
+      visibility: 'public',
+      heading: 'Refund & Cancellation Policy',
+      subtitle: 'Clear, fair, and transparent enrollment and refund terms for Web Nasir courses.',
+      body_content: `At Web Nasir, we want you to learn with complete confidence.\n\n1. 7-Day Satisfaction Review: If you experience any technical issue accessing your enrolled course or find that the course does not match its published curriculum, contact us within 7 days of purchase at support@webnasir.com or on WhatsApp (+91 7006334417).\n\n2. Duplicate Payments: Any accidental duplicate payment made via UPI, Card, or NetBanking is 100% refunded automatically within 3–5 business days.\n\n3. Direct Support: Reach out to our team anytime and we will resolve your billing or course access request promptly.`,
+      seo_title: 'Refund Policy | Web Nasir',
+      seo_description: 'Transparent course refund and cancellation policy for Web Nasir students.',
+      bg_color: '#ffffff',
+      text_color: '#0f172a',
+      layout: 'editorial',
+      updated_at: now,
+    });
+    await setBlob('cms_pages', cmsPagesList);
+  }
+
+  // J. One-time Clean-URL, Hero & 4-Column Footer migration (never overwrites subsequent admin edits)
+  const currentMeta = (await getBlob('meta')) || {};
+  if (!currentMeta.v2_clean_urls_migrated) {
+    const currSettings = (await getBlob('settings')) || {};
+    if (
+      !currSettings.hero_title ||
+      currSettings.hero_title === 'Master AI, Build Digital Skills & Create Your Online Future.' ||
+      currSettings.hero_title.includes('Master AI Engineering') ||
+      currSettings.hero_title.includes('High-RPM')
+    ) {
+      currSettings.site_name = 'Web Nasir';
+      currSettings.hero_badge = 'Online Learning & Digital Tools';
+      currSettings.hero_title = 'Learn Digital Skills. Build Websites. Grow Your Online Business.';
+      currSettings.hero_subtitle =
+        'Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.';
+      currSettings.footer_text =
+        'Web Nasir helps people learn digital skills, create websites, use practical tools and grow their online businesses.';
+      await setBlob('settings', currSettings);
+    }
+
+    const currHome = (await getBlob('cms_homepage')) || {};
+    if (Array.isArray(currHome.sections)) {
+      let homeChanged = false;
+      const heroSec = currHome.sections.find((s) => s.id === 'hero');
+      if (heroSec) {
+        if (heroSec.enabled === false) { heroSec.enabled = true; homeChanged = true; }
+        if (heroSec.order !== 1) { heroSec.order = 1; homeChanged = true; }
+        if (heroSec.heading === 'Master AI, Build Digital Skills & Create Your Online Future.') {
+          heroSec.heading = 'Learn Digital Skills. Build Websites. Grow Your Online Business.';
+          heroSec.subtitle =
+            'Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.';
+          heroSec.cta_primary_text = 'Explore Free Tools';
+          heroSec.cta_primary_link = '/tools';
+          heroSec.cta_secondary_text = 'Explore Courses';
+          heroSec.cta_secondary_link = '/courses';
+          homeChanged = true;
+        }
+      }
+      const marqueeSec = currHome.sections.find((s) => s.id === 'marquee');
+      if (marqueeSec && marqueeSec.order !== 2) {
+        marqueeSec.order = 2;
+        homeChanged = true;
+      }
+      if (homeChanged) {
+        await setBlob('cms_homepage', currHome);
+      }
+    }
+
+    const currFooter = (await getBlob('cms_footer')) || {};
+    if (
+      !currFooter.columns ||
+      currFooter.columns.some((c) => c.id === 'col-tools')
+    ) {
+      currFooter.brand_title = 'Web Nasir';
+      currFooter.brand_description =
+        'Web Nasir helps people learn digital skills, create websites, use practical tools and grow their online businesses.';
+      currFooter.contact_email = currFooter.contact_email || 'support@webnasir.com';
+      currFooter.contact_whatsapp = currFooter.contact_whatsapp || '+91 7006334417';
+      currFooter.copyright_text = 'Web Nasir. All rights reserved.';
+      currFooter.columns = [
+        {
+          id: 'col-explore',
+          title: 'Explore',
+          links: [
+            { label: 'Free Tools', url: '/tools' },
+            { label: 'Paid Courses', url: '/courses' },
+            { label: 'Free Courses', url: '/free-courses' },
+            { label: 'Guides & Tutorials', url: '/articles' },
+          ],
+        },
+        {
+          id: 'col-learn',
+          title: 'Learn',
+          links: [
+            { label: 'Website Development', url: '/courses/fullstack-web-dev' },
+            { label: 'SEO & Blogging', url: '/courses/seo-mastery' },
+            { label: 'Digital Marketing', url: '/courses/digital-marketing-ai' },
+            { label: 'AI & Automation', url: '/courses/complete-ai-mastery' },
+            { label: 'Online Business', url: '/courses/adsense-blogging' },
+          ],
+        },
+        {
+          id: 'col-company',
+          title: 'Company',
+          links: [
+            { label: 'About Nasir', url: '/about' },
+            { label: 'Contact Us', url: '/contact' },
+            { label: 'Privacy Policy', url: '/privacy' },
+            { label: 'Terms & Conditions', url: '/terms' },
+            { label: 'Refund Policy', url: '/refund-policy' },
+          ],
+        },
+      ];
+      await setBlob('cms_footer', currFooter);
+    }
+
+    const latestSeo = (await getBlob('cms_seo')) || {};
+    if (!latestSeo.global_title || latestSeo.global_title.includes('High-RPM Monetization')) {
+      latestSeo.global_title = 'Web Nasir — Learn Digital Skills, Build Websites & Grow Your Online Business';
+      latestSeo.meta_description =
+        'Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.';
+      await setBlob('cms_seo', latestSeo);
+    }
+
+    await setBlob('meta', {
+      ...currentMeta,
+      seeded: true,
+      seeded_at: currentMeta.seeded_at || now,
+      v2_clean_urls_migrated: true,
+      migrated_at: now,
+    });
+  }
+
+  // K. One-time v3 migration for About Page, Contact Page & White News Ticker defaults
+  const metaV3 = (await getBlob('meta')) || {};
+  if (!metaV3.v3_about_contact_ticker_migrated) {
+    const currAbout = (await getBlob('cms_about')) || {};
+    if (
+      !currAbout.heading ||
+      currAbout.heading === 'Built by a Practitioner, Not a Theoretical Lecturer.' ||
+      !currAbout.founder_heading
+    ) {
+      await setBlob('cms_about', {
+        ...currAbout,
+        badge: 'Digital Learning & Technology Platform',
+        heading: 'Empowering Your Digital Future with AI, Technology & Practical Skills.',
+        subtitle: 'Web Nasir is a digital learning and technology platform built to make modern digital skills accessible to everyone. We bring together practical AI tools, website development resources, SEO strategies, digital marketing education and professional online courses in one place.',
+        cta_primary_text: 'Explore Our Free Tools',
+        cta_primary_link: '/tools',
+        cta_secondary_text: 'Explore Our Courses',
+        cta_secondary_link: '/courses',
+        founder_heading: 'Meet Nasir — Founder of Web Nasir',
+        founder_name: currAbout.founder_name || 'Nasir',
+        founder_role: 'Founder of Web Nasir',
+        founder_description: "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.",
+        biography: "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.",
+        mission: 'To make practical digital education, AI-powered resources and technology accessible through useful tools and straightforward learning experiences.',
+        vision: 'To build a trusted digital learning platform where people can explore technology, develop practical skills and discover new opportunities in the digital world.',
+        offerings: Array.isArray(currAbout.offerings) && currAbout.offerings.length === 6 ? currAbout.offerings : [
+          { title: 'Free AI Tools', description: 'Ready-to-use online utilities for content creation, SEO planning, code explanation, and productivity.', icon: 'sparkles', link: '/tools' },
+          { title: 'Website Development', description: 'Practical resources and step-by-step training for building fast, modern, mobile-friendly websites.', icon: 'code', link: '/courses/fullstack-web-dev' },
+          { title: 'SEO & Blogging', description: 'Clear search optimization strategies, keyword research frameworks, and content publishing guides.', icon: 'search', link: '/courses/seo-mastery' },
+          { title: 'Digital Marketing', description: 'Actionable digital growth, audience building, and online campaign strategies for creators and businesses.', icon: 'trending-up', link: '/courses/digital-marketing-ai' },
+          { title: 'AI & Automation', description: 'Learn how to apply AI workflows and modern automation tools to save time and scale projects.', icon: 'cpu', link: '/courses/complete-ai-mastery' },
+          { title: 'Professional Online Courses', description: 'Structured, beginner-to-advanced learning pathways designed for real-world skill development.', icon: 'graduation-cap', link: '/courses' }
+        ],
+        why_items: Array.isArray(currAbout.why_items) && currAbout.why_items.length === 6 ? currAbout.why_items : [
+          'Practical learning resources.',
+          'Useful free AI tools.',
+          'Technology-focused education.',
+          'Professional learning pathways.',
+          'Regular guides and tutorials.',
+          'Beginner-friendly resources.'
+        ],
+        final_cta_heading: 'Start Building Your Digital Future Today.',
+        cta_text: 'Explore Free Tools',
+        cta_link: '/tools'
+      });
+    }
+
+    const currContact = (await getBlob('cms_contact')) || {};
+    if (
+      !currContact.heading ||
+      currContact.heading === 'Get in Touch with Admissions & Support'
+    ) {
+      await setBlob('cms_contact', {
+        ...currContact,
+        heading: "Let's Connect — We're Here to Help.",
+        subtitle: "Have a question about our AI tools, online courses, website development or learning resources? Get in touch with the Web Nasir team. We're here to help you find the right information and support.",
+        email: currContact.email || 'support@webnasir.com',
+        support_email: currContact.support_email || 'support@webnasir.com',
+        whatsapp: currContact.whatsapp || '+91 7006334417',
+      });
+    }
+
+    const currMarqueeCfg = (await getBlob('cms_marquee_config')) || {};
+    if (!currMarqueeCfg.bg_color || currMarqueeCfg.bg_color === '#0f172a') {
+      await setBlob('cms_marquee_config', {
+        ...currMarqueeCfg,
+        enabled: currMarqueeCfg.enabled !== false,
+        bg_color: '#ffffff',
+        text_color: '#000000',
+        border_color: '#e2e8f0',
+        accent_color: '#7c3aed',
+        pause_on_hover: true,
+        position: 'below_hero',
+      });
+    }
+
+    await setBlob('meta', {
+      ...metaV3,
+      seeded: true,
+      v2_clean_urls_migrated: true,
+      v3_about_contact_ticker_migrated: true,
+      v3_migrated_at: now,
+    });
+  }
 }
+
 

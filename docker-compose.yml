@@ -7,10 +7,16 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=webnasir-production-secret-key-replace-with-your-own
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
-      - ./data:/app/.netlify-blobs-data
+      # Persist all CMS data, tools, courses, articles, users, and uploaded media on host disk
+      - ./.netlify-blobs-data:/app/.netlify-blobs-data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
