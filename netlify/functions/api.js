@@ -481,7 +481,7 @@ export const handler = async (event, context) => {
 
     // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, featured_announcements, redirects, social, and SEO)
     if (method === 'GET' && cleanPath === '/cms-bundle') {
-      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, featuredAnnouncements, redirects, socialProfiles, settings] = await Promise.all([
+      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, featuredAnnouncements, redirects, socialProfiles, settings, heroSlides, heroSliderConfig] = await Promise.all([
         getBlob('cms_homepage').then((r) => r || {}),
         getBlob('cms_appearance').then((r) => r || {}),
         getBlob('cms_navigation').then((r) => r || {}),
@@ -499,6 +499,8 @@ export const handler = async (event, context) => {
         getBlob('cms_redirects').then((r) => r || []),
         getBlob('cms_social_profiles').then((r) => r || []),
         getBlob('settings').then((r) => r || {}),
+        getBlob('cms_hero_slides').then((r) => (Array.isArray(r) ? r : [])),
+        getBlob('cms_hero_slider_config').then((r) => r || {}),
       ]);
 
       // Server-side scheduled publishing & date window enforcement
@@ -530,6 +532,10 @@ export const handler = async (event, context) => {
         .filter((fa) => fa && fa.enabled === true && fa.status !== 'draft' && checkScheduleActive(fa))
         .sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
 
+      const activeHeroSlides = heroSlides
+        .filter((hs) => hs && hs.enabled !== false && hs.status !== 'draft')
+        .sort((a, b) => (Number(a.sort_order ?? a.priority) || 99) - (Number(b.sort_order ?? b.priority) || 99));
+
       return jsonResponse(200, {
         homepage,
         appearance,
@@ -545,10 +551,24 @@ export const handler = async (event, context) => {
         announcement: resolvedAnnouncement,
         marquee_config: resolvedMarqueeConfig,
         featured_announcements: activeFeaturedAnnouncements,
+        hero_slides: activeHeroSlides,
+        hero_slider_config: heroSliderConfig || {},
         redirects,
         social_profiles: socialProfiles,
         settings,
       });
+    }
+
+    // GET /api/hero-slides (Public active hero slides & slider settings)
+    if (method === 'GET' && cleanPath === '/hero-slides') {
+      const [slides, config] = await Promise.all([
+        getBlob('cms_hero_slides').then((r) => (Array.isArray(r) ? r : [])),
+        getBlob('cms_hero_slider_config').then((r) => r || {}),
+      ]);
+      const activeSlides = slides
+        .filter((s) => s && s.enabled !== false && s.status !== 'draft')
+        .sort((a, b) => (Number(a.sort_order ?? a.priority) || 99) - (Number(b.sort_order ?? b.priority) || 99));
+      return jsonResponse(200, { slides: activeSlides, config });
     }
 
     // GET /api/featured-announcements (Public active announcements endpoint + optional preview_id)
@@ -1268,6 +1288,21 @@ export const handler = async (event, context) => {
     if (cleanPath.startsWith('/admin')) {
       const admin = await requireAuth();
       if (!admin) return jsonResponse(401, { error: 'Unauthorized' });
+
+      const appendAuditLog = async (actionText) => {
+        try {
+          const logs = (await getBlob('cms_audit_logs')) || [];
+          logs.unshift({
+            id: 'log-' + Date.now().toString(36),
+            action: actionText,
+            actor: admin.username || 'admin',
+            timestamp: new Date().toISOString(),
+          });
+          await setBlob('cms_audit_logs', logs.slice(0, 200));
+        } catch (e) {
+          console.warn('Audit log write error:', e.message);
+        }
+      };
 
       // GET /api/admin/articles
       if (method === 'GET' && cleanPath === '/admin/articles') {
@@ -2199,6 +2234,125 @@ export const handler = async (event, context) => {
       }
 
       // ==========================================
+      // HERO SLIDER MANAGER CRUD (/api/admin/hero-slides & /api/admin/hero-slider-config)
+      // ==========================================
+      if (cleanPath === '/admin/hero-slides') {
+        if (method === 'GET') {
+          const [slides, config] = await Promise.all([
+            getBlob('cms_hero_slides').then((r) => (Array.isArray(r) ? r : [])),
+            getBlob('cms_hero_slider_config').then((r) => r || {}),
+          ]);
+          return jsonResponse(200, { slides, config });
+        }
+        if (method === 'POST') {
+          const body = parseJsonBody(event.body);
+          if (!body) return jsonResponse(400, { error: 'Invalid slide payload' });
+          const slides = (await getBlob('cms_hero_slides')) || [];
+          const nowIso = new Date().toISOString();
+          const newSlide = {
+            id: body.id || 'slide-' + Date.now().toString(36),
+            slide_type: body.slide_type || 'ai_tools',
+            title: String(body.title || 'New Hero Slide').trim(),
+            badge_text: String(body.badge_text || 'Featured Track').trim(),
+            heading: String(body.heading || 'Master New Digital Skills').trim(),
+            description: String(body.description || '').trim(),
+            cta_primary_text: String(body.cta_primary_text || 'Explore Tools').trim(),
+            cta_primary_link: String(body.cta_primary_link || '/tools').trim(),
+            cta_secondary_text: String(body.cta_secondary_text || 'Explore Courses').trim(),
+            cta_secondary_link: String(body.cta_secondary_link || '/courses').trim(),
+            cta_video_text: String(body.cta_video_text || '').trim(),
+            desktop_image: String(body.desktop_image || '').trim(),
+            mobile_image: String(body.mobile_image || '').trim(),
+            bg_gradient: String(body.bg_gradient || 'from-brand-50/70 via-white to-slate-50/50').trim(),
+            enabled: body.enabled !== false,
+            status: body.status || 'published',
+            sort_order: Number(body.sort_order) || slides.length + 1,
+            created_at: nowIso,
+            updated_at: nowIso,
+          };
+          slides.push(newSlide);
+          await setBlob('cms_hero_slides', slides);
+          await appendAuditLog(`Created Hero Slide: "${newSlide.title}"`);
+          return jsonResponse(201, { ok: true, success: true, slide: newSlide, slides });
+        }
+        if (method === 'PUT') {
+          const body = parseJsonBody(event.body);
+          if (!body || !Array.isArray(body.slides)) return jsonResponse(400, { error: 'Expected slides array' });
+          await setBlob('cms_hero_slides', body.slides);
+          await appendAuditLog('Reordered & updated hero slides catalog');
+          return jsonResponse(200, { success: true, slides: body.slides });
+        }
+      }
+
+      if (cleanPath.startsWith('/admin/hero-slides/') && cleanPath.endsWith('/duplicate')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/hero-slides/', '').replace(/\/duplicate$/, '').trim());
+        const slides = (await getBlob('cms_hero_slides')) || [];
+        const original = slides.find((s) => s.id === id);
+        if (!original) return jsonResponse(404, { error: 'Original slide not found' });
+        const duplicateSlide = {
+          ...original,
+          id: 'slide-' + Date.now().toString(36),
+          title: `${original.title} (Copy)`,
+          sort_order: slides.length + 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        slides.push(duplicateSlide);
+        await setBlob('cms_hero_slides', slides);
+        await appendAuditLog(`Duplicated Hero Slide: "${original.title}" -> "${duplicateSlide.title}"`);
+        return jsonResponse(201, { success: true, slide: duplicateSlide, slides });
+      }
+
+      if (cleanPath.startsWith('/admin/hero-slides/')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/hero-slides/', '').trim());
+        const slides = (await getBlob('cms_hero_slides')) || [];
+        const idx = slides.findIndex((s) => s.id === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Slide not found' });
+
+        if (method === 'PUT') {
+          const body = parseJsonBody(event.body) || {};
+          slides[idx] = {
+            ...slides[idx],
+            ...body,
+            id: slides[idx].id,
+            updated_at: new Date().toISOString(),
+          };
+          await setBlob('cms_hero_slides', slides);
+          await appendAuditLog(`Updated Hero Slide: "${slides[idx].title}"`);
+          return jsonResponse(200, { success: true, slide: slides[idx], slides });
+        }
+
+        if (method === 'DELETE') {
+          const removed = slides[idx];
+          const filtered = slides.filter((s) => s.id !== id);
+          await setBlob('cms_hero_slides', filtered);
+          await appendAuditLog(`Deleted Hero Slide: "${removed.title}"`);
+          return jsonResponse(200, { success: true, slides: filtered });
+        }
+      }
+
+      if (cleanPath === '/admin/hero-slider-config') {
+        if (method === 'GET') {
+          const cfg = (await getBlob('cms_hero_slider_config')) || {};
+          return jsonResponse(200, cfg);
+        }
+        if (method === 'PUT' || method === 'POST') {
+          const body = parseJsonBody(event.body) || {};
+          const existing = (await getBlob('cms_hero_slider_config')) || {};
+          const updated = {
+            ...existing,
+            ...body,
+            autoplay_interval: Number(body.autoplay_interval) || 5,
+            transition_effect: body.transition_effect === 'slide' ? 'slide' : 'fade',
+            updated_at: new Date().toISOString(),
+          };
+          await setBlob('cms_hero_slider_config', updated);
+          await appendAuditLog('Updated Hero Slider configuration');
+          return jsonResponse(200, { success: true, config: updated });
+        }
+      }
+
+      // ==========================================
       // ADMIN STUDENT MANAGEMENT
       // ==========================================
 
@@ -2600,17 +2754,6 @@ export const handler = async (event, context) => {
       // ADMIN 27-MODULE CMS CONTROL CENTER ROUTES
       // ==========================================
 
-      const appendAuditLog = async (actionText) => {
-        const logs = (await getBlob('cms_audit_logs')) || [];
-        logs.unshift({
-          id: 'log-' + Date.now().toString(36),
-          action: actionText,
-          actor: admin.username || 'admin',
-          timestamp: new Date().toISOString(),
-        });
-        await setBlob('cms_audit_logs', logs.slice(0, 200));
-      };
-
       // Generic CMS key-value store handler for homepage, appearance, navigation, footer, about, contact, seo, payments, users, announcement, marquee-config, sidebars, drafts
       const cmsMap = {
         '/admin/cms/homepage': 'cms_homepage',
@@ -2630,6 +2773,8 @@ export const handler = async (event, context) => {
         '/admin/cms/redirects': 'cms_redirects',
         '/admin/cms/social-profiles': 'cms_social_profiles',
         '/admin/cms/featured-announcements': 'cms_featured_announcements',
+        '/admin/cms/hero-slides': 'cms_hero_slides',
+        '/admin/cms/hero-slider-config': 'cms_hero_slider_config',
       };
 
       if (cmsMap[cleanPath]) {
@@ -3504,6 +3649,6 @@ export const handler = async (event, context) => {
     return jsonResponse(404, { error: `Route not found: ${method} ${cleanPath}` });
   } catch (err) {
     console.error('Unhandled server error in Netlify API router:', err);
-    return jsonResponse(500, { error: 'Internal server error' });
+    return jsonResponse(500, { error: err.message || 'Internal server error' });
   }
 };

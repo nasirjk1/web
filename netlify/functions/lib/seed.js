@@ -45,8 +45,8 @@ export async function ensureSeeded() {
     announcement_text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
     announcement_link_text: 'Explore Courses →',
     announcement_link_url: '#/courses',
-    hero_title: 'Master AI, Build Digital Skills & Create Your Online Future.',
-    hero_subtitle: 'Learn practical AI, website development, SEO, digital marketing and online business strategies with Nasir. Access powerful free tools and professional training designed for real-world results.',
+    hero_title: 'Learn Digital Skills. Build Websites. Grow Your Online Business.',
+    hero_subtitle: 'Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.',
     stat_years: '10+ Yrs',
     stat_rpm: '$35+',
     stat_projects: '250+',
@@ -2107,6 +2107,111 @@ async function ensureExtendedCmsSeeded() {
       v2_clean_urls_migrated: true,
       v3_about_contact_ticker_migrated: true,
       v3_migrated_at: now,
+    });
+  }
+
+  // Hero Slider Defaults & Migration (3–4 independently designed slides)
+  const metaV4 = (await getBlob('meta')) || {};
+  if (!metaV4.v4_hero_slider_migrated) {
+    const existingHeroSlides = await getBlob('cms_hero_slides');
+    if (!Array.isArray(existingHeroSlides) || existingHeroSlides.length < 3) {
+      await setBlob('cms_hero_slides', [
+        {
+          id: 'slide-ai-tools',
+          slide_type: 'ai_tools',
+          title: 'AI Tools & Digital Skills',
+          badge_text: 'AI • Technology • Digital Skills Academy',
+          heading: 'Learn Digital Skills. Build Websites. Grow Your Online Business.',
+          description: "Explore practical tools, learn website development, master SEO and discover professional training to build your digital future with Web Nasir.",
+          cta_primary_text: 'Explore Free Tools',
+          cta_primary_link: '/tools',
+          cta_secondary_text: 'Explore Courses',
+          cta_secondary_link: '/courses',
+          cta_video_text: 'Meet Nasir',
+          desktop_image: '',
+          mobile_image: '',
+          bg_gradient: 'from-brand-50/70 via-white to-slate-50/50',
+          enabled: true,
+          sort_order: 1,
+        },
+        {
+          id: 'slide-web-dev',
+          slide_type: 'web_dev',
+          title: 'Website Development',
+          badge_text: 'Modern Web Engineering',
+          heading: 'Build Professional Websites with Modern Technologies.',
+          description: 'Master React, Next.js, WordPress, Tailwind CSS, REST APIs and serverless deployment. Learn how to architect, ship and host high-performance web applications from scratch.',
+          cta_primary_text: 'Explore Development Courses',
+          cta_primary_link: '/courses/fullstack-web-dev',
+          cta_secondary_text: 'Start Free Coding',
+          cta_secondary_link: '/free-courses',
+          cta_video_text: '',
+          desktop_image: '',
+          mobile_image: '',
+          bg_gradient: 'from-indigo-50/70 via-white to-purple-50/40',
+          enabled: true,
+          sort_order: 2,
+        },
+        {
+          id: 'slide-seo-growth',
+          slide_type: 'seo_growth',
+          title: 'SEO & Digital Growth',
+          badge_text: 'Search Intent & High RPM Architecture',
+          heading: 'Master SEO, Blogging & Digital Monetization.',
+          description: 'Discover battle-tested strategies for keyword ranking, Google AdSense optimization, helpful content strategy, and growing high-RPM digital publishing revenues.',
+          cta_primary_text: 'Explore Free Guides',
+          cta_primary_link: '/articles',
+          cta_secondary_text: 'SEO Masterclass',
+          cta_secondary_link: '/courses/seo-mastery',
+          cta_video_text: '',
+          desktop_image: '',
+          mobile_image: '',
+          bg_gradient: 'from-emerald-50/70 via-white to-teal-50/40',
+          enabled: true,
+          sort_order: 3,
+        },
+        {
+          id: 'slide-courses',
+          slide_type: 'courses',
+          title: 'Professional Courses',
+          badge_text: 'Career-Ready Learning Pathways',
+          heading: 'Learn Practical Skills. Build Your Digital Career.',
+          description: 'Explore structured courses designed for real-world application. Learn step-by-step from 10+ years of engineering experience with downloadable project code and mentor guidance.',
+          cta_primary_text: 'Browse All Courses',
+          cta_primary_link: '/courses',
+          cta_secondary_text: 'Free Starter Courses',
+          cta_secondary_link: '/free-courses',
+          cta_video_text: '',
+          desktop_image: '',
+          mobile_image: '',
+          bg_gradient: 'from-violet-50/70 via-white to-amber-50/40',
+          enabled: true,
+          sort_order: 4,
+        },
+      ]);
+    }
+
+    const existingSliderConfig = await getBlob('cms_hero_slider_config');
+    if (!existingSliderConfig || typeof existingSliderConfig !== 'object') {
+      await setBlob('cms_hero_slider_config', {
+        enabled: false,
+        autoplay: true,
+        autoplay_interval: 5,
+        transition_effect: 'fade',
+        pause_on_hover: true,
+        show_arrows: true,
+        show_dots: true,
+        enable_swipe: true,
+      });
+    }
+
+    await setBlob('meta', {
+      ...metaV4,
+      seeded: true,
+      v2_clean_urls_migrated: true,
+      v3_about_contact_ticker_migrated: true,
+      v4_hero_slider_migrated: true,
+      v4_migrated_at: now,
     });
   }
 }
