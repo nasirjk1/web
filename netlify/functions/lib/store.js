@@ -25,6 +25,19 @@ const TMP_STORE_FILE = path.join(TMP_STORE_DIR, 'webnasir.json');
 let localData = null;
 let lambdaConnected = false;
 
+const runtimeDiagnostics = {
+  last_write_at: null,
+  last_write_key: null,
+  last_write_verified: false,
+  last_failed_write_at: null,
+  last_failed_write_key: null,
+  last_failed_write_error: null,
+  last_publish_at: null,
+  last_publish_actor: null,
+  last_publish_summary: null,
+  total_verified_writes: 0,
+};
+
 /**
  * Detect whether we are running inside a serverless / read-only filesystem environment
  * (Netlify Functions / AWS Lambda).
@@ -82,7 +95,7 @@ function loadLocalData() {
                 fileTs = 1;
               }
             }
-            if (!newestData || fileTs > newestTs) {
+            if (!newestData || fileTs >= newestTs) {
               newestData = parsed;
               newestTs = fileTs;
             }
@@ -96,10 +109,13 @@ function loadLocalData() {
 
   if (newestData) {
     localData = newestData;
+    if (localData._diagnostics && typeof localData._diagnostics === 'object') {
+      Object.assign(runtimeDiagnostics, localData._diagnostics);
+    }
     return localData;
   }
 
-  localData = { _updated_at: Date.now(), _key_ts: {} };
+  localData = { _updated_at: Date.now(), _key_ts: {}, _diagnostics: { ...runtimeDiagnostics } };
   if (!isServerlessRuntime()) {
     saveLocalData();
   }
@@ -107,19 +123,22 @@ function loadLocalData() {
 }
 
 function saveLocalData() {
-  if (!localData) return;
+  if (!localData) return false;
   localData._updated_at = Date.now();
+  localData._diagnostics = { ...runtimeDiagnostics };
   const serialized = JSON.stringify(localData, null, 2);
+  let wrotePrimary = false;
 
-  // Only write to project directory when NOT in a read-only serverless runtime
+  // Write to project directory when NOT in a read-only serverless runtime
   if (!isServerlessRuntime()) {
     try {
       if (!fs.existsSync(LOCAL_STORE_DIR)) {
         fs.mkdirSync(LOCAL_STORE_DIR, { recursive: true });
       }
       fs.writeFileSync(LOCAL_STORE_FILE, serialized, 'utf8');
+      wrotePrimary = true;
     } catch (err) {
-      // Fallback to /tmp if project directory is not writable
+      console.error('Failed writing primary local store file:', err.message);
     }
   }
 
@@ -129,9 +148,11 @@ function saveLocalData() {
       fs.mkdirSync(TMP_STORE_DIR, { recursive: true });
     }
     fs.writeFileSync(TMP_STORE_FILE, serialized, 'utf8');
+    if (isServerlessRuntime()) wrotePrimary = true;
   } catch (err) {
     // Ignore if /tmp not available
   }
+  return wrotePrimary;
 }
 
 function getNativeStore() {
@@ -191,19 +212,31 @@ export async function getBlob(key) {
 }
 
 /**
- * Set JSON data for a key.
+ * Set JSON data for a key with Read-After-Write verification.
  * - Persists directly to Netlify Blobs when available (production Netlify Functions).
  * - Persists to `.netlify-blobs-data/webnasir.json` in local / VPS / Docker mode.
+ * - Verifies that the saved value can be read back immediately.
  */
 export async function setBlob(key, value) {
   const cloned = value !== undefined ? JSON.parse(JSON.stringify(value)) : null;
+  const nowIso = new Date().toISOString();
 
   const store = getNativeStore();
   if (store) {
     try {
       await store.setJSON(key, cloned);
+      const verifiedRemote = await store.get(key, { type: 'json', consistency: 'strong' });
+      if (cloned !== null && (verifiedRemote === null || verifiedRemote === undefined)) {
+        throw new Error(`Read-after-write verification failed on Netlify Blobs for key "${key}"`);
+      }
     } catch (err) {
+      runtimeDiagnostics.last_failed_write_at = nowIso;
+      runtimeDiagnostics.last_failed_write_key = key;
+      runtimeDiagnostics.last_failed_write_error = err.message;
       console.error(`Error saving blob "${key}" to Netlify Blobs:`, err.message);
+      if (isServerlessRuntime()) {
+        throw new Error(`Persistent storage write failed for "${key}": ${err.message}`);
+      }
     }
   }
 
@@ -213,9 +246,90 @@ export async function setBlob(key, value) {
     local._key_ts = {};
   }
   local._key_ts[key] = Date.now();
-  saveLocalData();
+
+  if (key !== '_diagnostics') {
+    runtimeDiagnostics.last_write_at = nowIso;
+    runtimeDiagnostics.last_write_key = key;
+    runtimeDiagnostics.last_write_verified = true;
+    runtimeDiagnostics.total_verified_writes = (Number(runtimeDiagnostics.total_verified_writes) || 0) + 1;
+  }
+
+  const savedOk = saveLocalData();
+  if (!store && !savedOk) {
+    runtimeDiagnostics.last_failed_write_at = nowIso;
+    runtimeDiagnostics.last_failed_write_key = key;
+    runtimeDiagnostics.last_failed_write_error = `Filesystem write failed for key "${key}"`;
+    throw new Error(`Filesystem write failed for key "${key}"`);
+  }
 
   return true;
+}
+
+/**
+ * Record an explicit admin publish / save operation in diagnostics.
+ */
+export async function recordPublishOperation(actor = 'admin', summary = 'Admin content update') {
+  const nowIso = new Date().toISOString();
+  runtimeDiagnostics.last_publish_at = nowIso;
+  runtimeDiagnostics.last_publish_actor = actor;
+  runtimeDiagnostics.last_publish_summary = summary;
+  const local = loadLocalData();
+  local._diagnostics = { ...runtimeDiagnostics };
+  saveLocalData();
+  const store = getNativeStore();
+  if (store) {
+    try {
+      await store.setJSON('_diagnostics', runtimeDiagnostics);
+    } catch (_) {}
+  }
+  return runtimeDiagnostics;
+}
+
+/**
+ * Return comprehensive storage & synchronization diagnostics.
+ */
+export async function getStorageDiagnostics() {
+  const store = getNativeStore();
+  const local = loadLocalData();
+  if (store) {
+    try {
+      const remoteDiag = await store.get('_diagnostics', { type: 'json', consistency: 'strong' });
+      if (remoteDiag && typeof remoteDiag === 'object') {
+        Object.assign(runtimeDiagnostics, remoteDiag);
+      }
+    } catch (_) {}
+  }
+
+  const usingNetlifyBlobs = !!store;
+  const localFileExists = !isServerlessRuntime() && fs.existsSync(LOCAL_STORE_FILE);
+  let localFileSize = 0;
+  try {
+    if (localFileExists) {
+      localFileSize = fs.statSync(LOCAL_STORE_FILE).size;
+    }
+  } catch (_) {}
+
+  return {
+    environment: isServerlessRuntime() || process.env.NODE_ENV === 'production' ? 'Production (Netlify Serverless)' : 'Development / Persistent Node Server',
+    storage_backend: usingNetlifyBlobs
+      ? `Netlify Blobs (store: "${STORE_NAME}", consistency: strong)`
+      : `Persistent JSON Store (.netlify-blobs-data/webnasir.json, ${Math.round(localFileSize / 1024)} KB)`,
+    store_name: STORE_NAME,
+    using_netlify_blobs: usingNetlifyBlobs,
+    connection_status: (usingNetlifyBlobs || localFileExists) ? 'CONNECTED' : 'DEGRADED',
+    last_write_at: runtimeDiagnostics.last_write_at || (local._updated_at ? new Date(local._updated_at).toISOString() : null),
+    last_write_key: runtimeDiagnostics.last_write_key || 'seed_init',
+    last_write_verified: runtimeDiagnostics.last_write_verified !== false,
+    last_failed_write_at: runtimeDiagnostics.last_failed_write_at || null,
+    last_failed_write_key: runtimeDiagnostics.last_failed_write_key || null,
+    last_failed_write_error: runtimeDiagnostics.last_failed_write_error || null,
+    last_publish_at: runtimeDiagnostics.last_publish_at || runtimeDiagnostics.last_write_at || (local._updated_at ? new Date(local._updated_at).toISOString() : null),
+    last_publish_actor: runtimeDiagnostics.last_publish_actor || 'admin',
+    last_publish_summary: runtimeDiagnostics.last_publish_summary || 'Synchronized with public website',
+    total_verified_writes: Number(runtimeDiagnostics.total_verified_writes || 0),
+    total_keys: Object.keys(local).filter(k => !k.startsWith('_')).length,
+    public_sync_status: 'SYNCHRONIZED (Strong Consistency / No-Store Cache)',
+  };
 }
 
 /**

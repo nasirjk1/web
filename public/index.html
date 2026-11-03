@@ -1269,18 +1269,23 @@
     function renderMarqueeTrack() {
       const track = document.getElementById('marquee-track');
       if (!track) return;
+      const mc = (window.APP_STATE.cms && window.APP_STATE.cms.marquee_config) || {};
+      const txtCol = mc.text_color || '#000000';
       const items = (window.APP_STATE.marquee || []).filter(it => it && (typeof it === 'string' || it.enabled !== false));
       const doubled = [...items, ...items];
       track.innerHTML = doubled.map(item => {
         const textVal = typeof item === 'object' ? (item.text || '') : String(item || '');
         const linkVal = typeof item === 'object' ? (item.link || '/tools') : '/tools';
+        const badgeVal = typeof item === 'object' ? (item.badge || '') : '';
+        const itemColor = typeof item === 'object' ? (item.color || '#10b981') : '#10b981';
         return `
-          <a href="${toCleanUrl(linkVal)}" class="inline-flex items-center gap-2.5 text-black hover:text-brand-700 font-semibold transition-colors whitespace-nowrap py-0.5">
+          <a href="${toCleanUrl(linkVal)}" style="color: ${txtCol};" class="inline-flex items-center gap-2.5 hover:opacity-80 font-semibold transition-opacity whitespace-nowrap py-0.5">
+            ${badgeVal ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase text-white shrink-0" style="background-color: ${escapeHtml(itemColor)};">${escapeHtml(badgeVal)}</span>` : `
             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-brand-700 border border-slate-200 shrink-0">
               <i data-lucide="megaphone" class="w-3 h-3"></i>
-            </span>
-            <span class="text-black">${textVal}</span>
-            <span class="text-slate-300 pl-3 select-none">•</span>
+            </span>`}
+            <span style="color: ${txtCol};">${escapeHtml(textVal)}</span>
+            <span class="opacity-40 pl-3 select-none">•</span>
           </a>
         `;
       }).join('');
@@ -1413,7 +1418,10 @@
         }
       }
 
-      // 3. Apply Marquee / News Ticker Config (Pure White Background & Black Text)
+      // 3. Apply Marquee / News Ticker Config & Items
+      if (Array.isArray(cms.marquee)) {
+        window.APP_STATE.marquee = cms.marquee;
+      }
       if (cms.marquee_config) {
         const mc = cms.marquee_config;
         const mWrap = document.getElementById('homepage-section-marquee');
@@ -1423,8 +1431,8 @@
             mWrap.style.display = 'none';
           } else {
             mWrap.style.display = '';
-            const bgCol = (!mc.bg_color || mc.bg_color.toLowerCase() === '#0f172a') ? '#ffffff' : mc.bg_color;
-            const txtCol = (!mc.text_color || mc.text_color.toLowerCase() === '#f8fafc' || mc.text_color.toLowerCase() === '#ffffff') ? '#000000' : mc.text_color;
+            const bgCol = mc.bg_color || '#ffffff';
+            const txtCol = mc.text_color || '#000000';
             mWrap.style.backgroundColor = bgCol;
             mWrap.style.color = txtCol;
             if (mc.font_size) mWrap.style.fontSize = mc.font_size;
@@ -1435,15 +1443,48 @@
           mTrack.style.animationDirection = mc.direction === 'right' ? 'reverse' : 'normal';
         }
       }
+      renderMarqueeTrack();
+
+      // 3B. Apply Header Navigation Overrides
+      if (cms.navigation) {
+        const nav = cms.navigation;
+        const headerCta = document.querySelector('#site-header a.gradient-hero-btn');
+        if (headerCta) {
+          if (nav.cta_button_text) {
+            const spanEl = headerCta.querySelector('span');
+            if (spanEl) spanEl.textContent = nav.cta_button_text;
+            else headerCta.textContent = nav.cta_button_text;
+          }
+          if (nav.cta_button_url) {
+            headerCta.setAttribute('href', toCleanUrl(nav.cta_button_url));
+          }
+        }
+      }
 
       // 4. Apply Footer Overrides
       if (cms.footer) {
         const f = cms.footer;
+        const brandTitleEl = document.getElementById('footer-brand-title');
+        if (brandTitleEl && f.brand_title) brandTitleEl.textContent = f.brand_title;
+
         const sumEl = document.getElementById('footer-summary');
         const sumMobEl = document.getElementById('footer-summary-mobile');
         if (f.brand_description) {
           if (sumEl) sumEl.textContent = f.brand_description;
           if (sumMobEl) sumMobEl.textContent = f.brand_description;
+        }
+        const emailLinkEl = document.getElementById('footer-email-link');
+        if (emailLinkEl && f.contact_email) {
+          emailLinkEl.textContent = f.contact_email;
+          emailLinkEl.setAttribute('href', 'mailto:' + f.contact_email);
+        }
+        const newsTitleEl = document.getElementById('footer-newsletter-title');
+        if (newsTitleEl && f.newsletter_title) {
+          newsTitleEl.textContent = f.newsletter_title;
+        }
+        const copyEl = document.getElementById('footer-copyright-line');
+        if (copyEl && f.copyright_text) {
+          copyEl.textContent = f.copyright_text;
         }
         const footerEl = document.querySelector('footer');
         if (footerEl && f.bg_color) footerEl.style.backgroundColor = f.bg_color;
@@ -1465,12 +1506,14 @@
         marquee: 2,
         tools: 3,
         tool_categories: 4,
-        why_choose: 5,
-        learning_pathways: 6,
-        founder_video: 7,
-        guides_articles: 8,
-        testimonials: 9,
-        final_cta: 10
+        free_learning_hub: 5,
+        announcements: 6,
+        why_choose: 7,
+        learning_pathways: 8,
+        founder_video: 9,
+        guides_articles: 10,
+        testimonials: 11,
+        final_cta: 12
       };
 
       const sortedSections = [...cms.homepage.sections]
@@ -1653,39 +1696,7 @@
       lucide.createIcons();
     }
 
-    // Search Results View (/search)
-    function renderSearchResultsView(container) {
-      const tools = window.APP_STATE.tools || [];
-      const articles = window.APP_STATE.articles || [];
-      const topics = window.APP_STATE.topics || [];
 
-      container.innerHTML = `
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-8">
-          <div class="text-center max-w-2xl mx-auto space-y-3">
-            <h1 class="text-3xl sm:text-4xl font-black font-heading text-slate-900">Search Web Nasir</h1>
-            <p class="text-sm text-slate-600">Find any free AI or online tool, step-by-step guide, or learning topic.</p>
-            <input id="global-search-box" oninput="executeGlobalSearchLive(this.value)" type="text" placeholder="Search AI tools, guides, SEO, AdSense..." class="w-full px-5 py-3.5 rounded-2xl border border-slate-300 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-brand-600">
-          </div>
-          <div id="global-search-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${tools.map(t => `<a href="${getToolCleanPath(t)}" class="p-5 rounded-2xl bg-white border border-slate-200 hover:border-brand-400 transition-all"><span class="text-[10px] font-bold uppercase text-indigo-700">Free Online Tool</span><h3 class="font-bold text-slate-900 mt-1">${t.name}</h3><p class="text-xs text-slate-500 mt-1 line-clamp-2">${t.description || ''}</p></a>`).join('')}
-            ${articles.map(a => `<a href="/articles/${a.slug}" class="p-5 rounded-2xl bg-white border border-slate-200 hover:border-brand-400 transition-all"><span class="text-[10px] font-bold uppercase text-amber-700">Guide / Tutorial</span><h3 class="font-bold text-slate-900 mt-1">${a.title}</h3><p class="text-xs text-slate-500 mt-1 line-clamp-2">${a.summary || a.meta || ''}</p></a>`).join('')}
-          </div>
-        </div>
-      `;
-      window.executeGlobalSearchLive = function(q) {
-        const query = String(q || '').toLowerCase().trim();
-        const resEl = document.getElementById('global-search-results');
-        if (!resEl) return;
-        const matchedTools = tools.filter(t => (t.name + ' ' + (t.description || '')).toLowerCase().includes(query));
-        const matchedArticles = articles.filter(a => (a.title + ' ' + (a.summary || a.meta || '')).toLowerCase().includes(query));
-        const matchedTopics = topics.filter(tp => (tp.name + ' ' + (tp.description || '')).toLowerCase().includes(query));
-        resEl.innerHTML = [
-          ...matchedTools.map(t => `<a href="${getToolCleanPath(t)}" class="p-5 rounded-2xl bg-white border border-slate-200 hover:border-brand-400 transition-all"><span class="text-[10px] font-bold uppercase text-indigo-700">Free Online Tool</span><h3 class="font-bold text-slate-900 mt-1">${t.name}</h3><p class="text-xs text-slate-500 mt-1 line-clamp-2">${t.description || ''}</p></a>`),
-          ...matchedArticles.map(a => `<a href="/articles/${a.slug}" class="p-5 rounded-2xl bg-white border border-slate-200 hover:border-brand-400 transition-all"><span class="text-[10px] font-bold uppercase text-amber-700">Guide / Tutorial</span><h3 class="font-bold text-slate-900 mt-1">${a.title}</h3><p class="text-xs text-slate-500 mt-1 line-clamp-2">${a.summary || a.meta || ''}</p></a>`),
-          ...matchedTopics.map(tp => `<a href="${toCleanUrl(tp.link || '/topics')}" class="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400 transition-all"><span class="text-[10px] font-bold uppercase text-emerald-700">Learning Topic</span><h3 class="font-bold text-slate-900 mt-1">${tp.name}</h3><p class="text-xs text-slate-500 mt-1 line-clamp-2">${tp.description || ''}</p></a>`)
-        ].join('') || '<div class="col-span-full text-center py-12 text-sm text-slate-500">No matching tools, guides, or topics found.</div>';
-      };
-    }
 
     // ==========================================
     // INTERACTIVE VISUAL BUILDER POSTMESSAGE BRIDGE
@@ -2180,6 +2191,10 @@
       const secToolCats = getSec('tool_categories', {
         heading: 'Free AI Tools Categories',
         subtitle: 'Explore specialized categories of browser-based utilities built for content creators, developers, bloggers, and online entrepreneurs.'
+      });
+      const secFreeLearningHub = getSec('free_learning_hub', {
+        heading: 'Learn New Skills. Watch Real Courses. Build Your Digital Future — Completely Free.',
+        subtitle: 'Explore carefully selected free YouTube courses, programming tutorials, AI lessons, SEO training, digital marketing education and practical guides. Learn from trusted educators and official educational channels without paying for courses.'
       });
       const secAnnouncements = getSec('announcements', {
         heading: 'Featured Announcements & Platform Updates',
@@ -2833,7 +2848,7 @@
         </section>
 
         <!-- 6. FREE LEARNING HUB SECTION (VERIFIED YOUTUBE COURSES) -->
-        <section id="homepage-section-free_learning_hub" data-cms-section="free_learning_hub" class="py-14 sm:py-20 bg-white border-b border-bordercol">
+        <section id="homepage-section-free_learning_hub" data-cms-section="free_learning_hub" style="${!secFreeLearningHub.enabled ? 'display:none;' : ''}" class="py-14 sm:py-20 bg-white border-b border-bordercol">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
               <div>
@@ -2841,11 +2856,11 @@
                   <i data-lucide="play-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
                   <span>Free Learning Hub • 100% Free YouTube Courses</span>
                 </div>
-                <h2 class="text-2xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
-                  Learn New Skills. Watch Real Courses. Build Your Digital Future — Completely Free.
+                <h2 data-cms-heading class="text-2xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
+                  ${escapeHtml(secFreeLearningHub.heading)}
                 </h2>
-                <p class="text-sm text-slate-600 max-w-3xl mt-2.5 leading-relaxed">
-                  Explore carefully selected free YouTube courses, programming tutorials, AI lessons, SEO training, digital marketing education and practical guides. Learn from trusted educators and official educational channels without paying for courses.
+                <p data-cms-subtitle class="text-sm text-slate-600 max-w-3xl mt-2.5 leading-relaxed">
+                  ${escapeHtml(secFreeLearningHub.subtitle)}
                 </p>
               </div>
               <a href="/learning-pathways" class="gradient-hero-btn text-white text-xs font-bold px-5 py-3 rounded-xl inline-flex items-center gap-2 shrink-0 self-start md:self-auto shadow-xs">

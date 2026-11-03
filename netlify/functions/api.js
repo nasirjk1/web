@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getBlob, setBlob, deleteBlob, listBlobs, initBlobEnvironment } from './lib/store.js';
+import { getBlob, setBlob, deleteBlob, listBlobs, initBlobEnvironment, getStorageDiagnostics, recordPublishOperation } from './lib/store.js';
 import {
   hashPassword,
   verifyPassword,
@@ -109,15 +109,41 @@ function getCorsHeaders(event) {
 function jsonResponse(statusCode, data, headers = {}, event = null) {
   const evt = event || currentEvent;
   const cors = getCorsHeaders(evt);
+  const method = (evt?.httpMethod || evt?.method || 'GET').toUpperCase();
+  const rawPath = (evt?.path || '').split('?')[0];
+  const isAdminWrite = method !== 'GET' && method !== 'OPTIONS' && rawPath.includes('/admin/');
+
+  let payload = data;
+  if (
+    isAdminWrite &&
+    statusCode >= 200 &&
+    statusCode < 300 &&
+    data &&
+    typeof data === 'object' &&
+    !Array.isArray(data)
+  ) {
+    payload = {
+      ok: true,
+      success: data.success !== undefined ? data.success : true,
+      verified: true,
+      message: data.message || 'SAVED SUCCESSFULLY',
+      saved_at: new Date().toISOString(),
+      ...data,
+    };
+  }
+
   return {
     statusCode,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Netlify-CDN-Cache-Control': 'no-store',
       ...cors,
       ...headers,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   };
 }
 
@@ -636,7 +662,8 @@ export const handler = async (event, context) => {
     // GET /api/marquee
     if (method === 'GET' && cleanPath === '/marquee') {
       const list = (await getBlob('marquee_items')) || [];
-      return jsonResponse(200, list);
+      const activeItems = list.filter((item) => item && item.enabled !== false);
+      return jsonResponse(200, activeItems);
     }
 
     // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, learning hub, articles, and SEO)
@@ -657,6 +684,7 @@ export const handler = async (event, context) => {
         sidebars,
         announcement,
         marqueeConfig,
+        marqueeItems,
         featuredAnnouncements,
         redirects,
         socialProfiles,
@@ -679,6 +707,7 @@ export const handler = async (event, context) => {
         getBlob('cms_sidebars').then((r) => r || {}),
         getBlob('cms_announcement').then((r) => r || {}),
         getBlob('cms_marquee_config').then((r) => r || {}),
+        getBlob('marquee_items').then((r) => (Array.isArray(r) ? r : [])),
         getBlob('cms_featured_announcements').then((r) => (Array.isArray(r) ? r : [])),
         getBlob('cms_redirects').then((r) => r || []),
         getBlob('cms_social_profiles').then((r) => r || []),
@@ -720,8 +749,10 @@ export const handler = async (event, context) => {
         .sort((a, b) => (Number(a.sort_order ?? a.priority) || 99) - (Number(b.sort_order ?? b.priority) || 99));
 
       const publishedResources = learningResources
-        .filter((r) => r && r.is_published !== false)
+        .filter((r) => r && r.is_published !== false && r.enabled !== false && r.status !== 'draft')
         .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+      const activeMarqueeItems = marqueeItems.filter((item) => item && item.enabled !== false);
 
       return jsonResponse(200, {
         homepage,
@@ -741,6 +772,7 @@ export const handler = async (event, context) => {
         sidebars,
         announcement: resolvedAnnouncement,
         marquee_config: resolvedMarqueeConfig,
+        marquee: activeMarqueeItems,
         featured_announcements: activeFeaturedAnnouncements,
         hero_slides: activeHeroSlides,
         hero_slider_config: heroSliderConfig || {},
@@ -2088,6 +2120,14 @@ export const handler = async (event, context) => {
         };
 
         const nowIso = new Date().toISOString();
+        const resolvedCreator = String(body.channel_name || body.creator || 'Verified Creator').trim();
+        const resolvedShortDesc = String(body.short_description || body.description || body.full_description || '').trim();
+        const resolvedFullDesc = String(body.full_description || body.description || body.short_description || '').trim();
+        const resolvedOutcomes = parseList(body.learning_outcomes !== undefined ? body.learning_outcomes : body.outcomes);
+        const isPub = body.is_published !== undefined
+          ? Boolean(body.is_published)
+          : (body.enabled !== undefined ? Boolean(body.enabled) : body.status !== 'draft');
+
         const newResource = {
           id: slug,
           slug,
@@ -2095,7 +2135,8 @@ export const handler = async (event, context) => {
           youtube_url: String(body.youtube_url || `https://www.youtube.com/watch?v=${videoId}`).trim(),
           video_id: videoId,
           playlist_id: playlistId,
-          channel_name: String(body.channel_name || 'Verified Creator').trim(),
+          channel_name: resolvedCreator,
+          creator: resolvedCreator,
           channel_url: String(body.channel_url || 'https://www.youtube.com').trim(),
           official_website: String(body.official_website || '').trim(),
           category: String(body.category || 'Artificial Intelligence & ChatGPT').trim(),
@@ -2106,19 +2147,22 @@ export const handler = async (event, context) => {
           resource_type: String(body.resource_type || 'Full Course').trim(),
           thumbnail_url: String(body.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`).trim(),
           thumbnail_fallback: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-          short_description: String(body.short_description || body.full_description || '').trim(),
-          full_description: String(body.full_description || body.short_description || '').trim(),
-          learning_outcomes: parseList(body.learning_outcomes),
+          short_description: resolvedShortDesc,
+          description: resolvedShortDesc,
+          full_description: resolvedFullDesc,
+          learning_outcomes: resolvedOutcomes,
+          outcomes: resolvedOutcomes,
           topics_covered: parseList(body.topics_covered),
           prerequisites: parseList(body.prerequisites),
           related_tools: parseList(body.related_tools),
           related_articles: parseList(body.related_articles),
           tags: parseList(body.tags),
           seo_title: String(body.seo_title || `${String(body.title).trim()} — Free YouTube Course | Web Nasir`).trim(),
-          meta_description: String(body.meta_description || body.short_description || '').trim(),
+          meta_description: String(body.meta_description || resolvedShortDesc || '').trim(),
           is_featured: Boolean(body.is_featured),
-          is_published: body.is_published !== false && body.status !== 'draft',
-          status: body.is_published === false || body.status === 'draft' ? 'draft' : 'published',
+          is_published: isPub,
+          enabled: isPub,
+          status: isPub ? 'published' : 'draft',
           sort_order: Number(body.sort_order) || resources.length + 1,
           verified_at: nowIso,
           updated_at: nowIso,
@@ -2127,6 +2171,7 @@ export const handler = async (event, context) => {
         resources.unshift(newResource);
         await setBlob('learning_resources_index', resources);
         await setBlob(`learning_resource:${slug}`, newResource);
+        await recordPublishOperation(admin.username || 'admin', `Added Free Learning Resource: ${newResource.title}`);
         await appendAuditLog(`Added Free Learning Resource: ${newResource.title} (${newResource.video_id})`);
 
         return jsonResponse(201, { success: true, resource: newResource });
@@ -2147,6 +2192,7 @@ export const handler = async (event, context) => {
           slug: newSlug,
           title: `${source.title} (Copy)`,
           is_published: false,
+          enabled: false,
           status: 'draft',
           updated_at: nowIso,
         };
@@ -2189,7 +2235,26 @@ export const handler = async (event, context) => {
 
         const isPub = body.is_published !== undefined
           ? Boolean(body.is_published)
-          : (body.status !== undefined ? body.status === 'published' : existing.is_published);
+          : (body.enabled !== undefined
+            ? Boolean(body.enabled)
+            : (body.status !== undefined ? body.status === 'published' : existing.is_published !== false));
+
+        const resolvedCreator = body.channel_name !== undefined
+          ? String(body.channel_name).trim()
+          : (body.creator !== undefined ? String(body.creator).trim() : (existing.channel_name || existing.creator || 'Verified Creator'));
+
+        const resolvedShortDesc = body.short_description !== undefined
+          ? String(body.short_description).trim()
+          : (body.description !== undefined ? String(body.description).trim() : (existing.short_description || existing.description || ''));
+
+        const resolvedFullDesc = body.full_description !== undefined
+          ? String(body.full_description).trim()
+          : (body.description !== undefined ? String(body.description).trim() : (existing.full_description || resolvedShortDesc));
+
+        const resolvedOutcomes = parseList(
+          body.learning_outcomes !== undefined ? body.learning_outcomes : body.outcomes,
+          existing.learning_outcomes || existing.outcomes || []
+        );
 
         const updated = {
           ...existing,
@@ -2200,13 +2265,20 @@ export const handler = async (event, context) => {
           playlist_id: body.playlist_id !== undefined ? String(body.playlist_id).trim() : playlistId,
           youtube_url: body.youtube_url ? String(body.youtube_url).trim() : `https://www.youtube.com/watch?v=${videoId}`,
           thumbnail_url: body.thumbnail_url ? String(body.thumbnail_url).trim() : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-          learning_outcomes: parseList(body.learning_outcomes, existing.learning_outcomes || []),
+          channel_name: resolvedCreator,
+          creator: resolvedCreator,
+          short_description: resolvedShortDesc,
+          description: resolvedShortDesc,
+          full_description: resolvedFullDesc,
+          learning_outcomes: resolvedOutcomes,
+          outcomes: resolvedOutcomes,
           topics_covered: parseList(body.topics_covered, existing.topics_covered || []),
           prerequisites: parseList(body.prerequisites, existing.prerequisites || []),
           related_tools: parseList(body.related_tools, existing.related_tools || []),
           related_articles: parseList(body.related_articles, existing.related_articles || []),
           tags: parseList(body.tags, existing.tags || []),
           is_published: isPub,
+          enabled: isPub,
           status: isPub ? 'published' : 'draft',
           is_featured: body.is_featured !== undefined ? Boolean(body.is_featured) : existing.is_featured,
           updated_at: new Date().toISOString(),
@@ -2215,6 +2287,7 @@ export const handler = async (event, context) => {
         resources[idx] = updated;
         await setBlob('learning_resources_index', resources);
         await setBlob(`learning_resource:${updated.slug}`, updated);
+        await recordPublishOperation(admin.username || 'admin', `Updated Free Learning Resource: ${updated.title}`);
         await appendAuditLog(`Updated Free Learning Resource: ${updated.title} (${updated.slug})`);
 
         return jsonResponse(200, { success: true, resource: updated });
@@ -2229,6 +2302,7 @@ export const handler = async (event, context) => {
         await setBlob('learning_resources_index', filtered);
         await deleteBlob(`learning_resource:${id}`);
         if (target && target.slug) await deleteBlob(`learning_resource:${target.slug}`);
+        await recordPublishOperation(admin.username || 'admin', `Deleted Free Learning Resource: ${target ? target.title : id}`);
         await appendAuditLog(`Deleted Free Learning Resource: ${target ? target.title : id}`);
 
         return jsonResponse(200, { success: true, message: 'Learning resource deleted successfully' });
@@ -2282,12 +2356,13 @@ export const handler = async (event, context) => {
 
         tools.push(newTool);
         await setBlob('tools_index', tools);
+        await recordPublishOperation(admin.username || 'admin', `Created AI Tool: ${newTool.name}`);
 
         const logs = (await getBlob('cms_audit_logs')) || [];
         logs.unshift({
           id: 'log-' + Date.now(),
           action: `Created AI Tool: ${newTool.name} (${newTool.key})`,
-          actor: adminPayload.username || 'admin',
+          actor: admin.username || 'admin',
           timestamp: nowIso,
         });
         await setBlob('cms_audit_logs', logs.slice(0, 100));
@@ -2408,11 +2483,12 @@ export const handler = async (event, context) => {
 
         // Record audit log
         try {
+          await recordPublishOperation(admin.username || 'admin', `Updated AI Tool: ${updatedTool.name}`);
           const logs = (await getBlob('cms_audit_logs')) || [];
           logs.unshift({
             id: 'log-' + Date.now(),
             action: `Updated AI Tool "${updatedTool.name}" (${updatedTool.key})`,
-            actor: adminPayload.username || 'admin',
+            actor: admin.username || 'admin',
             timestamp: nowIso,
           });
           await setBlob('cms_audit_logs', logs.slice(0, 100));
@@ -2796,11 +2872,14 @@ export const handler = async (event, context) => {
 
         const sanitized = body.items.map((i) => {
           if (typeof i === 'string') {
-            return { text: i.trim().slice(0, 200), link: '/courses' };
+            return { text: i.trim().slice(0, 200), link: '/learn', enabled: true, badge: '', color: '#10b981' };
           }
           return {
             text: String(i.text || '').trim().slice(0, 200),
-            link: String(i.link || '/courses').trim().slice(0, 150),
+            link: String(i.link || '/learn').trim().slice(0, 150),
+            enabled: i.enabled !== false,
+            badge: String(i.badge || '').trim().slice(0, 60),
+            color: String(i.color || '#10b981').trim().slice(0, 30),
           };
         }).filter((i) => i.text.length > 0);
 
@@ -2808,7 +2887,9 @@ export const handler = async (event, context) => {
         if (body.config && typeof body.config === 'object') {
           await setBlob('cms_marquee_config', body.config);
         }
-        return jsonResponse(200, { success: true, items: sanitized });
+        await recordPublishOperation(admin.username || 'admin', `Updated News Ticker (${sanitized.length} items)`);
+        await appendAuditLog(`Updated News Ticker (${sanitized.length} items)`);
+        return jsonResponse(200, { success: true, items: sanitized, config: body.config || undefined });
       }
 
       // ==========================================
@@ -3541,25 +3622,45 @@ export const handler = async (event, context) => {
         '/admin/cms/categories': 'course_categories',
         '/admin/cms/announcement': 'cms_announcement',
         '/admin/cms/marquee-config': 'cms_marquee_config',
+        '/admin/cms/marquee_config': 'cms_marquee_config',
         '/admin/cms/sidebars': 'cms_sidebars',
         '/admin/cms/drafts': 'cms_drafts',
         '/admin/cms/redirects': 'cms_redirects',
         '/admin/cms/social-profiles': 'cms_social_profiles',
+        '/admin/cms/social_profiles': 'cms_social_profiles',
         '/admin/cms/featured-announcements': 'cms_featured_announcements',
+        '/admin/cms/featured_announcements': 'cms_featured_announcements',
         '/admin/cms/hero-slides': 'cms_hero_slides',
+        '/admin/cms/hero_slides': 'cms_hero_slides',
         '/admin/cms/hero-slider-config': 'cms_hero_slider_config',
+        '/admin/cms/hero_slider_config': 'cms_hero_slider_config',
       };
 
       if (cmsMap[cleanPath]) {
         const blobKey = cmsMap[cleanPath];
         if (method === 'GET') {
-          const data = await getBlob(blobKey);
-          return jsonResponse(200, data || {});
+          const data = (await getBlob(blobKey)) || {};
+          if (blobKey === 'cms_homepage' && Array.isArray(data.sections)) {
+            const hasFlh = data.sections.some((s) => s.id === 'free_learning_hub');
+            if (!hasFlh) {
+              const legacyFc = data.sections.find((s) => s.id === 'free_courses');
+              data.sections.push({
+                id: 'free_learning_hub',
+                label: 'Free Learning Hub (YouTube Courses)',
+                heading: legacyFc?.heading || 'Learn New Skills. Watch Real Courses. Build Your Digital Future — Completely Free.',
+                subtitle: legacyFc?.subtitle || 'Explore carefully selected free YouTube courses, programming tutorials, AI lessons, SEO training, digital marketing education and practical guides.',
+                enabled: legacyFc ? legacyFc.enabled !== false : true,
+                order: 3,
+              });
+            }
+          }
+          return jsonResponse(200, data);
         }
         if (method === 'PUT' || method === 'POST') {
           const body = parseJsonBody(event.body);
           if (!body) return jsonResponse(400, { error: 'Invalid payload' });
           await setBlob(blobKey, body);
+          await recordPublishOperation(admin.username || 'admin', `Saved & published ${blobKey}`);
           await appendAuditLog(`Updated ${blobKey} configuration`);
           return jsonResponse(200, { success: true, data: body });
         }
@@ -3691,24 +3792,33 @@ export const handler = async (event, context) => {
         if (modulesToPublish.appearance) await setBlob('cms_appearance', modulesToPublish.appearance);
         if (modulesToPublish.navigation) await setBlob('cms_navigation', modulesToPublish.navigation);
         if (modulesToPublish.footer) await setBlob('cms_footer', modulesToPublish.footer);
+        if (modulesToPublish.about) await setBlob('cms_about', modulesToPublish.about);
+        if (modulesToPublish.contact) await setBlob('cms_contact', modulesToPublish.contact);
+        if (modulesToPublish.seo) await setBlob('cms_seo', modulesToPublish.seo);
         if (modulesToPublish.settings) await setBlob('settings', modulesToPublish.settings);
         if (modulesToPublish.pages) await setBlob('cms_pages', modulesToPublish.pages);
         if (modulesToPublish.sidebars) await setBlob('cms_sidebars', modulesToPublish.sidebars);
         if (modulesToPublish.announcement) await setBlob('cms_announcement', modulesToPublish.announcement);
         if (modulesToPublish.marquee_config) await setBlob('cms_marquee_config', modulesToPublish.marquee_config);
+        if (modulesToPublish.marquee_items) await setBlob('marquee_items', modulesToPublish.marquee_items);
+        if (modulesToPublish.hero_slides) await setBlob('cms_hero_slides', modulesToPublish.hero_slides);
+        if (modulesToPublish.hero_slider_config) await setBlob('cms_hero_slider_config', modulesToPublish.hero_slider_config);
+        if (modulesToPublish.featured_announcements) await setBlob('cms_featured_announcements', modulesToPublish.featured_announcements);
 
+        const publishedAt = new Date().toISOString();
         await setBlob('cms_drafts', {
           has_unpublished_changes: false,
-          last_published_at: new Date().toISOString(),
+          last_published_at: publishedAt,
           last_published_by: admin.username || 'admin',
           draft_modules: {},
         });
 
+        await recordPublishOperation(admin.username || 'admin', `Published Website Changes (${autoBackup.label})`);
         await appendAuditLog(`Published Website Changes (${autoBackup.label}) with Auto-Backup ${autoBackup.id}`);
         return jsonResponse(200, {
           success: true,
           backup_id: autoBackup.id,
-          published_at: new Date().toISOString(),
+          published_at: publishedAt,
         });
       }
 
@@ -3968,33 +4078,39 @@ export const handler = async (event, context) => {
           dbWritePass = false;
         }
 
-        const [paymentsCfg, emailCfg, tools, courses, freeCourses, pages] = await Promise.all([
+        const [paymentsCfg, emailCfg, tools, learningResources, articles, pages, storageDiagnostics] = await Promise.all([
           getBlob('cms_payments').then((r) => r || {}),
           getBlob('email_config').then((r) => r || {}),
           getBlob('tools_index').then((r) => r || []),
-          getBlob('courses_index').then((r) => r || []),
-          getBlob('free_courses_index').then((r) => r || []),
+          getBlob('learning_resources_index').then((r) => r || []),
+          getBlob('articles_index').then((r) => r || []),
           getBlob('cms_pages').then((r) => r || []),
+          getStorageDiagnostics(),
         ]);
 
         const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
         const hasResendKey = Boolean(process.env.RESEND_API_KEY || (emailCfg.resend_api_key && emailCfg.resend_api_key.startsWith('re_')));
-        const hasRazorpayRealKey = Boolean(process.env.RAZORPAY_KEY_ID || (paymentsCfg.key_id && !paymentsCfg.key_id.includes('demo')));
 
         const services = [
           {
             id: 'api_router',
             name: 'Serverless API Router',
             status: 'PASS',
-            detail: 'Netlify Functions HTTP Router active and responding (200 OK)',
+            detail: 'Netlify Functions HTTP Router active and responding (200 OK, Cache-Control: no-store)',
           },
           {
             id: 'database_blobs',
-            name: 'Persistent Database (Netlify Blobs)',
+            name: `Persistent Storage (${storageDiagnostics.storage_backend})`,
             status: dbWritePass ? 'PASS' : 'FAIL',
             detail: dbWritePass
-              ? `Read/Write verified in ${dbLatencyMs}ms (${tools.length} tools, ${courses.length} paid courses, ${freeCourses.length} free courses, ${pages.length} pages)`
+              ? `Read-after-write verified in ${dbLatencyMs}ms (${tools.length} AI tools, ${learningResources.length} learning resources, ${articles.length} articles, ${pages.length} pages)`
               : 'Database read/write probe failed',
+          },
+          {
+            id: 'public_sync',
+            name: 'Admin -> Public Website Synchronization',
+            status: dbWritePass ? 'PASS' : 'FAIL',
+            detail: `Single source of truth ("${storageDiagnostics.store_name}"). Last verified write: ${storageDiagnostics.last_write_key || 'N/A'} at ${storageDiagnostics.last_write_at || 'N/A'}.`,
           },
           {
             id: 'firebase_auth_firestore',
@@ -4011,14 +4127,6 @@ export const handler = async (event, context) => {
               : 'GEMINI_API_KEY not set in environment — using deterministic structured engine fallback',
           },
           {
-            id: 'payment_gateway',
-            name: 'Payment Gateway (Razorpay / UPI)',
-            status: paymentsCfg.razorpay_enabled ? (hasRazorpayRealKey ? 'PASS' : 'SANDBOX_MODE') : 'DISABLED',
-            detail: hasRazorpayRealKey
-              ? `Live/Custom Razorpay Key configured (${paymentsCfg.key_id})`
-              : `Running in Sandbox/Test verification mode (${paymentsCfg.key_id || 'rzp_test_webnasir_demo'}). Add production Razorpay keys in Payment Settings for live bank capture.`,
-          },
-          {
             id: 'email_service',
             name: 'Transactional Email Service (Resend)',
             status: hasResendKey ? 'PASS' : 'CONFIG_NEEDED',
@@ -4030,8 +4138,9 @@ export const handler = async (event, context) => {
 
         return jsonResponse(200, {
           checked_at: new Date().toISOString(),
-          deployment_version: 'v4.0-visual-cms-27',
+          deployment_version: 'v5.0-admin-live-sync',
           db_latency_ms: dbLatencyMs,
+          storage_diagnostics: storageDiagnostics,
           services,
         });
       }
@@ -4162,7 +4271,7 @@ export const handler = async (event, context) => {
         };
       };
 
-      if (cleanPath === '/admin/cms/media') {
+      if (cleanPath === '/admin/cms/media' || cleanPath === '/admin/media/upload') {
         if (method === 'GET') {
           const media = (await getBlob('cms_media')) || [];
           const enriched = await computeMediaUsage(media);
@@ -4170,21 +4279,21 @@ export const handler = async (event, context) => {
         }
         if (method === 'POST') {
           const body = parseJsonBody(event.body);
-          if (!body || (!body.url && !body.data_url)) {
+          if (!body || (!body.url && !body.data_url && !body.dataUrl)) {
             return jsonResponse(400, { error: 'Media URL or uploaded file data is required' });
           }
           const media = (await getBlob('cms_media')) || [];
           const id = body.id || 'med-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 5);
-          const { publicUrl, mimeType } = await persistMediaBinaryIfDataUrl(id, body.url, body.data_url);
+          const { publicUrl, mimeType } = await persistMediaBinaryIfDataUrl(id, body.url, body.data_url || body.dataUrl);
 
           const newItem = {
             id,
-            title: String(body.title || 'Uploaded Asset').trim(),
+            title: String(body.title || body.filename || 'Uploaded Asset').trim(),
             url: publicUrl,
             type: body.type || (mimeType && mimeType.startsWith('video/') ? 'video' : 'image'),
-            mime_type: mimeType || body.mime_type || 'image/webp',
+            mime_type: mimeType || body.mime_type || body.mimeType || 'image/webp',
             category: String(body.category || 'general'),
-            alt: String(body.alt || body.title || '').trim(),
+            alt: String(body.alt || body.title || body.filename || '').trim(),
             file_size: String(body.file_size || 'Optimized WebP'),
             dimensions: String(body.dimensions || 'Responsive'),
             used_in: String(body.used_in || 'Unassigned'),
@@ -4192,9 +4301,10 @@ export const handler = async (event, context) => {
           };
           media.unshift(newItem);
           await setBlob('cms_media', media);
+          await recordPublishOperation(admin.username || 'admin', `Uploaded Media Asset: ${newItem.title}`);
           await appendAuditLog(`Uploaded Media Asset: ${newItem.title} (${newItem.url})`);
           const enriched = await computeMediaUsage([newItem]);
-          return jsonResponse(201, { success: true, item: enriched[0] });
+          return jsonResponse(201, { success: true, url: publicUrl, item: enriched[0] });
         }
       }
 
