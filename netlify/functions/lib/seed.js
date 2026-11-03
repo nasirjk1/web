@@ -1,6 +1,15 @@
 import { getBlob, setBlob } from './store.js';
 import { hashPassword } from './auth.js';
 import { ALL_GENUINE_COURSES, COURSE_CATEGORIES_14 } from './courses-data.js';
+import {
+  LEARNING_HUB_CATEGORIES,
+  VERIFIED_YOUTUBE_RESOURCES,
+  RECOMMENDED_LEARNING_PATHS,
+} from './learning-hub-data.js';
+import {
+  ARTICLE_CATEGORIES,
+  EDUCATIONAL_ARTICLES_LIBRARY,
+} from './articles-data.js';
 
 export async function ensureSeeded() {
   const meta = await getBlob('meta');
@@ -2238,6 +2247,198 @@ async function ensureExtendedCmsSeeded() {
       v5_migrated_at: new Date().toISOString(),
     });
     console.log('Real course library migration completed successfully.');
+  }
+
+  // V6: Complete Free Learning Hub Transformation (Archive Paid/Fake Courses, Seed Verified YouTube Learning Hub & Original Articles)
+  const metaV6 = (await getBlob('meta')) || {};
+  if (!metaV6.v6_free_learning_hub_migrated) {
+    console.log('Executing V6 Free Learning Hub & Educational Articles transformation (preserving all existing AI tools, student accounts, and historical records)...');
+
+    // 1. Archive existing course records safely without deleting historical accounting data
+    const oldCourses = (await getBlob('courses_index')) || [];
+    if (oldCourses.length > 0) {
+      await setBlob('archived_courses_backup', {
+        archived_at: new Date().toISOString(),
+        reason: 'Transformed into 100% Free YouTube Learning Hub & Educational Articles Platform',
+        courses: oldCourses,
+      });
+    }
+    await setBlob('courses_index', []);
+    await setBlob('free_courses_index', []);
+
+    // 2. Seed Verified YouTube Learning Resources, Categories & Learning Paths
+    await setBlob('learning_categories', LEARNING_HUB_CATEGORIES);
+    await setBlob('learning_paths', RECOMMENDED_LEARNING_PATHS);
+    await setBlob('learning_resources_index', VERIFIED_YOUTUBE_RESOURCES);
+    for (const item of VERIFIED_YOUTUBE_RESOURCES) {
+      await setBlob(`learning_resource:${item.id}`, item);
+      if (item.slug && item.slug !== item.id) {
+        await setBlob(`learning_resource:${item.slug}`, item);
+      }
+    }
+
+    // 3. Merge Original 14-Point Educational Articles into articles_index (preserving existing articles)
+    const currentArticles = (await getBlob('articles_index')) || [];
+    const mergedArticles = [...currentArticles];
+
+    for (const art of EDUCATIONAL_ARTICLES_LIBRARY) {
+      const existingIdx = mergedArticles.findIndex((a) => a.slug === art.slug || a.id === art.id);
+      const articleRecord = {
+        ...art,
+        tag: art.category,
+        meta: art.excerpt || art.meta_description,
+        body: art.content,
+        is_published: art.is_published !== false,
+        created_at: art.published_at || new Date().toISOString(),
+        updated_at: art.updated_at || new Date().toISOString(),
+      };
+      if (existingIdx !== -1) {
+        mergedArticles[existingIdx] = { ...mergedArticles[existingIdx], ...articleRecord };
+      } else {
+        mergedArticles.unshift(articleRecord);
+      }
+      await setBlob(`article:${art.slug}`, articleRecord);
+      if (art.id && art.id !== art.slug) {
+        await setBlob(`article:${art.id}`, articleRecord);
+      }
+    }
+    await setBlob('articles_index', mergedArticles);
+    await setBlob('article_categories', ARTICLE_CATEGORIES);
+
+    // 4. Update Hero, Settings, Navigation & Footer to remove paid course links and focus on Free AI Tools + Free Learning Hub
+    const currSettings = (await getBlob('settings')) || {};
+    await setBlob('settings', {
+      ...currSettings,
+      site_name: 'Web Nasir',
+      tagline: 'Your Free Hub for AI Tools, Technology & Digital Skills',
+      hero_badge: '100% Free AI Tools • Free YouTube Courses • Practical Guides',
+      hero_title: 'Your Free Hub for AI Tools, Technology & Digital Skills.',
+      hero_subtitle: 'Discover powerful free AI tools, learn from real educational YouTube courses, explore practical guides and build skills for your digital future.',
+      announcement_text: 'Learn New Skills, Watch Real Courses & Use 11+ AI Tools — 100% Free on Web Nasir!',
+      announcement_link_text: 'Explore Free Learning Hub →',
+      announcement_link_url: '/learn',
+      razorpay_enabled: false,
+      footer_text: 'Web Nasir is a free digital learning and technology platform offering free AI tools, curated YouTube courses, and practical educational guides.',
+    });
+
+    await setBlob('cms_navigation', {
+      brand_text: 'Web Nasir',
+      brand_subtext: 'Free AI Tools & Learning Hub',
+      cta_button_text: 'Start Learning Free',
+      cta_button_link: '/learn',
+      items: [
+        { id: 'nav-home', label: 'Home', url: '/', order: 1, enabled: true },
+        { id: 'nav-tools', label: 'Free AI Tools', url: '/tools', order: 2, enabled: true },
+        { id: 'nav-learn', label: 'Free Learning', url: '/learn', order: 3, enabled: true },
+        { id: 'nav-articles', label: 'Guides & Articles', url: '/articles', order: 4, enabled: true },
+        { id: 'nav-topics', label: 'Topics', url: '/learning-pathways', order: 5, enabled: true },
+        { id: 'nav-about', label: 'About', url: '/about', order: 6, enabled: true },
+        { id: 'nav-contact', label: 'Contact', url: '/contact', order: 7, enabled: true },
+      ],
+    });
+
+    await setBlob('cms_hero_slides', [
+      {
+        id: 'slide-free-hub',
+        slide_type: 'ai_tools',
+        title: 'Free AI Tools & Learning Hub',
+        badge_text: '100% Free AI Tools • Verified YouTube Courses • Practical Guides',
+        heading: 'Your Free Hub for AI Tools, Technology & Digital Skills.',
+        description: 'Discover powerful free AI tools, learn from real educational YouTube courses, explore practical guides and build skills for your digital future.',
+        cta_primary_text: 'Explore Free AI Tools',
+        cta_primary_link: '/tools',
+        cta_secondary_text: 'Start Learning Free',
+        cta_secondary_link: '/learn',
+        cta_tertiary_text: 'Read Practical Guides',
+        cta_tertiary_link: '/articles',
+        bg_gradient: 'from-brand-50/70 via-white to-slate-50/50',
+        enabled: true,
+        sort_order: 1,
+      },
+      {
+        id: 'slide-youtube-learning',
+        slide_type: 'web_dev',
+        title: 'Free Learning Hub',
+        badge_text: 'Learn from freeCodeCamp • Harvard CS50 • Google Search Central',
+        heading: 'Learn New Skills. Watch Real Courses. Build Your Digital Future — Completely Free.',
+        description: 'Explore carefully selected free YouTube courses, programming tutorials, AI lessons, SEO training, digital marketing education and practical guides without paying for courses.',
+        cta_primary_text: 'Start Learning Free',
+        cta_primary_link: '/learn',
+        cta_secondary_text: 'Read Practical Guides',
+        cta_secondary_link: '/articles',
+        bg_gradient: 'from-indigo-50/70 via-white to-purple-50/40',
+        enabled: true,
+        sort_order: 2,
+      },
+      {
+        id: 'slide-practical-guides',
+        slide_type: 'seo_growth',
+        title: 'Guides & Learning Paths',
+        badge_text: 'Original Step-by-Step Tutorials & Roadmaps',
+        heading: 'Follow Structured Learning Paths & In-Depth Technical Guides.',
+        description: 'Connect verified video tutorials, written handbooks, and interactive AI utilities across Web Development, Python, SEO, WordPress, and AI Automation.',
+        cta_primary_text: 'Read Practical Guides',
+        cta_primary_link: '/articles',
+        cta_secondary_text: 'Explore Free AI Tools',
+        cta_secondary_link: '/tools',
+        bg_gradient: 'from-emerald-50/70 via-white to-teal-50/40',
+        enabled: true,
+        sort_order: 3,
+      },
+    ]);
+
+    await setBlob('cms_footer', {
+      brand_title: 'Web Nasir',
+      brand_description: 'Your free hub for AI tools, curated YouTube educational courses, and practical technology guides.',
+      contact_email: 'support@webnasir.com',
+      contact_whatsapp: '+91 7006334417',
+      copyright_text: 'Web Nasir. All rights reserved.',
+      columns: [
+        {
+          id: 'col-explore',
+          title: 'Free Platform',
+          links: [
+            { label: 'Free AI Tools', url: '/tools' },
+            { label: 'Free Learning Hub', url: '/learn' },
+            { label: 'Guides & Articles', url: '/articles' },
+            { label: 'Learning Paths & Topics', url: '/learning-pathways' },
+          ],
+        },
+        {
+          id: 'col-learn',
+          title: 'Popular Learning Tracks',
+          links: [
+            { label: 'AI & Prompt Engineering', url: '/learn/chatgpt-for-beginners' },
+            { label: 'HTML, CSS & JavaScript', url: '/learn/html-css-full-course' },
+            { label: 'Python Programming', url: '/learn/python-programming' },
+            { label: 'SEO & Google Search', url: '/learn/seo-for-beginners' },
+            { label: 'Harvard CS50 Computer Science', url: '/learn/harvard-cs50-computer-science' },
+          ],
+        },
+        {
+          id: 'col-company',
+          title: 'About & Legal',
+          links: [
+            { label: 'About Web Nasir', url: '/about' },
+            { label: 'Contact Us', url: '/contact' },
+            { label: 'Privacy Policy', url: '/privacy' },
+            { label: 'Terms & Conditions', url: '/terms' },
+          ],
+        },
+      ],
+    });
+
+    await setBlob('meta', {
+      ...metaV6,
+      seeded: true,
+      v2_clean_urls_migrated: true,
+      v3_about_contact_ticker_migrated: true,
+      v4_hero_slider_migrated: true,
+      v5_real_course_library_migrated: true,
+      v6_free_learning_hub_migrated: true,
+      v6_migrated_at: new Date().toISOString(),
+    });
+    console.log('V6 Free Learning Hub transformation completed successfully.');
   }
 }
 

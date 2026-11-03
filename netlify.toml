@@ -4,7 +4,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["storage/downloads/courses/**"]
 
 [[redirects]]
   from = "/sitemap.xml"
@@ -22,9 +21,14 @@
   status = 200
 
 [[redirects]]
-  from = "/downloads/courses/*"
-  to = "/.netlify/functions/api/downloads/courses/:splat"
-  status = 200
+  from = "/courses"
+  to = "/learn"
+  status = 301
+
+[[redirects]]
+  from = "/free-courses"
+  to = "/learn"
+  status = 301
 
 [[redirects]]
   from = "/guides"

@@ -191,11 +191,10 @@ export const handler = async (event, context) => {
 
     // GET /sitemap.xml (Dynamic XML Sitemap for all clean URLs)
     if (method === 'GET' && cleanPath === '/sitemap.xml') {
-      const [seo, tools, courses, freeCourses, articles, pages] = await Promise.all([
+      const [seo, tools, learningResources, articles, pages] = await Promise.all([
         getBlob('cms_seo').then((r) => r || {}),
         getBlob('tools_index').then((r) => r || []),
-        getBlob('courses_index').then((r) => r || []),
-        getBlob('free_courses_index').then((r) => r || []),
+        getBlob('learning_resources_index').then((r) => r || []),
         getBlob('articles_index').then((r) => r || []),
         getBlob('cms_pages').then((r) => r || []),
       ]);
@@ -219,18 +218,16 @@ export const handler = async (event, context) => {
 
       const urls = [
         { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
+        { loc: `${base}/tools`, priority: '0.95', changefreq: 'weekly' },
+        { loc: `${base}/learn`, priority: '0.95', changefreq: 'daily' },
+        { loc: `${base}/articles`, priority: '0.95', changefreq: 'daily' },
+        { loc: `${base}/learning-pathways`, priority: '0.85', changefreq: 'weekly' },
+        { loc: `${base}/topics`, priority: '0.8', changefreq: 'weekly' },
         { loc: `${base}/about`, priority: '0.8', changefreq: 'weekly' },
         { loc: `${base}/contact`, priority: '0.8', changefreq: 'monthly' },
-        { loc: `${base}/tools`, priority: '0.9', changefreq: 'weekly' },
-        { loc: `${base}/courses`, priority: '0.9', changefreq: 'weekly' },
-        { loc: `${base}/free-courses`, priority: '0.9', changefreq: 'weekly' },
-        { loc: `${base}/articles`, priority: '0.9', changefreq: 'daily' },
-        { loc: `${base}/topics`, priority: '0.8', changefreq: 'weekly' },
-        { loc: `${base}/learning-pathways`, priority: '0.8', changefreq: 'weekly' },
         { loc: `${base}/faq`, priority: '0.7', changefreq: 'monthly' },
         { loc: `${base}/privacy`, priority: '0.5', changefreq: 'yearly' },
         { loc: `${base}/terms`, priority: '0.5', changefreq: 'yearly' },
-        { loc: `${base}/refund-policy`, priority: '0.5', changefreq: 'yearly' },
         { loc: `${base}/disclaimer`, priority: '0.5', changefreq: 'yearly' },
       ];
 
@@ -239,19 +236,15 @@ export const handler = async (event, context) => {
           t.seo_slug && t.seo_slug !== t.key
             ? t.seo_slug
             : toolSlugMap[t.key] || t.seo_slug || t.key;
-        urls.push({ loc: `${base}/tools/${cleanSlug}`, priority: '0.85', changefreq: 'weekly' });
+        urls.push({ loc: `${base}/tools/${cleanSlug}`, priority: '0.9', changefreq: 'weekly' });
       });
 
-      courses.filter((c) => c.is_published !== false && c.is_active !== false).forEach((c) => {
-        urls.push({ loc: `${base}/courses/${c.slug || c.id}`, priority: '0.9', changefreq: 'weekly' });
-      });
-
-      freeCourses.filter((c) => c.is_published !== false).forEach((c) => {
-        urls.push({ loc: `${base}/courses/${c.slug || c.id}`, priority: '0.85', changefreq: 'weekly' });
+      learningResources.filter((r) => r.is_published !== false).forEach((r) => {
+        urls.push({ loc: `${base}/learn/${r.slug || r.id}`, priority: '0.9', changefreq: 'weekly' });
       });
 
       articles.filter((a) => a.is_published !== false).forEach((a) => {
-        urls.push({ loc: `${base}/articles/${a.slug}`, priority: '0.8', changefreq: 'weekly' });
+        urls.push({ loc: `${base}/articles/${a.slug}`, priority: '0.85', changefreq: 'weekly' });
       });
 
       pages.filter((p) => p.status !== 'draft' && !p.is_system_protected && p.slug && p.slug.includes('/page/')).forEach((p) => {
@@ -392,11 +385,32 @@ export const handler = async (event, context) => {
     // GET /api/articles
     if (method === 'GET' && cleanPath === '/articles') {
       const articlesIndex = (await getBlob('articles_index')) || [];
-      const tag = event.queryStringParameters?.tag;
+      const tag = (event.queryStringParameters?.tag || '').toLowerCase().trim();
+      const category = (event.queryStringParameters?.category || '').toLowerCase().trim();
+      const q = (event.queryStringParameters?.q || '').toLowerCase().trim();
+
       let published = articlesIndex.filter((a) => a.is_published !== false);
 
-      if (tag) {
-        published = published.filter((a) => a.tag === tag.toLowerCase());
+      if (tag && tag !== 'all') {
+        published = published.filter(
+          (a) =>
+            (a.tag || '').toLowerCase() === tag ||
+            (a.category || '').toLowerCase() === tag ||
+            (Array.isArray(a.tags) && a.tags.some((t) => String(t).toLowerCase() === tag))
+        );
+      }
+      if (category && category !== 'all') {
+        published = published.filter(
+          (a) => (a.category || a.tag || '').toLowerCase() === category
+        );
+      }
+      if (q) {
+        published = published.filter(
+          (a) =>
+            (a.title || '').toLowerCase().includes(q) ||
+            (a.excerpt || a.meta || '').toLowerCase().includes(q) ||
+            (a.category || a.tag || '').toLowerCase().includes(q)
+        );
       }
 
       published.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -409,203 +423,206 @@ export const handler = async (event, context) => {
       if (!rawSlug) return jsonResponse(400, { error: 'Article slug is required' });
 
       const aliasMap = {
-        'adsense-high-rpm-guide': 'google-adsense-high-rpm',
+        'adsense-high-rpm-guide': 'adsense-approval-and-website-monetization-guide',
+        'google-adsense-high-rpm': 'adsense-approval-and-website-monetization-guide',
+        'google-adsense-approval-monetization-guide': 'adsense-approval-and-website-monetization-guide',
+        'seo-for-beginners': 'complete-seo-and-google-search-guide',
+        'seo-checklist-for-new-websites': 'complete-seo-and-google-search-guide',
+        'ai-tools-productivity-guide': 'how-to-use-ai-tools-for-productivity',
+        'prompt-engineering-beginners-guide': 'complete-guide-to-prompt-engineering',
+        'how-to-build-a-website-from-scratch': 'modern-website-development-roadmap',
+        'html-css-javascript-learning-roadmap': 'html-css-javascript-foundations-guide',
       };
       const resolvedSlug = aliasMap[rawSlug] || rawSlug;
 
       let article = (await getBlob(`article:${resolvedSlug}`)) || (await getBlob(`article:${rawSlug}`));
-      if (!article && rawSlug === 'seo-for-beginners') {
-        article = {
-          slug: 'seo-for-beginners',
-          tag: 'blogging',
-          title: 'SEO for Beginners: Complete Step-by-Step Guide to Ranking Websites in 2025',
-          meta: 'Learn how search engines work, how to find low-competition keywords, structure helpful articles, and grow organic traffic from scratch.',
-          is_published: true,
-          author: 'Nasir',
-          body: `# Complete Step-by-Step SEO Guide for Beginners\n\nSearch Engine Optimization (SEO) is the most reliable way to attract consistent, high-intent visitors to your website without paying for ads every day.\n\n---\n\n## 1. Understand Search Intent First\nBefore writing a single paragraph, ask what the reader is trying to accomplish:\n- **Informational Intent:** Looking for a clear tutorial, checklist, or definition.\n- **Commercial Intent:** Comparing tools, platforms, or courses before making a decision.\n- **Transactional Intent:** Ready to use a tool, enroll, or purchase immediately.\n\n---\n\n## 2. Structure Your Page Clearly\n- Use one clear **H1** headline that directly matches the topic.\n- Organize subtopics with **H2** and **H3** headings so readers and search engines can scan effortlessly.\n- Keep paragraphs concise and include real examples, tables, and actionable steps.\n\n---\n\n## 3. Technical SEO Essentials\n- **Fast Page Speed:** Keep Core Web Vitals (LCP, CLS, INP) clean with lightweight assets.\n- **Internal Linking:** Connect related guides, tools, and courses with descriptive anchor text.\n- **Clean URLs:** Use readable URLs like \`/articles/seo-for-beginners\` and \`/tools/seo-blog-outline-generator\`.`,
-        };
+      if (!article) {
+        const articlesIndex = (await getBlob('articles_index')) || [];
+        article = articlesIndex.find((a) => a.slug === resolvedSlug || a.slug === rawSlug || a.id === rawSlug);
       }
       if (!article || article.is_published === false) {
         return jsonResponse(404, { error: 'Article not found' });
       }
-      return jsonResponse(200, article);
+
+      // Resolve related YouTube resources and AI tools for rich cross-linking
+      const [allLearning, allTools, allArticles] = await Promise.all([
+        getBlob('learning_resources_index').then((r) => r || []),
+        getBlob('tools_index').then((r) => r || []),
+        getBlob('articles_index').then((r) => r || []),
+      ]);
+
+      const relatedYoutubeSlugs = Array.isArray(article.related_youtube) ? article.related_youtube : [];
+      const relatedYoutubeData = allLearning
+        .filter((r) => r.is_published !== false && (relatedYoutubeSlugs.includes(r.slug) || relatedYoutubeSlugs.includes(r.id)))
+        .slice(0, 4);
+
+      const relatedToolKeys = Array.isArray(article.related_tools) ? article.related_tools : [];
+      const relatedToolsData = allTools
+        .filter((t) => t.is_enabled !== false && (relatedToolKeys.includes(t.key) || relatedToolKeys.includes(t.id)))
+        .slice(0, 4);
+
+      const relatedArticlesData = allArticles
+        .filter((a) => a.is_published !== false && a.slug !== article.slug)
+        .slice(0, 4);
+
+      return jsonResponse(200, {
+        ...article,
+        content: article.content || article.body || '',
+        body: article.body || article.content || '',
+        related_youtube_data: relatedYoutubeData,
+        related_tools_data: relatedToolsData,
+        related_articles_data: relatedArticlesData,
+      });
     }
 
-    // GET /api/courses
-    if (method === 'GET' && cleanPath === '/courses') {
-      const courses = (await getBlob('courses_index')) || [];
-      const category = event.queryStringParameters?.category;
-      const type = event.queryStringParameters?.type; // 'free' | 'paid' | 'all'
-      let published = courses
-        .filter((c) => c.is_published !== false && c.is_active !== false)
-        .map(enrichCourseWithOfferStatus);
+    // ==========================================
+    // FREE LEARNING HUB PUBLIC ROUTES (/api/learning-resources, /api/learning-categories, /api/learning-paths)
+    // ==========================================
+
+    // GET /api/learning-categories
+    if (method === 'GET' && cleanPath === '/learning-categories') {
+      const categories = (await getBlob('learning_categories')) || [];
+      return jsonResponse(200, categories);
+    }
+
+    // GET /api/learning-paths
+    if (method === 'GET' && cleanPath === '/learning-paths') {
+      const [paths, resources, articles, tools] = await Promise.all([
+        getBlob('learning_paths').then((r) => r || []),
+        getBlob('learning_resources_index').then((r) => r || []),
+        getBlob('articles_index').then((r) => r || []),
+        getBlob('tools_index').then((r) => r || []),
+      ]);
+
+      const enrichedPaths = paths.map((p) => ({
+        ...p,
+        resolved_resources: (p.resources || [])
+          .map((slug) => resources.find((r) => r.slug === slug || r.id === slug))
+          .filter((r) => r && r.is_published !== false),
+        resolved_articles: (p.articles || [])
+          .map((slug) => articles.find((a) => a.slug === slug || a.id === slug))
+          .filter((a) => a && a.is_published !== false),
+        resolved_tools: (p.tools || [])
+          .map((key) => tools.find((t) => t.key === key || t.id === key))
+          .filter((t) => t && t.is_enabled !== false),
+      }));
+
+      return jsonResponse(200, enrichedPaths);
+    }
+
+    // GET /api/learning-resources
+    if (method === 'GET' && cleanPath === '/learning-resources') {
+      const resources = (await getBlob('learning_resources_index')) || [];
+      const category = (event.queryStringParameters?.category || '').toLowerCase().trim();
+      const difficulty = (event.queryStringParameters?.difficulty || '').toLowerCase().trim();
+      const q = (event.queryStringParameters?.q || '').toLowerCase().trim();
+      const featuredOnly = event.queryStringParameters?.featured === 'true';
+
+      let published = resources.filter((r) => r && r.is_published !== false);
 
       if (category && category !== 'all') {
-        published = published.filter((c) => (c.category || '').toLowerCase() === category.toLowerCase());
+        published = published.filter(
+          (r) =>
+            (r.category || '').toLowerCase() === category ||
+            (r.category || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') === category
+        );
       }
-      if (type === 'free') {
-        published = published.filter((c) => c.is_effective_free);
-      } else if (type === 'paid') {
-        published = published.filter((c) => !c.is_effective_free);
+      if (difficulty && difficulty !== 'all') {
+        published = published.filter((r) => (r.difficulty || '').toLowerCase().includes(difficulty));
       }
+      if (featuredOnly) {
+        published = published.filter((r) => r.is_featured === true);
+      }
+      if (q) {
+        published = published.filter(
+          (r) =>
+            (r.title || '').toLowerCase().includes(q) ||
+            (r.short_description || '').toLowerCase().includes(q) ||
+            (r.channel_name || '').toLowerCase().includes(q) ||
+            (r.category || '').toLowerCase().includes(q)
+        );
+      }
+
       published.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
       return jsonResponse(200, published);
     }
 
-    // GET /api/courses/:id/download/:fileId or /downloads/courses/:filename (Verified Secure Course Download)
-    if (method === 'GET' && (cleanPath.includes('/download/') || cleanPath.startsWith('/downloads/courses/'))) {
-      const studentEmail = (event.queryStringParameters?.email || event.queryStringParameters?.student_email || '').toLowerCase().trim();
-      const courses = (await getBlob('courses_index')) || [];
-      let course = null;
-      let fileId = null;
-      let filename = null;
+    // GET /api/learning-resources/:slug
+    if (method === 'GET' && cleanPath.startsWith('/learning-resources/')) {
+      const rawSlug = cleanPath.replace('/learning-resources/', '').trim();
+      if (!rawSlug) return jsonResponse(400, { error: 'Learning resource slug is required' });
 
-      if (cleanPath.startsWith('/downloads/courses/')) {
-        filename = cleanPath.replace('/downloads/courses/', '').trim();
-        course = courses.find((c) => (c.downloadable_files || []).some((f) => f.filename === filename || f.id === filename));
-        fileId = course ? (course.downloadable_files || []).find((f) => f.filename === filename || f.id === filename)?.id : filename;
-      } else {
-        const parts = cleanPath.split('/download/');
-        const courseId = parts[0].replace('/courses/', '').trim();
-        fileId = parts[1].trim();
-        course = courses.find((c) => c.id === courseId || c.slug === courseId);
+      const learningAliasMap = {
+        'harvard-cs50-full-computer-science-course': 'harvard-cs50-computer-science',
+        'prompt-engineering-chatgpt-full-course': 'chatgpt-for-beginners',
+        'generative-ai-for-beginners-freecodecamp': 'generative-ai-full-course',
+        'harvard-cs50-artificial-intelligence-python': 'cs50-ai-with-python',
+        'responsive-web-design-html-css-freecodecamp': 'fullstack-web-development',
+        'html-css-full-course-beginner-to-pro': 'html-css-full-course',
+        'javascript-full-course-beginner-to-pro': 'javascript-full-course',
+        'react-18-full-course-beginners': 'react-beginners-course',
+        'nextjs-full-stack-course-beginners': 'nextjs-app-router-tutorial',
+        'wordpress-for-beginners-complete-guide': 'wordpress-for-beginners',
+        'harvard-cs50p-python-programming': 'harvard-cs50-python',
+        'python-for-beginners-full-course': 'python-programming',
+        'google-search-central-seo-starter-guide': 'seo-for-beginners',
+        'complete-seo-course-for-beginners': 'google-search-console-training',
+        'google-adsense-site-readiness-monetization': 'google-adsense-site-approval',
+        'digital-marketing-full-course-freecodecamp': 'digital-marketing-fundamentals',
+        'ui-ux-design-figma-full-course': 'ui-ux-design-figma',
+        'freelance-web-developer-career-guide': 'freelance-web-developer-guide',
+        'youtube-content-creation-video-editing': 'davinci-resolve-video-editing',
+        'git-and-github-for-beginners-crash-course': 'git-and-github-crash-course',
+      };
+      const slug = learningAliasMap[rawSlug] || rawSlug;
+
+      const [allResources, allTools, allArticles] = await Promise.all([
+        getBlob('learning_resources_index').then((r) => r || []),
+        getBlob('tools_index').then((r) => r || []),
+        getBlob('articles_index').then((r) => r || []),
+      ]);
+
+      let resource = allResources.find((r) => r.slug === slug || r.slug === rawSlug || r.id === slug || r.id === rawSlug);
+      if (!resource) {
+        resource = (await getBlob(`learning_resource:${slug}`)) || (await getBlob(`learning_resource:${rawSlug}`));
+      }
+      if (!resource || resource.is_published === false) {
+        return jsonResponse(404, { error: 'Learning resource not found' });
       }
 
-      if (!course) {
-        return jsonResponse(404, { error: 'Course or learning resource not found' });
-      }
+      const relatedResources = allResources
+        .filter((r) => r.is_published !== false && r.id !== resource.id && r.category === resource.category)
+        .concat(allResources.filter((r) => r.is_published !== false && r.id !== resource.id && r.category !== resource.category))
+        .slice(0, 4);
 
-      const fileMeta = (course.downloadable_files || []).find((f) => f.id === fileId || f.filename === fileId || f.filename === filename);
-      filename = fileMeta?.filename || filename || fileId;
+      const relatedToolKeys = Array.isArray(resource.related_tools) ? resource.related_tools : [];
+      const relatedTools = allTools
+        .filter((t) => t.is_enabled !== false && (relatedToolKeys.includes(t.key) || relatedToolKeys.includes(t.id)))
+        .slice(0, 4);
 
-      const isFree = course.is_free === true || Number(course.price) === 0 || isCourseFreeOfferActive(course);
-      let isAuthorized = isFree;
-      let verifiedEmail = isFree ? (studentEmail || 'free_student@webnasir.com') : null;
+      const relatedArticleSlugs = Array.isArray(resource.related_articles) ? resource.related_articles : [];
+      const relatedArticles = allArticles
+        .filter((a) => a.is_published !== false && (relatedArticleSlugs.includes(a.slug) || relatedArticleSlugs.includes(a.id)))
+        .slice(0, 4);
 
-      if (!isAuthorized) {
-        const admin = await requireAuth();
-        if (admin) {
-          isAuthorized = true;
-          verifiedEmail = 'admin';
-        }
-      }
-
-      if (!isAuthorized) {
-        // Enforce cryptographic token verification for paid course materials
-        const token = extractTokenFromEvent(event) || event.queryStringParameters?.student_token;
-        if (!token) {
-          return jsonResponse(401, {
-            error: 'Authentication Required: Downloading paid course materials requires a verified student session token. Plain unverified email parameters are rejected.',
-            course_id: course.id,
-            course_title: course.title,
-            price: course.price,
-            help: 'Please sign in to your student dashboard or complete course enrollment to obtain your access token.',
-          });
-        }
-
-        const decoded = verifyToken(token);
-        if (!decoded || !decoded.sub) {
-          return jsonResponse(401, {
-            error: 'Invalid or expired student session token. Please re-authenticate.',
-          });
-        }
-
-        verifiedEmail = decoded.sub;
-        const enrollments = (await getBlob('enrollments_list')) || [];
-        const hasEnrollment = enrollments.some(
-          (e) => (e.course_id === course.id || e.course_id === course.slug) && e.student_email === verifiedEmail && e.status === 'active'
-        );
-
-        if (hasEnrollment) {
-          isAuthorized = true;
-        } else {
-          return jsonResponse(403, {
-            error: 'Access Denied: You are not enrolled in this paid course. Verified payment or enrollment required.',
-            student_email: verifiedEmail,
-            course_id: course.id,
-            course_title: course.title,
-            price: course.price,
-          });
-        }
-      }
-
-      // Log download audit record
-      try {
-        const logs = (await getBlob('cms_download_logs')) || [];
-        logs.unshift({
-          id: 'dl-' + Date.now().toString(36),
-          course_id: course.id,
-          course_title: course.title,
-          file_id: fileId,
-          filename,
-          student_email: studentEmail || 'student@webnasir.com',
-          downloaded_at: new Date().toISOString(),
-          ip: event.headers?.['x-forwarded-for'] || 'client',
-        });
-        await setBlob('cms_download_logs', logs.slice(0, 500));
-      } catch (err) {
-        console.warn('Download logging notice:', err);
-      }
-
-      // Check on disk first in storage/downloads/courses/ then public/downloads/courses/
-      let localFilePath = path.join(process.cwd(), 'storage', 'downloads', 'courses', filename);
-      if (!fs.existsSync(localFilePath)) {
-        localFilePath = path.join(process.cwd(), 'public', 'downloads', 'courses', filename);
-      }
-      if (fs.existsSync(localFilePath)) {
-        const fileBuffer = fs.readFileSync(localFilePath);
-        const mimeType = filename.endsWith('.pdf') ? 'application/pdf' : (filename.endsWith('.zip') ? 'application/zip' : 'application/octet-stream');
-        return {
-          statusCode: 200,
-          isBase64Encoded: true,
-          headers: {
-            'Content-Type': mimeType,
-            'Content-Disposition': `attachment; filename="${filename}"`,
-            'Content-Length': String(fileBuffer.length),
-            'Cache-Control': 'private, no-cache, no-store',
-            ...getCorsHeaders(event),
-          },
-          body: fileBuffer.toString('base64'),
-        };
-      }
-
-      // Check in blob storage
-      const blobFile = (await getBlob(`course_file:${fileId}`)) || (await getBlob(`course_file:${filename}`));
-      if (blobFile && blobFile.base64) {
-        return {
-          statusCode: 200,
-          isBase64Encoded: true,
-          headers: {
-            'Content-Type': blobFile.mime_type || 'application/octet-stream',
-            'Content-Disposition': `attachment; filename="${filename}"`,
-            'Cache-Control': 'private, no-cache, no-store',
-            ...getCorsHeaders(event),
-          },
-          body: blobFile.base64,
-        };
-      }
-
-      return jsonResponse(404, { error: 'Downloadable resource file not found on server' });
+      return jsonResponse(200, {
+        ...resource,
+        related_resources_data: relatedResources,
+        related_tools_data: relatedTools,
+        related_articles_data: relatedArticles,
+      });
     }
 
-    // GET /api/courses/:id
-    if (method === 'GET' && cleanPath.startsWith('/courses/')) {
-      const id = cleanPath.replace('/courses/', '').trim();
-      if (!id) return jsonResponse(400, { error: 'Course ID is required' });
+    // Obsolete Course Downloads & Legacy Paid Course Marketplace (Removed per Free Learning Hub Transformation)
+    if (method === 'GET' && (cleanPath.includes('/download/') || cleanPath.startsWith('/downloads/courses/'))) {
+      return jsonResponse(410, {
+        error: 'Course file downloads have been retired. Explore our 100% Free YouTube Learning Hub (/learn) and Practical Guides (/articles).',
+      });
+    }
 
-      let course = await getBlob(`course:${id}`);
-      if (!course) {
-        const courses = (await getBlob('courses_index')) || [];
-        course = courses.find((c) => c.id === id || c.slug === id);
-      }
-      if (!course) {
-        const freeCourses = (await getBlob('free_courses_index')) || [];
-        course = freeCourses.find((c) => c.id === id || c.slug === id);
-      }
-      if (!course) {
-        return jsonResponse(404, { error: 'Course not found' });
-      }
-      return jsonResponse(200, enrichCourseWithOfferStatus(course));
+    // Legacy /api/courses and /api/free-courses return empty array on public marketplace
+    if (method === 'GET' && (cleanPath === '/courses' || cleanPath === '/free-courses')) {
+      return jsonResponse(200, []);
     }
 
     // GET /api/testimonials
@@ -622,29 +639,31 @@ export const handler = async (event, context) => {
       return jsonResponse(200, list);
     }
 
-    // GET /api/free-courses
-    if (method === 'GET' && cleanPath === '/free-courses') {
-      const allCourses = (await getBlob('courses_index')) || [];
-      const freeCoursesIndex = (await getBlob('free_courses_index')) || [];
-      const combined = [...allCourses, ...freeCoursesIndex];
-      const seen = new Set();
-      const uniqueFree = [];
-
-      for (const c of combined) {
-        if (!c || seen.has(c.id || c.slug)) continue;
-        seen.add(c.id || c.slug);
-        const enriched = enrichCourseWithOfferStatus(c);
-        if (enriched.is_published !== false && enriched.is_effective_free) {
-          uniqueFree.push(enriched);
-        }
-      }
-      uniqueFree.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-      return jsonResponse(200, uniqueFree);
-    }
-
-    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, featured_announcements, redirects, social, and SEO)
+    // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, learning hub, articles, and SEO)
     if (method === 'GET' && cleanPath === '/cms-bundle') {
-      const [homepage, appearance, navigation, footer, about, contact, seo, freeCourses, categories, pages, sidebars, announcement, marqueeConfig, featuredAnnouncements, redirects, socialProfiles, settings, heroSlides, heroSliderConfig] = await Promise.all([
+      const [
+        homepage,
+        appearance,
+        navigation,
+        footer,
+        about,
+        contact,
+        seo,
+        learningResources,
+        learningCategories,
+        learningPaths,
+        articleCategories,
+        pages,
+        sidebars,
+        announcement,
+        marqueeConfig,
+        featuredAnnouncements,
+        redirects,
+        socialProfiles,
+        settings,
+        heroSlides,
+        heroSliderConfig,
+      ] = await Promise.all([
         getBlob('cms_homepage').then((r) => r || {}),
         getBlob('cms_appearance').then((r) => r || {}),
         getBlob('cms_navigation').then((r) => r || {}),
@@ -652,8 +671,10 @@ export const handler = async (event, context) => {
         getBlob('cms_about').then((r) => r || {}),
         getBlob('cms_contact').then((r) => r || {}),
         getBlob('cms_seo').then((r) => r || {}),
-        getBlob('free_courses_index').then((r) => r || []),
-        getBlob('course_categories').then((r) => r || []),
+        getBlob('learning_resources_index').then((r) => r || []),
+        getBlob('learning_categories').then((r) => r || []),
+        getBlob('learning_paths').then((r) => r || []),
+        getBlob('article_categories').then((r) => r || []),
         getBlob('cms_pages').then((r) => r || []),
         getBlob('cms_sidebars').then((r) => r || {}),
         getBlob('cms_announcement').then((r) => r || {}),
@@ -666,7 +687,6 @@ export const handler = async (event, context) => {
         getBlob('cms_hero_slider_config').then((r) => r || {}),
       ]);
 
-      // Server-side scheduled publishing & date window enforcement
       const nowMs = Date.now();
       const checkScheduleActive = (item) => {
         if (!item) return true;
@@ -699,6 +719,10 @@ export const handler = async (event, context) => {
         .filter((hs) => hs && hs.enabled !== false && hs.status !== 'draft')
         .sort((a, b) => (Number(a.sort_order ?? a.priority) || 99) - (Number(b.sort_order ?? b.priority) || 99));
 
+      const publishedResources = learningResources
+        .filter((r) => r && r.is_published !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
       return jsonResponse(200, {
         homepage,
         appearance,
@@ -707,8 +731,12 @@ export const handler = async (event, context) => {
         about,
         contact,
         seo,
-        free_courses: freeCourses.filter((c) => c.is_published !== false),
-        categories,
+        learning_resources: publishedResources,
+        learning_categories: learningCategories,
+        learning_paths: learningPaths,
+        article_categories: articleCategories,
+        free_courses: [],
+        categories: learningCategories,
         pages: pages.filter((p) => p.status !== 'draft'),
         sidebars,
         announcement: resolvedAnnouncement,
@@ -1700,6 +1728,18 @@ export const handler = async (event, context) => {
         return jsonResponse(200, index);
       }
 
+      // GET /api/admin/articles/:slug (Fetch full article with content, FAQs, references, etc.)
+      if (method === 'GET' && cleanPath.startsWith('/admin/articles/')) {
+        const slug = decodeURIComponent(cleanPath.replace('/admin/articles/', '').trim());
+        let article = await getBlob(`article:${slug}`);
+        if (!article) {
+          const index = (await getBlob('articles_index')) || [];
+          article = index.find((a) => a.slug === slug);
+        }
+        if (!article) return jsonResponse(404, { error: 'Article not found' });
+        return jsonResponse(200, article);
+      }
+
       // POST /api/admin/articles
       if (method === 'POST' && cleanPath === '/admin/articles') {
         const body = parseJsonBody(event.body);
@@ -1708,28 +1748,42 @@ export const handler = async (event, context) => {
         let {
           slug,
           tag,
+          category,
+          tags,
           title,
           meta,
+          excerpt,
           body: articleBody,
+          content,
+          read_time,
+          author,
+          author_role,
           is_published,
           sort_order,
           image,
+          featured_image,
+          faqs,
+          references,
+          related_youtube,
+          related_tools,
           seo_title,
           seo_description,
+          meta_description,
           canonical_url,
           focus_keyword,
           scheduled_at,
         } = body;
 
+        const finalContent = String(content || articleBody || '').trim();
         if (!title || typeof title !== 'string' || title.trim().length === 0) {
           return jsonResponse(400, { error: 'Article title is required' });
         }
-        if (!articleBody || typeof articleBody !== 'string' || articleBody.trim().length === 0) {
+        if (!finalContent) {
           return jsonResponse(400, { error: 'Article content body is required' });
         }
-        if (!tag || typeof tag !== 'string') {
-          tag = 'guide';
-        }
+
+        const finalCategory = String(category || tag || 'Tutorials & Guides').trim();
+        const finalTag = String(tag || finalCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-')).trim();
 
         if (!slug || typeof slug !== 'string') {
           slug = title
@@ -1752,16 +1806,33 @@ export const handler = async (event, context) => {
         }
 
         const now = new Date().toISOString();
+        const finalExcerpt = String(excerpt || meta || '').trim();
+        const finalImage = String(featured_image || image || '').trim();
+        const finalSeoDesc = String(meta_description || seo_description || finalExcerpt || '').trim();
+
         const newArticle = {
           slug,
-          tag: tag.toLowerCase().trim(),
+          tag: finalTag,
+          category: finalCategory,
+          tags: Array.isArray(tags) ? tags : (typeof tags === 'string' && tags.trim() ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [finalCategory]),
           title: title.trim(),
-          meta: (meta || '').trim(),
-          body: articleBody,
-          image: String(image || '').trim(),
-          seo_title: String(seo_title || `${title.trim()} — Web Nasir Academy`).trim(),
-          seo_description: String(seo_description || meta || '').trim(),
-          canonical_url: String(canonical_url || `https://webnasir.dpdns.org/guides/${slug}`).trim(),
+          meta: finalExcerpt,
+          excerpt: finalExcerpt,
+          body: finalContent,
+          content: finalContent,
+          read_time: String(read_time || '10 min read').trim(),
+          author: String(author || 'Nasir').trim(),
+          author_role: String(author_role || 'Founder & Lead Engineer at Web Nasir').trim(),
+          image: finalImage,
+          featured_image: finalImage,
+          faqs: Array.isArray(faqs) ? faqs : [],
+          references: Array.isArray(references) ? references : [],
+          related_youtube: Array.isArray(related_youtube) ? related_youtube : [],
+          related_tools: Array.isArray(related_tools) ? related_tools : [],
+          seo_title: String(seo_title || `${title.trim()} | Web Nasir`).trim(),
+          seo_description: finalSeoDesc,
+          meta_description: finalSeoDesc,
+          canonical_url: String(canonical_url || `https://webnasir.dpdns.org/articles/${slug}`).trim(),
           focus_keyword: String(focus_keyword || '').trim(),
           scheduled_at: String(scheduled_at || '').trim(),
           is_published: is_published !== false,
@@ -1773,29 +1844,16 @@ export const handler = async (event, context) => {
         await setBlob(`article:${slug}`, newArticle);
 
         const index = (await getBlob('articles_index')) || [];
-        index.push({
-          slug: newArticle.slug,
-          tag: newArticle.tag,
-          title: newArticle.title,
-          meta: newArticle.meta,
-          image: newArticle.image,
-          seo_title: newArticle.seo_title,
-          seo_description: newArticle.seo_description,
-          canonical_url: newArticle.canonical_url,
-          focus_keyword: newArticle.focus_keyword,
-          scheduled_at: newArticle.scheduled_at,
-          is_published: newArticle.is_published,
-          sort_order: newArticle.sort_order,
-          updated_at: newArticle.updated_at,
-        });
+        index.unshift(newArticle);
         await setBlob('articles_index', index);
+        await appendAuditLog(`Created Educational Article: ${newArticle.title} (${newArticle.slug})`);
 
         return jsonResponse(201, { success: true, article: newArticle });
       }
 
       // PUT /api/admin/articles/:slug
       if (method === 'PUT' && cleanPath.startsWith('/admin/articles/')) {
-        const slug = cleanPath.replace('/admin/articles/', '').trim();
+        const slug = decodeURIComponent(cleanPath.replace('/admin/articles/', '').trim());
         const body = parseJsonBody(event.body);
         if (!body) return jsonResponse(400, { error: 'Invalid payload' });
 
@@ -1804,79 +1862,376 @@ export const handler = async (event, context) => {
         const idx = index.findIndex((a) => a.slug === slug);
 
         if (!article && idx !== -1) {
-          article = { ...index[idx], body: body.body || '' };
+          article = { ...index[idx], body: body.body || body.content || index[idx].body || index[idx].content || '' };
         }
         if (!article) {
           return jsonResponse(404, { error: 'Article not found' });
         }
 
-        const {
-          title,
-          tag,
-          meta,
-          body: articleBody,
-          is_published,
-          sort_order,
-          image,
-          seo_title,
-          seo_description,
-          canonical_url,
-          focus_keyword,
-          scheduled_at,
-        } = body;
-
-        if (title !== undefined) article.title = String(title).trim();
-        if (tag !== undefined) article.tag = String(tag).toLowerCase().trim();
-        if (meta !== undefined) article.meta = String(meta).trim();
-        if (articleBody !== undefined) article.body = articleBody;
-        if (image !== undefined) article.image = String(image).trim();
-        if (seo_title !== undefined) article.seo_title = String(seo_title).trim();
-        if (seo_description !== undefined) article.seo_description = String(seo_description).trim();
-        if (canonical_url !== undefined) article.canonical_url = String(canonical_url).trim();
-        if (focus_keyword !== undefined) article.focus_keyword = String(focus_keyword).trim();
-        if (scheduled_at !== undefined) article.scheduled_at = String(scheduled_at).trim();
-        if (is_published !== undefined) article.is_published = !!is_published;
-        if (sort_order !== undefined) article.sort_order = Number(sort_order) || 0;
+        if (body.title !== undefined) article.title = String(body.title).trim();
+        if (body.category !== undefined) article.category = String(body.category).trim();
+        if (body.tag !== undefined) article.tag = String(body.tag).toLowerCase().trim();
+        if (body.tags !== undefined) {
+          article.tags = Array.isArray(body.tags)
+            ? body.tags
+            : String(body.tags).split(',').map((t) => t.trim()).filter(Boolean);
+        }
+        if (body.meta !== undefined || body.excerpt !== undefined) {
+          const ex = String(body.excerpt !== undefined ? body.excerpt : body.meta).trim();
+          article.meta = ex;
+          article.excerpt = ex;
+        }
+        if (body.body !== undefined || body.content !== undefined) {
+          const c = body.content !== undefined ? body.content : body.body;
+          article.body = c;
+          article.content = c;
+        }
+        if (body.read_time !== undefined) article.read_time = String(body.read_time).trim();
+        if (body.author !== undefined) article.author = String(body.author).trim();
+        if (body.author_role !== undefined) article.author_role = String(body.author_role).trim();
+        if (body.image !== undefined || body.featured_image !== undefined) {
+          const img = String(body.featured_image !== undefined ? body.featured_image : body.image).trim();
+          article.image = img;
+          article.featured_image = img;
+        }
+        if (Array.isArray(body.faqs)) article.faqs = body.faqs;
+        if (Array.isArray(body.references)) article.references = body.references;
+        if (Array.isArray(body.related_youtube)) article.related_youtube = body.related_youtube;
+        if (Array.isArray(body.related_tools)) article.related_tools = body.related_tools;
+        if (body.seo_title !== undefined) article.seo_title = String(body.seo_title).trim();
+        if (body.seo_description !== undefined || body.meta_description !== undefined) {
+          const sd = String(body.meta_description !== undefined ? body.meta_description : body.seo_description).trim();
+          article.seo_description = sd;
+          article.meta_description = sd;
+        }
+        if (body.canonical_url !== undefined) article.canonical_url = String(body.canonical_url).trim();
+        if (body.focus_keyword !== undefined) article.focus_keyword = String(body.focus_keyword).trim();
+        if (body.scheduled_at !== undefined) article.scheduled_at = String(body.scheduled_at).trim();
+        if (body.is_published !== undefined) article.is_published = !!body.is_published;
+        if (body.sort_order !== undefined) article.sort_order = Number(body.sort_order) || 0;
 
         article.updated_at = new Date().toISOString();
         await setBlob(`article:${slug}`, article);
 
-        const summaryEntry = {
-          slug: article.slug,
-          tag: article.tag,
-          title: article.title,
-          meta: article.meta,
-          image: article.image || '',
-          seo_title: article.seo_title || '',
-          seo_description: article.seo_description || '',
-          canonical_url: article.canonical_url || '',
-          focus_keyword: article.focus_keyword || '',
-          scheduled_at: article.scheduled_at || '',
-          is_published: article.is_published,
-          sort_order: article.sort_order,
-          updated_at: article.updated_at,
-        };
-
         if (idx !== -1) {
-          index[idx] = summaryEntry;
+          index[idx] = { ...index[idx], ...article };
         } else {
-          index.push(summaryEntry);
+          index.unshift(article);
         }
         await setBlob('articles_index', index);
+        await appendAuditLog(`Updated Educational Article: ${article.title} (${article.slug})`);
 
         return jsonResponse(200, { success: true, article });
       }
 
       // DELETE /api/admin/articles/:slug
       if (method === 'DELETE' && cleanPath.startsWith('/admin/articles/')) {
-        const slug = cleanPath.replace('/admin/articles/', '').trim();
+        const slug = decodeURIComponent(cleanPath.replace('/admin/articles/', '').trim());
         await deleteBlob(`article:${slug}`);
 
         const index = (await getBlob('articles_index')) || [];
         const filtered = index.filter((a) => a.slug !== slug);
         await setBlob('articles_index', filtered);
+        await appendAuditLog(`Deleted Educational Article: ${slug}`);
 
         return jsonResponse(200, { success: true, message: 'Article deleted successfully' });
+      }
+
+      // ==========================================
+      // ADMIN FREE LEARNING HUB MANAGER & YOUTUBE AUTO-DETECTION
+      // ==========================================
+
+      const parseYouTubeUrlInfo = (rawInput) => {
+        const str = String(rawInput || '').trim();
+        if (!str) return { videoId: '', playlistId: '' };
+        // Direct 11-char video ID
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+          return { videoId: str, playlistId: '' };
+        }
+        let videoId = '';
+        let playlistId = '';
+        try {
+          const urlObj = new URL(str.startsWith('http') ? str : `https://${str}`);
+          if (urlObj.hostname.includes('youtu.be')) {
+            videoId = urlObj.pathname.replace(/^\/+/, '').split('/')[0];
+          } else if (urlObj.pathname.startsWith('/embed/')) {
+            videoId = urlObj.pathname.replace('/embed/', '').split('/')[0];
+          } else if (urlObj.pathname.startsWith('/shorts/')) {
+            videoId = urlObj.pathname.replace('/shorts/', '').split('/')[0];
+          } else {
+            videoId = urlObj.searchParams.get('v') || '';
+          }
+          playlistId = urlObj.searchParams.get('list') || '';
+        } catch {
+          const vMatch = str.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+          if (vMatch) videoId = vMatch[1];
+          const pMatch = str.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+          if (pMatch) playlistId = pMatch[1];
+        }
+        return {
+          videoId: /^[a-zA-Z0-9_-]{11}$/.test(videoId) ? videoId : '',
+          playlistId,
+        };
+      };
+
+      // GET or POST /api/admin/youtube-metadata (Verify YouTube link & fetch real oEmbed metadata)
+      if (cleanPath === '/admin/youtube-metadata' && (method === 'GET' || method === 'POST')) {
+        const body = method === 'POST' ? (parseJsonBody(event.body) || {}) : {};
+        const rawUrl = String(body.url || body.youtube_url || queryParams.url || '').trim();
+        if (!rawUrl) {
+          return jsonResponse(400, { valid: false, error: 'Please paste a YouTube video or playlist URL.' });
+        }
+
+        const { videoId, playlistId } = parseYouTubeUrlInfo(rawUrl);
+        if (!videoId && !playlistId) {
+          return jsonResponse(400, {
+            valid: false,
+            error: 'Could not detect a valid 11-character YouTube Video ID or Playlist ID from the URL.',
+          });
+        }
+
+        const canonicalWatchUrl = videoId
+          ? `https://www.youtube.com/watch?v=${videoId}${playlistId ? `&list=${playlistId}` : ''}`
+          : `https://www.youtube.com/playlist?list=${playlistId}`;
+        const oembedTarget = `https://www.youtube.com/oembed?url=${encodeURIComponent(canonicalWatchUrl)}&format=json`;
+
+        try {
+          const response = await fetch(oembedTarget, {
+            headers: { 'User-Agent': 'WebNasir-LearningHub-Verifier/1.0' },
+          });
+          if (!response.ok) {
+            return jsonResponse(400, {
+              valid: false,
+              video_id: videoId,
+              playlist_id: playlistId,
+              error: `YouTube returned HTTP ${response.status}. This video or playlist may be private, unavailable, or have embedding disabled.`,
+            });
+          }
+          const data = await response.json();
+          const thumbnailHqd = videoId
+            ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+            : (data.thumbnail_url || '');
+          const thumbnailMax = videoId
+            ? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
+            : (data.thumbnail_url || '');
+
+          return jsonResponse(200, {
+            valid: true,
+            video_id: videoId,
+            playlist_id: playlistId,
+            youtube_url: canonicalWatchUrl,
+            title: data.title || '',
+            channel_name: data.author_name || '',
+            channel_url: data.author_url || '',
+            thumbnail_url: thumbnailHqd,
+            thumbnail_maxres: thumbnailMax,
+            provider_name: data.provider_name || 'YouTube',
+          });
+        } catch (err) {
+          return jsonResponse(500, {
+            valid: false,
+            video_id: videoId,
+            playlist_id: playlistId,
+            error: `Failed to verify YouTube metadata: ${err.message}`,
+          });
+        }
+      }
+
+      // GET /api/admin/learning-resources
+      if (method === 'GET' && cleanPath === '/admin/learning-resources') {
+        const [resources, categories, paths] = await Promise.all([
+          getBlob('learning_resources_index').then((r) => (Array.isArray(r) ? r : [])),
+          getBlob('learning_categories').then((r) => (Array.isArray(r) ? r : [])),
+          getBlob('learning_paths').then((r) => (Array.isArray(r) ? r : [])),
+        ]);
+        return jsonResponse(200, {
+          resources,
+          categories,
+          paths,
+        });
+      }
+
+      // POST /api/admin/learning-resources
+      if (method === 'POST' && cleanPath === '/admin/learning-resources') {
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const parsedIds = parseYouTubeUrlInfo(body.youtube_url || body.video_id || '');
+        const videoId = String(body.video_id || parsedIds.videoId || '').trim();
+        const playlistId = String(body.playlist_id || parsedIds.playlistId || '').trim();
+
+        if (!videoId) {
+          return jsonResponse(400, { error: 'A verified 11-character YouTube Video ID or YouTube video URL is required.' });
+        }
+        if (!body.title || !String(body.title).trim()) {
+          return jsonResponse(400, { error: 'Course title is required.' });
+        }
+
+        let slug = String(body.slug || body.id || body.title)
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+        if (!slug) slug = `learn-${Date.now().toString(36)}`;
+
+        const resources = (await getBlob('learning_resources_index')) || [];
+        if (resources.some((r) => r.slug === slug || r.id === slug)) {
+          slug = `${slug}-${Date.now().toString(36).slice(-4)}`;
+        }
+
+        const parseList = (val) => {
+          if (Array.isArray(val)) return val.map((x) => String(x).trim()).filter(Boolean);
+          if (typeof val === 'string' && val.trim()) {
+            return val.split(/\n|,/).map((x) => x.trim()).filter(Boolean);
+          }
+          return [];
+        };
+
+        const nowIso = new Date().toISOString();
+        const newResource = {
+          id: slug,
+          slug,
+          title: String(body.title).trim(),
+          youtube_url: String(body.youtube_url || `https://www.youtube.com/watch?v=${videoId}`).trim(),
+          video_id: videoId,
+          playlist_id: playlistId,
+          channel_name: String(body.channel_name || 'Verified Creator').trim(),
+          channel_url: String(body.channel_url || 'https://www.youtube.com').trim(),
+          official_website: String(body.official_website || '').trim(),
+          category: String(body.category || 'Artificial Intelligence & ChatGPT').trim(),
+          subcategory: String(body.subcategory || '').trim(),
+          difficulty: String(body.difficulty || 'Beginner').trim(),
+          language: String(body.language || 'English').trim(),
+          duration: String(body.duration || 'Full Video Course').trim(),
+          resource_type: String(body.resource_type || 'Full Course').trim(),
+          thumbnail_url: String(body.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`).trim(),
+          thumbnail_fallback: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+          short_description: String(body.short_description || body.full_description || '').trim(),
+          full_description: String(body.full_description || body.short_description || '').trim(),
+          learning_outcomes: parseList(body.learning_outcomes),
+          topics_covered: parseList(body.topics_covered),
+          prerequisites: parseList(body.prerequisites),
+          related_tools: parseList(body.related_tools),
+          related_articles: parseList(body.related_articles),
+          tags: parseList(body.tags),
+          seo_title: String(body.seo_title || `${String(body.title).trim()} — Free YouTube Course | Web Nasir`).trim(),
+          meta_description: String(body.meta_description || body.short_description || '').trim(),
+          is_featured: Boolean(body.is_featured),
+          is_published: body.is_published !== false && body.status !== 'draft',
+          status: body.is_published === false || body.status === 'draft' ? 'draft' : 'published',
+          sort_order: Number(body.sort_order) || resources.length + 1,
+          verified_at: nowIso,
+          updated_at: nowIso,
+        };
+
+        resources.unshift(newResource);
+        await setBlob('learning_resources_index', resources);
+        await setBlob(`learning_resource:${slug}`, newResource);
+        await appendAuditLog(`Added Free Learning Resource: ${newResource.title} (${newResource.video_id})`);
+
+        return jsonResponse(201, { success: true, resource: newResource });
+      }
+
+      // POST /api/admin/learning-resources/:id/duplicate
+      if (method === 'POST' && cleanPath.startsWith('/admin/learning-resources/') && cleanPath.endsWith('/duplicate')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/learning-resources/', '').replace(/\/duplicate$/, '').trim());
+        const resources = (await getBlob('learning_resources_index')) || [];
+        const source = resources.find((r) => r.id === id || r.slug === id);
+        if (!source) return jsonResponse(404, { error: 'Learning resource not found' });
+
+        const newSlug = `${source.slug}-copy-${Date.now().toString(36).slice(-4)}`;
+        const nowIso = new Date().toISOString();
+        const duplicated = {
+          ...source,
+          id: newSlug,
+          slug: newSlug,
+          title: `${source.title} (Copy)`,
+          is_published: false,
+          status: 'draft',
+          updated_at: nowIso,
+        };
+        resources.unshift(duplicated);
+        await setBlob('learning_resources_index', resources);
+        await setBlob(`learning_resource:${newSlug}`, duplicated);
+        await appendAuditLog(`Duplicated Free Learning Resource: ${source.title} -> ${newSlug}`);
+
+        return jsonResponse(201, { success: true, resource: duplicated });
+      }
+
+      // PUT /api/admin/learning-resources/:id
+      if (method === 'PUT' && cleanPath.startsWith('/admin/learning-resources/')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/learning-resources/', '').trim());
+        const body = parseJsonBody(event.body);
+        if (!body) return jsonResponse(400, { error: 'Invalid payload' });
+
+        const resources = (await getBlob('learning_resources_index')) || [];
+        const idx = resources.findIndex((r) => r.id === id || r.slug === id);
+        if (idx === -1) return jsonResponse(404, { error: 'Learning resource not found' });
+
+        const existing = resources[idx];
+        const parseList = (val, fallback) => {
+          if (val === undefined) return fallback;
+          if (Array.isArray(val)) return val.map((x) => String(x).trim()).filter(Boolean);
+          if (typeof val === 'string') return val.split(/\n|,/).map((x) => x.trim()).filter(Boolean);
+          return fallback;
+        };
+
+        let videoId = existing.video_id;
+        let playlistId = existing.playlist_id || '';
+        if (body.youtube_url || body.video_id) {
+          const parsed = parseYouTubeUrlInfo(body.youtube_url || body.video_id);
+          if (parsed.videoId) videoId = parsed.videoId;
+          if (parsed.playlistId) playlistId = parsed.playlistId;
+        }
+        if (body.video_id && /^[a-zA-Z0-9_-]{11}$/.test(String(body.video_id).trim())) {
+          videoId = String(body.video_id).trim();
+        }
+
+        const isPub = body.is_published !== undefined
+          ? Boolean(body.is_published)
+          : (body.status !== undefined ? body.status === 'published' : existing.is_published);
+
+        const updated = {
+          ...existing,
+          ...body,
+          id: existing.id,
+          slug: existing.slug,
+          video_id: videoId,
+          playlist_id: body.playlist_id !== undefined ? String(body.playlist_id).trim() : playlistId,
+          youtube_url: body.youtube_url ? String(body.youtube_url).trim() : `https://www.youtube.com/watch?v=${videoId}`,
+          thumbnail_url: body.thumbnail_url ? String(body.thumbnail_url).trim() : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          learning_outcomes: parseList(body.learning_outcomes, existing.learning_outcomes || []),
+          topics_covered: parseList(body.topics_covered, existing.topics_covered || []),
+          prerequisites: parseList(body.prerequisites, existing.prerequisites || []),
+          related_tools: parseList(body.related_tools, existing.related_tools || []),
+          related_articles: parseList(body.related_articles, existing.related_articles || []),
+          tags: parseList(body.tags, existing.tags || []),
+          is_published: isPub,
+          status: isPub ? 'published' : 'draft',
+          is_featured: body.is_featured !== undefined ? Boolean(body.is_featured) : existing.is_featured,
+          updated_at: new Date().toISOString(),
+        };
+
+        resources[idx] = updated;
+        await setBlob('learning_resources_index', resources);
+        await setBlob(`learning_resource:${updated.slug}`, updated);
+        await appendAuditLog(`Updated Free Learning Resource: ${updated.title} (${updated.slug})`);
+
+        return jsonResponse(200, { success: true, resource: updated });
+      }
+
+      // DELETE /api/admin/learning-resources/:id
+      if (method === 'DELETE' && cleanPath.startsWith('/admin/learning-resources/')) {
+        const id = decodeURIComponent(cleanPath.replace('/admin/learning-resources/', '').trim());
+        const resources = (await getBlob('learning_resources_index')) || [];
+        const target = resources.find((r) => r.id === id || r.slug === id);
+        const filtered = resources.filter((r) => r.id !== id && r.slug !== id);
+        await setBlob('learning_resources_index', filtered);
+        await deleteBlob(`learning_resource:${id}`);
+        if (target && target.slug) await deleteBlob(`learning_resource:${target.slug}`);
+        await appendAuditLog(`Deleted Free Learning Resource: ${target ? target.title : id}`);
+
+        return jsonResponse(200, { success: true, message: 'Learning resource deleted successfully' });
       }
 
       // GET /api/admin/tools

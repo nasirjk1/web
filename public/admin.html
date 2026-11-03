@@ -252,11 +252,11 @@
             <button onclick="switchTab('tools')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="tools">
               <i data-lucide="sparkles" class="w-4 h-4 text-brand-600"></i><span>5. Free AI Tools Manager</span>
             </button>
-            <button onclick="switchTab('courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="courses">
-              <i data-lucide="graduation-cap" class="w-4 h-4 text-violet-600"></i><span>6. Paid Courses Manager</span>
+            <button onclick="switchTab('free-courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 bg-red-50/80 text-red-900 border border-red-200 font-bold hover:bg-red-100" data-tab="free-courses">
+              <i data-lucide="youtube" class="w-4 h-4 text-red-600"></i><span>★ 7. Free Learning Hub (YouTube)</span>
             </button>
-            <button onclick="switchTab('free-courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="free-courses">
-              <i data-lucide="gift" class="w-4 h-4 text-emerald-600"></i><span>7. Free Courses Manager</span>
+            <button onclick="switchTab('courses')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="courses">
+              <i data-lucide="archive" class="w-4 h-4 text-slate-500"></i><span>6. Legacy Courses Archive</span>
             </button>
             <button onclick="switchTab('course-categories')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="course-categories">
               <i data-lucide="folder-kanban" class="w-4 h-4 text-blue-600"></i><span>8. Course Categories</span>
@@ -744,19 +744,19 @@
         </div>
       </section>
 
-      <!-- TAB 7: FREE COURSES MANAGER -->
+      <!-- TAB 7: FREE LEARNING HUB (YOUTUBE COURSES) MANAGER -->
       <section id="tab-free-courses" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold font-heading text-dark">7. Free Courses Manager (Direct Enrollment)</h2>
-            <p class="text-sm text-muted">Manage 100% free starter courses and bootcamps that unlock immediately without Razorpay checkout.</p>
+            <h2 class="text-2xl font-bold font-heading text-dark">7. Free Learning Hub — Verified YouTube Courses Manager</h2>
+            <p class="text-sm text-muted">Add, edit, enable/disable, and organize 100% free YouTube courses across all 14 learning categories.</p>
           </div>
           <button onclick="openNewFreeCourseModal()" class="gradient-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
-            <i data-lucide="plus" class="w-4 h-4"></i><span>Add Free Course</span>
+            <i data-lucide="plus" class="w-4 h-4"></i><span>Add YouTube Course</span>
           </button>
         </div>
 
-        <div id="free-courses-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div id="free-courses-manager-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Populated dynamically -->
         </div>
       </section>
@@ -3236,41 +3236,92 @@
         </div>
       </div>
 
-      <!-- FREE COURSE MODAL -->
-      <div id="free-course-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4">
+      <!-- FREE LEARNING HUB YOUTUBE COURSE MODAL -->
+      <div id="free-course-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
           <div class="flex items-center justify-between pb-3 border-b border-bordercol">
-            <h3 id="free-course-modal-title" class="text-lg font-bold font-heading text-dark">Add / Edit Free Starter Course</h3>
+            <h3 id="free-course-modal-title" class="text-lg font-bold font-heading text-dark">Add / Edit Verified YouTube Course</h3>
             <button onclick="document.getElementById('free-course-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-dark"><i data-lucide="x" class="w-5 h-5"></i></button>
           </div>
-          <form onsubmit="handleSaveFreeCourseForm(event)" class="space-y-4 text-xs">
-            <input type="hidden" id="fc-modal-id">
+          <form onsubmit="handleSaveFreeCourseForm(event)" class="space-y-3.5 text-xs">
+            <input type="hidden" id="modal-fc-id">
             <div>
               <label class="block font-bold uppercase text-slate-700 mb-1">Course Title *</label>
-              <input id="fc-modal-title" type="text" required class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+              <input id="modal-fc-title" type="text" required placeholder="e.g. Harvard CS50 – Full Computer Science University Course" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-bold uppercase text-slate-700 mb-1">Category</label>
-                <input id="fc-modal-category" type="text" value="AI Engineering" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+                <label class="block font-bold uppercase text-slate-700 mb-1">YouTube Video URL or Video ID *</label>
+                <input id="modal-fc-video" type="text" required placeholder="https://www.youtube.com/watch?v=8mAITcNt710" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Learning Category *</label>
+                <select id="modal-fc-category" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="Artificial Intelligence & ChatGPT">1. Artificial Intelligence & ChatGPT</option>
+                  <option value="AI Tools & Automation">2. AI Tools & Automation</option>
+                  <option value="Website Development">3. Website Development</option>
+                  <option value="HTML, CSS & JavaScript">4. HTML, CSS & JavaScript</option>
+                  <option value="React & Next.js">5. React & Next.js</option>
+                  <option value="WordPress">6. WordPress</option>
+                  <option value="Python Programming">7. Python Programming</option>
+                  <option value="SEO & Blogging">8. SEO & Blogging</option>
+                  <option value="Google AdSense & Website Monetization">9. Google AdSense & Website Monetization</option>
+                  <option value="Digital Marketing">10. Digital Marketing</option>
+                  <option value="Graphic Design & UI/UX">11. Graphic Design & UI/UX</option>
+                  <option value="Freelancing">12. Freelancing</option>
+                  <option value="YouTube & Content Creation">13. YouTube & Content Creation</option>
+                  <option value="Computer Skills, Git & Cloud Computing">14. Computer Skills, Git & Cloud Computing</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Creator / Channel Name *</label>
+                <input id="modal-fc-creator" type="text" required placeholder="e.g. freeCodeCamp.org / Harvard CS50" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Channel URL</label>
+                <input id="modal-fc-channel-url" type="url" placeholder="https://www.youtube.com/@freecodecamp" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Difficulty Level</label>
+                <select id="modal-fc-difficulty" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Language</label>
+                <input id="modal-fc-language" type="text" value="English" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
               </div>
               <div>
                 <label class="block font-bold uppercase text-slate-700 mb-1">Duration</label>
-                <input id="fc-modal-duration" type="text" value="2.5 Hours (5 Lessons)" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+                <input id="modal-fc-duration" type="text" value="Full Course" placeholder="e.g. 4 Hours (Full Course)" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
               </div>
             </div>
             <div>
-              <label class="block font-bold uppercase text-slate-700 mb-1">Description *</label>
-              <textarea id="fc-modal-desc" rows="3" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Short Description *</label>
+              <textarea id="modal-fc-desc" rows="2" required class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
             </div>
-            <div class="flex items-center justify-between pt-2 border-t border-bordercol">
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Learning Outcomes (One per line)</label>
+              <textarea id="modal-fc-outcomes" rows="3" placeholder="Build responsive websites&#10;Understand semantic HTML&#10;Deploy production apps" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold uppercase text-slate-700 mb-1">Topics Covered (Comma-separated)</label>
+              <input id="modal-fc-topics" type="text" placeholder="HTML5, CSS3, Responsive Design, Accessibility" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-bordercol">
               <label class="flex items-center gap-2 cursor-pointer font-bold">
-                <input id="fc-modal-published" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
-                <span>Published</span>
+                <input id="modal-fc-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Enabled on Public Website</span>
               </label>
               <div class="flex items-center gap-2">
-                <button type="button" onclick="document.getElementById('free-course-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
-                <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save Free Course</button>
+                <button type="button" onclick="closeFreeCourseModal()" class="px-4 py-2 rounded-xl border border-bordercol">Cancel</button>
+                <button type="submit" class="gradient-btn text-white font-semibold px-5 py-2 rounded-xl">Save YouTube Course</button>
               </div>
             </div>
           </form>
@@ -5208,7 +5259,7 @@
           req('/admin/cms/redirects').catch(() => []),
           req('/admin/cms/media').catch(() => []),
           req('/admin/cms/payments').catch(() => ({})),
-          req('/admin/free-courses').catch(() => []),
+          req('/admin/learning-resources').catch(() => []),
           req('/admin/cms/categories').catch(() => []),
           req('/admin/cms/revisions').catch(() => []),
           req('/admin/cms/audit-logs').catch(() => []),
@@ -5229,7 +5280,8 @@
         window.ADMIN.cmsRedirects = Array.isArray(redirects) ? redirects : [];
         window.ADMIN.cmsMedia = med || [];
         window.ADMIN.cmsPayments = pay || {};
-        window.ADMIN.freeCourses = fc || [];
+        window.ADMIN.learningResources = Array.isArray(fc) ? fc : [];
+        window.ADMIN.freeCourses = window.ADMIN.learningResources;
         window.ADMIN.categories = cats || [];
         window.ADMIN.cmsRevisions = revs || [];
         window.ADMIN.cmsAuditLogs = logs || [];
@@ -5358,55 +5410,104 @@
       }
     };
 
-    // 7. FREE COURSES MANAGER
+    // 7. FREE LEARNING HUB (YOUTUBE COURSES) MANAGER
     function renderFreeCoursesManager() {
       const container = document.getElementById('free-courses-manager-list');
       if (!container) return;
-      const list = window.ADMIN.freeCourses || [];
-      container.innerHTML = list.map(fc => `
-        <div class="bg-white p-6 rounded-2xl border border-bordercol space-y-3">
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">${fc.badge || '100% Free'}</span>
-              <h3 class="text-base font-bold text-dark mt-1.5">${fc.title}</h3>
-              <p class="text-xs text-muted mt-1">${fc.description}</p>
+      const list = window.ADMIN.learningResources || [];
+      const metricCoursesEl = document.getElementById('metric-courses-count');
+      if (metricCoursesEl && list.length > 0) metricCoursesEl.textContent = list.length;
+
+      container.innerHTML = list.map(fc => {
+        const vid = fc.video_id || '8mAITcNt710';
+        const thumb = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+        const isEnabled = fc.enabled !== false;
+        return `
+        <div class="bg-white rounded-2xl border ${isEnabled ? 'border-bordercol' : 'border-slate-200 opacity-65'} overflow-hidden flex flex-col justify-between shadow-2xs">
+          <div>
+            <div class="relative aspect-video bg-slate-900 overflow-hidden">
+              <img src="${thumb}" alt="${fc.title}" class="w-full h-full object-cover">
+              <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold uppercase">FREE</span>
+                <span class="px-2 py-0.5 rounded-md bg-slate-900/80 text-white text-[10px] font-bold">${fc.difficulty || 'Beginner'}</span>
+              </div>
+              <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-slate-950/85 text-white text-[10px] font-semibold">
+                ${fc.duration || 'Full Course'}
+              </div>
             </div>
-            <span class="text-sm font-black text-emerald-600">FREE</span>
+            <div class="p-5 space-y-2">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-brand-700">${fc.category || 'Learning Hub'}</div>
+              <h3 class="text-sm font-bold text-dark line-clamp-2">${fc.title}</h3>
+              <div class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                <i data-lucide="youtube" class="w-3.5 h-3.5 text-red-600"></i>
+                <span>${fc.creator || 'Official Channel'}</span>
+                <span>•</span>
+                <span>${fc.language || 'English'}</span>
+              </div>
+              <p class="text-xs text-muted line-clamp-2">${fc.description || ''}</p>
+            </div>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-            <span>⏱️ ${fc.duration} • 👥 ${fc.enrolled_count || 100}+ Students</span>
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+            <label class="flex items-center gap-1.5 font-bold cursor-pointer ${isEnabled ? 'text-emerald-700' : 'text-slate-400'}">
+              <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleLearningResourceEnabled('${fc.id}', this.checked)" class="w-3.5 h-3.5 rounded text-brand-600">
+              <span>${isEnabled ? 'Live' : 'Hidden'}</span>
+            </label>
             <div class="flex items-center gap-3">
-              <button onclick="editFreeCourse('${fc.id}')" class="text-violet-600 font-semibold hover:underline">Edit</button>
+              <a href="/learn/${fc.slug || fc.id}" target="_blank" class="text-slate-600 hover:text-brand-600 font-semibold">View</a>
+              <button onclick="editFreeCourse('${fc.id}')" class="text-violet-600 font-bold hover:underline">Edit</button>
               <button onclick="deleteFreeCourse('${fc.id}')" class="text-rose-600 font-semibold hover:underline">Delete</button>
             </div>
           </div>
         </div>
-      `).join('');
+      `}).join('');
+      if (window.lucide) lucide.createIcons();
     }
 
+    window.toggleLearningResourceEnabled = async function(id, enabled) {
+      try {
+        await req('/admin/learning-resources/' + id, { method: 'PUT', body: JSON.stringify({ enabled }) });
+        showToast(enabled ? 'Course enabled on Free Learning Hub!' : 'Course hidden from public site.', 'success');
+        loadCmsExtras();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
     window.openNewFreeCourseModal = function() {
-      document.getElementById('free-course-modal-title').textContent = 'Add Free Starter Course';
+      document.getElementById('free-course-modal-title').textContent = 'Add Verified Free YouTube Course';
       document.getElementById('modal-fc-id').value = '';
       document.getElementById('modal-fc-title').value = '';
-      document.getElementById('modal-fc-desc').value = 'Practical hands-on starter bootcamp with immediate free access.';
-      document.getElementById('modal-fc-duration').value = '2.5 Hours (5 Lessons)';
-      document.getElementById('modal-fc-badge').value = '100% Free';
-      document.getElementById('modal-fc-enrolled').value = 150;
       document.getElementById('modal-fc-video').value = '';
+      document.getElementById('modal-fc-category').value = 'Artificial Intelligence & ChatGPT';
+      document.getElementById('modal-fc-creator').value = 'freeCodeCamp.org';
+      document.getElementById('modal-fc-channel-url').value = 'https://www.youtube.com/@freecodecamp';
+      document.getElementById('modal-fc-difficulty').value = 'Beginner';
+      document.getElementById('modal-fc-language').value = 'English';
+      document.getElementById('modal-fc-duration').value = '4 Hours (Full Course)';
+      document.getElementById('modal-fc-desc').value = '';
+      document.getElementById('modal-fc-outcomes').value = '';
+      document.getElementById('modal-fc-topics').value = '';
+      document.getElementById('modal-fc-enabled').checked = true;
       document.getElementById('free-course-modal').classList.remove('hidden');
     };
 
     window.editFreeCourse = function(id) {
-      const fc = (window.ADMIN.freeCourses || []).find(item => item.id === id);
+      const fc = (window.ADMIN.learningResources || []).find(item => item.id === id);
       if (!fc) return;
-      document.getElementById('free-course-modal-title').textContent = 'Edit Free Starter Course';
+      document.getElementById('free-course-modal-title').textContent = 'Edit Verified Free YouTube Course';
       document.getElementById('modal-fc-id').value = fc.id;
       document.getElementById('modal-fc-title').value = fc.title || '';
+      document.getElementById('modal-fc-video').value = fc.youtube_url || fc.video_id || '';
+      document.getElementById('modal-fc-category').value = fc.category || 'Artificial Intelligence & ChatGPT';
+      document.getElementById('modal-fc-creator').value = fc.creator || '';
+      document.getElementById('modal-fc-channel-url').value = fc.channel_url || '';
+      document.getElementById('modal-fc-difficulty').value = fc.difficulty || 'Beginner';
+      document.getElementById('modal-fc-language').value = fc.language || 'English';
+      document.getElementById('modal-fc-duration').value = fc.duration || 'Full Course';
       document.getElementById('modal-fc-desc').value = fc.description || '';
-      document.getElementById('modal-fc-duration').value = fc.duration || '';
-      document.getElementById('modal-fc-badge').value = fc.badge || '100% Free';
-      document.getElementById('modal-fc-enrolled').value = fc.enrolled_count || 100;
-      document.getElementById('modal-fc-video').value = fc.video_url || '';
+      document.getElementById('modal-fc-outcomes').value = Array.isArray(fc.outcomes) ? fc.outcomes.join('\n') : '';
+      document.getElementById('modal-fc-topics').value = Array.isArray(fc.topics_covered) ? fc.topics_covered.join(', ') : '';
+      document.getElementById('modal-fc-enabled').checked = fc.enabled !== false;
       document.getElementById('free-course-modal').classList.remove('hidden');
     };
 
@@ -5417,21 +5518,32 @@
     window.handleSaveFreeCourseForm = async function(e) {
       e.preventDefault();
       const id = document.getElementById('modal-fc-id').value;
+      const rawVideo = document.getElementById('modal-fc-video').value.trim();
+      let videoId = rawVideo;
+      const m = rawVideo.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+      if (m) videoId = m[1];
       const payload = {
         title: document.getElementById('modal-fc-title').value.trim(),
+        video_id: videoId,
+        youtube_url: rawVideo.startsWith('http') ? rawVideo : `https://www.youtube.com/watch?v=${videoId}`,
+        category: document.getElementById('modal-fc-category').value,
+        creator: document.getElementById('modal-fc-creator').value.trim(),
+        channel_url: document.getElementById('modal-fc-channel-url').value.trim(),
+        difficulty: document.getElementById('modal-fc-difficulty').value,
+        language: document.getElementById('modal-fc-language').value.trim() || 'English',
+        duration: document.getElementById('modal-fc-duration').value.trim() || 'Full Course',
         description: document.getElementById('modal-fc-desc').value.trim(),
-        duration: document.getElementById('modal-fc-duration').value.trim(),
-        badge: document.getElementById('modal-fc-badge').value.trim(),
-        enrolled_count: Number(document.getElementById('modal-fc-enrolled').value) || 100,
-        video_url: document.getElementById('modal-fc-video').value.trim(),
+        outcomes: document.getElementById('modal-fc-outcomes').value.split('\n').map(s => s.trim()).filter(Boolean),
+        topics_covered: document.getElementById('modal-fc-topics').value.split(',').map(s => s.trim()).filter(Boolean),
+        enabled: document.getElementById('modal-fc-enabled').checked,
       };
       try {
         if (id) {
-          await req('/admin/free-courses/' + id, { method: 'PUT', body: JSON.stringify(payload) });
-          showToast('Free course updated!', 'success');
+          await req('/admin/learning-resources/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+          showToast('YouTube course updated!', 'success');
         } else {
-          await req('/admin/free-courses', { method: 'POST', body: JSON.stringify(payload) });
-          showToast('Free course created!', 'success');
+          await req('/admin/learning-resources', { method: 'POST', body: JSON.stringify(payload) });
+          showToast('YouTube course added to Free Learning Hub!', 'success');
         }
         closeFreeCourseModal();
         loadCmsExtras();
@@ -5441,10 +5553,10 @@
     };
 
     window.deleteFreeCourse = async function(id) {
-      if (!confirm('Delete this free course?')) return;
+      if (!confirm('Remove this YouTube course from the Free Learning Hub?')) return;
       try {
-        await req('/admin/free-courses/' + id, { method: 'DELETE' });
-        showToast('Free course deleted', 'info');
+        await req('/admin/learning-resources/' + id, { method: 'DELETE' });
+        showToast('YouTube course removed', 'info');
         loadCmsExtras();
       } catch (err) {
         showToast('Error: ' + err.message, 'error');

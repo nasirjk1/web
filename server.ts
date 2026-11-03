@@ -78,6 +78,9 @@ async function startServer() {
   });
 
   // Canonical 301 Redirects for legacy paths
+  app.get(['/courses', '/free-courses'], (req, res) => {
+    return res.redirect(301, '/learn');
+  });
   app.get('/guides', (req, res) => {
     return res.redirect(301, '/articles');
   });
