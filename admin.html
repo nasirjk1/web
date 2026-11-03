@@ -225,11 +225,17 @@
             <button onclick="switchTab('homepage-builder')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="homepage-builder">
               <i data-lucide="layers" class="w-4 h-4 text-violet-600"></i><span>2. Homepage Builder</span>
             </button>
+            <button onclick="switchTab('hero-slider')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 bg-brand-50/70 text-brand-800 border border-brand-200/80 font-bold hover:bg-brand-100" data-tab="hero-slider">
+              <i data-lucide="sliders" class="w-4 h-4 text-brand-600"></i><span>★ Hero Slider Manager</span>
+            </button>
             <button onclick="switchTab('header-nav')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="header-nav">
               <i data-lucide="compass" class="w-4 h-4 text-indigo-600"></i><span>3. Header & Navigation</span>
             </button>
             <button onclick="switchTab('marquee-video')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="marquee-video">
-              <i data-lucide="megaphone" class="w-4 h-4 text-amber-500"></i><span>4. Announcement & Marquee</span>
+              <i data-lucide="megaphone" class="w-4 h-4 text-amber-500"></i><span>4. News Ticker Manager</span>
+            </button>
+            <button onclick="switchTab('featured-announcements')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 bg-amber-50/80 text-amber-900 border border-amber-200 font-bold hover:bg-amber-100" data-tab="featured-announcements">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i><span>★ Featured Announcements</span>
             </button>
             <button onclick="switchTab('footer-builder')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="footer-builder">
               <i data-lucide="panel-bottom" class="w-4 h-4 text-slate-600"></i><span>19. Footer Builder</span>
@@ -271,7 +277,7 @@
               <i data-lucide="users" class="w-4 h-4 text-violet-600"></i><span>11. Student Management</span>
             </button>
             <button onclick="switchTab('enrollments')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="enrollments">
-              <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-600"></i><span>12. Orders & Enrollments</span>
+              <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-600"></i><span>12. Orders & Contact Messages</span>
             </button>
             <button onclick="switchTab('email-center')" class="tab-btn w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-slate-50" data-tab="email-center">
               <i data-lucide="mail" class="w-4 h-4 text-rose-500"></i><span>13. Email Center</span>
@@ -462,6 +468,241 @@
         </div>
       </section>
 
+      <!-- TAB: HERO SLIDER MANAGER (Multi-Slide Showcase, Visuals & Slider Controls) -->
+      <section id="tab-hero-slider" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 text-[10px] font-bold uppercase tracking-wider mb-1">
+              <i data-lucide="sparkles" class="w-3 h-3 text-brand-600"></i> Homepage Slider Engine
+            </div>
+            <h2 class="text-2xl font-bold font-heading text-dark">Hero Slider Manager</h2>
+            <p class="text-sm text-muted">Create, edit, reorder, duplicate and publish hero slides with automated transitions, custom visuals, desktop & mobile image uploads, and slider controls.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openHeroSlideEditor(null)" class="gradient-btn text-white text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm cursor-pointer">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i><span>+ Add New Slide</span>
+            </button>
+            <a href="/?preview_hero_slider=1" target="_blank" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-semibold text-dark hover:bg-slate-50 flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-4 h-4 text-brand-600"></i><span>Preview Slider Live</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Global Slider Settings Card -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-bordercol shadow-2xs space-y-4 text-xs">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="settings-2" class="w-4 h-4 text-brand-600"></i>
+              <h3 class="text-sm font-extrabold font-heading text-slate-900">Global Slider Behavior & Controls</h3>
+            </div>
+            <button onclick="handleSaveHeroSliderConfig()" class="gradient-btn text-white font-bold px-4 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer text-xs">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i><span>Save Slider Settings</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-3.5 rounded-2xl bg-surface border border-slate-200/80 space-y-1.5">
+              <label class="font-bold text-slate-700 block">Slider Enablement</label>
+              <label class="flex items-center gap-2 cursor-pointer mt-1">
+                <input id="hero-cfg-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span class="font-semibold text-slate-800">Enable Hero Slider</span>
+              </label>
+              <p class="text-[10px] text-muted">Toggle slider visibility on homepage.</p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-surface border border-slate-200/80 space-y-1.5">
+              <label class="font-bold text-slate-700 block">Auto-Sliding</label>
+              <label class="flex items-center gap-2 cursor-pointer mt-1">
+                <input id="hero-cfg-autoplay" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span class="font-semibold text-slate-800">Autoplay Transitions</span>
+              </label>
+              <p class="text-[10px] text-muted">Automatically cycles through slides.</p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-surface border border-slate-200/80 space-y-1.5">
+              <label class="font-bold text-slate-700 block">Transition Interval</label>
+              <div class="flex items-center gap-2">
+                <input id="hero-cfg-interval" type="number" min="3" max="15" value="5" class="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-brand-700">
+                <span class="font-semibold text-slate-600">seconds (3–15s)</span>
+              </div>
+              <p class="text-[10px] text-muted">Default is 5–6 seconds.</p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-surface border border-slate-200/80 space-y-1.5">
+              <label class="font-bold text-slate-700 block">Transition Effect</label>
+              <select id="hero-cfg-effect" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800">
+                <option value="fade" selected>Smooth Cross-Fade</option>
+                <option value="slide">Horizontal Slide</option>
+              </select>
+              <p class="text-[10px] text-muted">Visual transition animation.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 cursor-pointer">
+              <input id="hero-cfg-pause-hover" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span class="font-semibold text-slate-800">Pause on Hover</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 cursor-pointer">
+              <input id="hero-cfg-arrows" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span class="font-semibold text-slate-800">Show Prev/Next Arrows</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 cursor-pointer">
+              <input id="hero-cfg-dots" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span class="font-semibold text-slate-800">Show Pagination Dots</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 cursor-pointer">
+              <input id="hero-cfg-swipe" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+              <span class="font-semibold text-slate-800">Enable Mobile Swipe</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Slides List -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-slate-600"></i>
+              <h3 class="text-sm font-extrabold font-heading text-slate-900">Current Hero Slides</h3>
+            </div>
+            <span id="hero-slides-count-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">4 Slides</span>
+          </div>
+
+          <div id="hero-slides-admin-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Hero Slide Editor Form Card -->
+        <div id="hero-slide-editor-card" class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol shadow-sm space-y-5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="sliders" class="w-5 h-5 text-brand-600"></i>
+              <h3 id="hero-slide-editor-heading" class="text-base font-extrabold font-heading text-slate-900">Create / Edit Hero Slide</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="closeHeroSlideEditor()" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">
+                Cancel
+              </button>
+              <button type="button" onclick="handleSaveHeroSlide(false)" class="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100 cursor-pointer">
+                Save as Draft
+              </button>
+              <button type="button" onclick="handleSaveHeroSlide(true)" class="gradient-btn text-white font-bold px-5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i><span>Publish Slide</span>
+              </button>
+            </div>
+          </div>
+
+          <input type="hidden" id="hero-slide-id" value="">
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">1. Slide Label / Title</label>
+              <input id="hero-slide-title" type="text" placeholder="e.g. Slide 1 — AI Tools" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+              <p class="text-[10px] text-muted mt-1">Internal label for identification.</p>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">2. Introductory Badge Text</label>
+              <input id="hero-slide-badge" type="text" placeholder="e.g. AI • Technology • Digital Skills Academy" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+              <p class="text-[10px] text-muted mt-1">Pill badge shown above the headline.</p>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">3. Right-Side Visual Style</label>
+              <select id="hero-slide-visual-type" onchange="toggleHeroSlideVisualFields()" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-bold text-brand-700">
+                <option value="ai_tools">Interactive AI Tools Workspace</option>
+                <option value="web_dev">Modern Web Dev Code IDE Window</option>
+                <option value="seo_growth">SEO &amp; AdSense Analytics ($35+ RPM)</option>
+                <option value="courses">Academy Curriculum &amp; Certificate Card</option>
+                <option value="custom_image">Custom Uploaded Image (Desktop &amp; Mobile)</option>
+              </select>
+              <p class="text-[10px] text-muted mt-1">Select interactive component or custom image.</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">4. Main Headline (H1)</label>
+            <input id="hero-slide-heading" type="text" placeholder="e.g. Master AI, Build Digital Skills & Grow Your Online Future." class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-black text-sm sm:text-base text-slate-900">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">5. Supporting Description</label>
+            <textarea id="hero-slide-description" rows="3" placeholder="Enter supporting subtitle or description..." class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-medium"></textarea>
+          </div>
+
+          <!-- Custom Image Fields (Hidden unless visual_type === 'custom_image') -->
+          <div id="hero-slide-custom-image-fields" class="hidden p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-4">
+            <div class="font-bold text-amber-900 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-4 h-4 text-amber-600"></i>
+              <span>Custom Responsive Slide Imagery</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Desktop Image (1200x600 recommended)</label>
+                <div class="flex items-center gap-2">
+                  <input id="hero-slide-desktop-image" type="text" placeholder="https://... or uploaded image URL" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono text-xs">
+                  <label class="px-3 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 font-bold text-slate-700 cursor-pointer whitespace-nowrap">
+                    <span>Upload</span>
+                    <input type="file" id="hero-slide-desktop-file" accept="image/*" class="hidden" onchange="uploadHeroSlideImage(this, 'hero-slide-desktop-image')">
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Mobile Image (640x640 recommended, optional)</label>
+                <div class="flex items-center gap-2">
+                  <input id="hero-slide-mobile-image" type="text" placeholder="https://... or uploaded image URL" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono text-xs">
+                  <label class="px-3 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 font-bold text-slate-700 cursor-pointer whitespace-nowrap">
+                    <span>Upload</span>
+                    <input type="file" id="hero-slide-mobile-file" accept="image/*" class="hidden" onchange="uploadHeroSlideImage(this, 'hero-slide-mobile-image')">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTAs & Action Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+            <div class="space-y-2">
+              <label class="block font-bold text-slate-700">6. Primary CTA Button</label>
+              <input id="hero-slide-cta-prim-text" type="text" placeholder="e.g. Explore Free AI Tools" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              <input id="hero-slide-cta-prim-link" type="text" placeholder="e.g. /tools" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono text-[11px]">
+            </div>
+
+            <div class="space-y-2">
+              <label class="block font-bold text-slate-700">7. Secondary CTA Button</label>
+              <input id="hero-slide-cta-sec-text" type="text" placeholder="e.g. Explore Paid Courses" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              <input id="hero-slide-cta-sec-link" type="text" placeholder="e.g. /courses" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono text-[11px]">
+            </div>
+
+            <div class="space-y-2">
+              <label class="block font-bold text-slate-700">8. Video Button (Optional)</label>
+              <input id="hero-slide-video-text" type="text" placeholder="e.g. Watch Introduction" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              <p class="text-[10px] text-muted">Triggers Nasir Video modal. Leave blank to hide.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input id="hero-slide-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span class="font-bold text-slate-800">Slide is Active &amp; Published</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700">Display Order:</span>
+                <input id="hero-slide-order" type="number" min="1" max="99" value="1" class="w-16 px-2.5 py-1.5 bg-surface border border-bordercol rounded-xl font-bold text-center">
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="closeHeroSlideEditor()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">
+                Cancel
+              </button>
+              <button type="button" onclick="handleSaveHeroSlide(true)" class="gradient-btn text-white font-bold px-6 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Save &amp; Publish Slide</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB 3: HEADER & NAVIGATION MANAGER -->
       <section id="tab-header-nav" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -623,23 +864,64 @@
       <section id="tab-about-editor" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold font-heading text-dark">17. About Us Page Editor</h2>
-            <p class="text-sm text-muted">Edit Founder Nasir's biography, mission, vision, photo, intro video, and career milestones.</p>
+            <h2 class="text-2xl font-bold font-heading text-dark">17. About Page Manager</h2>
+            <p class="text-sm text-muted">Manage the complete About Web Nasir page: Hero section, Founder Nasir introduction, photo, video, Mission & Vision, What We Offer, Why Web Nasir, and Final CTA.</p>
           </div>
-          <button onclick="handleSaveAboutPage()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i><span>Save About Us Page</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <a href="/about" target="_blank" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-brand-600"></i><span>Preview /about</span>
+            </a>
+            <button onclick="handleSaveAboutPage(true)" class="px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold hover:bg-amber-100">
+              Save Draft
+            </button>
+            <button onclick="handleSaveAboutPage(false)" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Publish About Us Page</span>
+            </button>
+          </div>
         </div>
 
-        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-5 text-xs">
+          <div class="border-b border-slate-100 pb-3 font-extrabold text-slate-800 uppercase tracking-wider text-[11px]">1. Hero Section</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Page Headline</label>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Hero Heading</label>
               <input id="about-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
             </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Hero Description</label>
+              <textarea id="about-subtitle" rows="2" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Founder Name & Role</label>
+              <label class="block font-bold text-slate-700 mb-1">Primary CTA Button Text</label>
+              <input id="about-cta-text" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Primary CTA Destination URL</label>
+              <input id="about-cta-link" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Secondary CTA Button Text</label>
+              <input id="about-secondary-cta-text" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Secondary CTA Destination URL</label>
+              <input id="about-secondary-cta-link" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+          </div>
+
+          <div class="border-b border-slate-100 pb-3 pt-2 font-extrabold text-slate-800 uppercase tracking-wider text-[11px]">2. Founder Introduction</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Founder Section Heading</label>
+              <input id="about-founder-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Founder Name & Role Badge</label>
               <input id="about-role" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Founder Introduction Quote / Lead Paragraph</label>
+              <textarea id="about-founder-desc" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -648,38 +930,44 @@
               <div class="flex gap-2">
                 <input id="about-founder-photo" type="text" placeholder="/api/media/file/... or https://..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
                 <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
-                  Upload
+                  Upload Photo
                   <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'about-founder-photo')">
                 </label>
               </div>
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">Founder Intro Video URL (Optional)</label>
-              <input id="about-video-url" type="text" placeholder="https://... or /api/media/file/..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+              <div class="flex gap-2">
+                <input id="about-video-url" type="text" placeholder="https://... or /api/media/file/..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                <label class="px-3 py-2 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 font-bold cursor-pointer hover:bg-violet-100 shrink-0">
+                  Upload Video
+                  <input type="file" accept="video/*,image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'about-video-url')">
+                </label>
+              </div>
             </div>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Full Founder Biography</label>
-            <textarea id="about-bio" rows="4" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            <label class="block font-bold text-slate-700 mb-1">Additional Founder Biography Paragraph</label>
+            <textarea id="about-bio" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
           </div>
+
+          <div class="border-b border-slate-100 pb-3 pt-2 font-extrabold text-slate-800 uppercase tracking-wider text-[11px]">3. Mission, Vision & Final CTA</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Academy Mission</label>
+              <label class="block font-bold text-slate-700 mb-1">Our Mission</label>
               <textarea id="about-mission" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Academy Vision</label>
+              <label class="block font-bold text-slate-700 mb-1">Our Vision</label>
               <textarea id="about-vision" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
             </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">CTA Button Text</label>
-              <input id="about-cta-text" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Why Web Nasir? (One point per line)</label>
+              <textarea id="about-why-items" rows="4" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium"></textarea>
             </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">CTA Destination URL</label>
-              <input id="about-cta-link" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Final Call-To-Action Heading</label>
+              <input id="about-final-cta-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
             </div>
           </div>
         </div>
@@ -689,19 +977,34 @@
       <section id="tab-contact-editor" class="tab-panel hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold font-heading text-dark">18. Contact Page Editor</h2>
-            <p class="text-sm text-muted">Configure public contact emails, WhatsApp support line, office hours, and inquiry form settings.</p>
+            <h2 class="text-2xl font-bold font-heading text-dark">18. Contact Page Manager</h2>
+            <p class="text-sm text-muted">Configure public contact page heading, description, support email, WhatsApp support line, office hours, and manage submitted contact inquiries.</p>
           </div>
-          <button onclick="handleSaveContactPage()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i><span>Save Contact Settings</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="switchTab('enrollments')" class="px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-100 flex items-center gap-1.5">
+              <i data-lucide="inbox" class="w-3.5 h-3.5"></i><span>View Contact Messages</span>
+            </button>
+            <a href="/contact" target="_blank" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-brand-600"></i><span>Preview /contact</span>
+            </a>
+            <button onclick="handleSaveContactPage(true)" class="px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold hover:bg-amber-100">
+              Save Draft
+            </button>
+            <button onclick="handleSaveContactPage(false)" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Publish Contact Settings</span>
+            </button>
+          </div>
         </div>
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol space-y-4 text-xs max-w-3xl">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div class="sm:col-span-2">
               <label class="block font-bold text-slate-700 mb-1">Contact Page Heading</label>
-              <input id="contact-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
+              <input id="contact-heading" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl font-medium">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Contact Page Description / Subtitle</label>
+              <textarea id="contact-subtitle" rows="3" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">Official Support Email</label>
@@ -712,10 +1015,10 @@
               <input id="contact-whatsapp" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Office Hours</label>
+              <label class="block font-bold text-slate-700 mb-1">Office Hours / Response Time</label>
               <input id="contact-hours" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
             </div>
-            <div class="sm:col-span-2">
+            <div>
               <label class="block font-bold text-slate-700 mb-1">Location / Address</label>
               <input id="contact-address" type="text" class="w-full px-3 py-2.5 bg-surface border border-bordercol rounded-xl">
             </div>
@@ -1945,6 +2248,26 @@
         <div id="courses-manager-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Dynamically populated -->
         </div>
+
+        <!-- COURSE MATERIAL DOWNLOAD AUDIT LOGS -->
+        <div class="mt-8 bg-white p-6 sm:p-8 rounded-3xl border border-bordercol shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-bold font-heading text-dark flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Course Material Download Audit Logs</span>
+              </h3>
+              <p class="text-xs text-muted">Audited log of genuine course file downloads streamed to authenticated enrolled students.</p>
+            </div>
+            <button onclick="loadDownloadAuditLogs()" class="px-3 py-1.5 rounded-xl border border-bordercol text-xs font-semibold hover:bg-slate-50 flex items-center gap-1.5 self-start">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Refresh Logs</span>
+            </button>
+          </div>
+          <div id="course-download-logs-container" class="overflow-x-auto">
+            <div class="py-6 text-center text-slate-400 text-xs">Loading audit logs...</div>
+          </div>
+        </div>
       </section>
 
       <!-- TAB: STUDENT REVIEWS -->
@@ -1965,11 +2288,70 @@
         </div>
       </section>
 
-      <!-- TAB: MARQUEE & FOUNDER VIDEO -->
+      <!-- TAB: NEWS TICKER & FOUNDER VIDEO -->
       <section id="tab-marquee-video" class="tab-panel hidden space-y-8">
-        <div>
-          <h2 class="text-2xl font-bold font-heading text-dark">Marquee Ticker & Founder Video Presenter</h2>
-          <p class="text-sm text-muted">Configure the top running marquee announcement items and the Founder Video Presenter settings.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">4. News Ticker Manager & Founder Video</h2>
+            <p class="text-sm text-muted">Configure the white-background / black-text scrolling News Ticker directly below the homepage hero section, plus Founder Video Presenter settings.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/" target="_blank" class="px-4 py-2.5 rounded-xl bg-white border border-bordercol text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-3.5 h-3.5 text-brand-600"></i><span>Preview Homepage Ticker</span>
+            </a>
+            <button onclick="handleSaveMarqueeItems()" class="gradient-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i><span>Publish News Ticker</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- News Ticker Items & Appearance -->
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 text-base font-bold text-dark">
+              <i data-lucide="newspaper" class="w-5 h-5 text-indigo-600"></i>
+              <span>Scrolling News Ticker Items (White Background • Black Text)</span>
+            </div>
+            <button onclick="addMarqueeRow()" class="text-xs text-brand-600 font-bold hover:underline flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add News Ticker Item
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Background Color</label>
+              <input id="ticker-bg-color" type="color" value="#ffffff" class="w-full h-9 rounded-xl bg-white border border-slate-200 p-1 cursor-pointer">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Text Color</label>
+              <input id="ticker-text-color" type="color" value="#000000" class="w-full h-9 rounded-xl bg-white border border-slate-200 p-1 cursor-pointer">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Scroll Speed (Seconds)</label>
+              <input id="ticker-speed" type="number" min="10" max="90" value="32" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 font-semibold">
+            </div>
+            <div class="flex flex-col justify-center gap-2 pt-3">
+              <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+                <input id="ticker-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Enable News Ticker</span>
+              </label>
+              <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+                <input id="ticker-pause-hover" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>Pause on Hover</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="marquee-items-list" class="space-y-3">
+            <!-- Populated via script -->
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="handleSaveMarqueeItems()" class="gradient-btn text-white text-xs font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save & Publish News Ticker</span>
+            </button>
+          </div>
         </div>
 
         <!-- Founder Video Settings -->
@@ -2014,38 +2396,256 @@
             </button>
           </form>
         </div>
+      </section>
 
-        <!-- Marquee Items -->
-        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol shadow-sm space-y-6">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2 text-base font-bold text-dark">
-              <i data-lucide="repeat" class="w-5 h-5 text-indigo-600"></i>
-              <span>Marquee Ticker Items</span>
-            </div>
-            <button onclick="addMarqueeRow()" class="text-xs text-brand-600 font-bold hover:underline flex items-center gap-1">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Ticker Item
+      <!-- TAB: FEATURED ANNOUNCEMENTS (CENTER MODAL POPUP SYSTEM) -->
+      <section id="tab-featured-announcements" class="tab-panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-heading text-dark">FEATURED ANNOUNCEMENTS — Center Modal Popup Manager</h2>
+            <p class="text-sm text-muted">Create and manage center-screen modal popups supporting Image Popups, Video Popups, and Text Announcements with custom animations, frequency, scheduling, and live preview.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openFeaturedAnnouncementEditor(null)" class="gradient-btn text-white text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i><span>+ Create Featured Announcement</span>
             </button>
           </div>
+        </div>
 
-          <div id="marquee-items-list" class="space-y-3">
-            <!-- Populated via script -->
+        <!-- Announcements List -->
+        <div id="featured-announcements-list" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Featured Announcement Editor Form Card -->
+        <div id="featured-announcement-editor-card" class="bg-white p-6 sm:p-8 rounded-3xl border border-bordercol shadow-sm space-y-5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+              <h3 id="fa-editor-heading" class="text-base font-extrabold font-heading text-slate-900">Create / Edit Featured Announcement Popup</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="previewCurrentFeaturedAnnouncement()" class="px-3.5 py-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold hover:bg-indigo-100 flex items-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i><span>Preview Popup</span>
+              </button>
+              <button type="button" onclick="handleSaveFeaturedAnnouncement(true)" class="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100">
+                Save Draft
+              </button>
+              <button type="button" onclick="handleSaveFeaturedAnnouncement(false)" class="gradient-btn text-white font-bold px-5 py-2 rounded-xl flex items-center gap-1.5">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i><span>Publish Announcement</span>
+              </button>
+            </div>
           </div>
 
-          <button onclick="handleSaveMarqueeItems()" class="gradient-btn text-white text-xs font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i>
-            <span>Save All Marquee Items</span>
-          </button>
+          <input type="hidden" id="fa-id" value="">
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">1. Announcement Title / Heading</label>
+              <input id="fa-title" type="text" placeholder="e.g. Explore Our Free AI Tools & Practical Digital Courses" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">4. Content Type</label>
+              <select id="fa-content-type" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl font-bold text-brand-700">
+                <option value="text">Text Announcement</option>
+                <option value="image">Image Popup</option>
+                <option value="video">Video Popup</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">2. Announcement Description / Message</label>
+              <textarea id="fa-description" rows="3" placeholder="Enter the announcement message or promotional details..." class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">3. Highlighted Badge Text (Optional)</label>
+              <input id="fa-highlighted-text" type="text" placeholder="e.g. Featured Update" class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl">
+              <label class="flex items-center gap-2 font-bold text-slate-700 mt-3 cursor-pointer">
+                <input id="fa-enabled" type="checkbox" class="w-4 h-4 text-brand-600 rounded">
+                <span>19. Enable Live on Website</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">5. Image Upload / Image URL (For Image Popup)</label>
+              <div class="flex gap-2">
+                <input id="fa-image-url" type="text" placeholder="https://... or /api/media/file/..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                <label class="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 font-bold cursor-pointer hover:bg-brand-100 shrink-0">
+                  Upload Image
+                  <input type="file" accept="image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'fa-image-url')">
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">6. Video Upload / Video URL (MP4, WebM, YouTube)</label>
+              <div class="flex gap-2">
+                <input id="fa-video-url" type="text" placeholder="https://... or /api/media/file/..." class="flex-1 px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+                <label class="px-3 py-2 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 font-bold cursor-pointer hover:bg-violet-100 shrink-0">
+                  Upload Video
+                  <input type="file" accept="video/*,image/*" class="hidden" onchange="uploadSingleFieldImage(event, 'fa-video-url')">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+            <div>
+              <label class="flex items-center gap-2 font-bold text-slate-700 mb-2 cursor-pointer">
+                <input id="fa-cta-enabled" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>7. Enable CTA Button</span>
+              </label>
+              <input id="fa-cta-text" type="text" placeholder="8. CTA Button Text (e.g. Explore Free Tools)" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">9. CTA Button Destination URL</label>
+              <input id="fa-cta-url" type="text" placeholder="/tools or /courses" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">10. Popup Animation Style</label>
+              <select id="fa-animation" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                <option value="zoom-in">Zoom In</option>
+                <option value="fade-in">Fade In</option>
+                <option value="slide-up">Slide Up</option>
+                <option value="slide-down">Slide Down</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">11. Priority Order</label>
+              <input id="fa-priority" type="number" min="1" max="99" value="1" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">12. Start Date (Optional)</label>
+              <input id="fa-start-date" type="date" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">13. Expiry Date (Optional)</label>
+              <input id="fa-expiry-date" type="date" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">14. Delay Before Popup (Sec)</label>
+              <input id="fa-delay" type="number" min="0" max="120" value="2" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">15. Auto-Close Duration (0 = Manual)</label>
+              <input id="fa-duration" type="number" min="0" max="300" value="0" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">16. Display Frequency</label>
+              <select id="fa-frequency" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                <option value="once_per_session">Once per Session</option>
+                <option value="once_per_visitor">Once per Visitor</option>
+                <option value="every_visit">Every Visit</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">17. Target Audience</label>
+              <select id="fa-audience" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+                <option value="all">All Visitors</option>
+                <option value="logged_in">Logged-In Users Only</option>
+              </select>
+            </div>
+            <div class="flex flex-col justify-center gap-2 pt-2">
+              <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+                <input id="fa-show-desktop" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>18a. Show on Desktop</span>
+              </label>
+              <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+                <input id="fa-show-mobile" type="checkbox" checked class="w-4 h-4 text-brand-600 rounded">
+                <span>18b. Show on Mobile</span>
+              </label>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- TAB: STUDENT ENROLLMENTS & INQUIRIES -->
+      <!-- TAB: STUDENT ENROLLMENTS & CONTACT MESSAGES -->
       <section id="tab-enrollments" class="tab-panel hidden space-y-8">
         <div>
-          <h2 class="text-2xl font-bold font-heading text-dark">Student Enrollments & Contact Inquiries</h2>
-          <p class="text-sm text-muted">View all direct course checkout enrollments and contact messages from academy students.</p>
+          <h2 class="text-2xl font-bold font-heading text-dark">12. Student Enrollments & Contact Messages</h2>
+          <p class="text-sm text-muted">Manage course enrollments and view, search, filter, mark read/unread, reply via email, or delete contact form inquiries.</p>
         </div>
 
         <div class="space-y-6">
+          <!-- Contact Messages Management -->
+          <div class="bg-white rounded-3xl border border-bordercol overflow-hidden shadow-sm">
+            <div class="p-5 border-b border-bordercol bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <h3 class="text-sm font-bold text-dark flex items-center gap-2">
+                  <i data-lucide="mail" class="w-4 h-4 text-brand-600"></i>
+                  <span>Contact Messages & Inquiries</span>
+                </h3>
+                <span id="contacts-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 font-bold">0 records</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <input id="contacts-search-input" oninput="renderEnrollmentsAndContacts()" type="search" placeholder="Search name, email, subject..." class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs w-52">
+                <select id="contacts-status-filter" onchange="renderEnrollmentsAndContacts()" class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold">
+                  <option value="all">All Messages</option>
+                  <option value="unread">Unread Only</option>
+                  <option value="read">Read</option>
+                  <option value="replied">Replied</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                  <tr>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Sender</th>
+                    <th class="py-3 px-4">Subject</th>
+                    <th class="py-3 px-4">Message</th>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contacts-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="6" class="py-6 text-center text-muted">No messages yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Reply / View Contact Message Modal -->
+          <div id="contact-reply-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4 text-xs">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-extrabold font-heading text-slate-900">Contact Message Details & Email Reply</h3>
+                <button type="button" onclick="closeContactReplyModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600">✕</button>
+              </div>
+              <input type="hidden" id="crm-id">
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span id="crm-sender" class="font-extrabold text-slate-900 text-sm"></span>
+                  <span id="crm-date" class="text-[11px] text-slate-400"></span>
+                </div>
+                <div id="crm-email" class="text-brand-700 font-semibold"></div>
+                <div id="crm-subject" class="font-bold text-slate-800 pt-1"></div>
+                <p id="crm-message" class="text-slate-600 whitespace-pre-line pt-1 leading-relaxed"></p>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Reply Subject</label>
+                <input id="crm-reply-subject" type="text" class="w-full px-3.5 py-2 bg-surface border border-bordercol rounded-xl font-semibold">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Reply Message (Sent directly to sender's email)</label>
+                <textarea id="crm-reply-body" rows="4" placeholder="Write your helpful response here..." class="w-full px-3.5 py-2.5 bg-surface border border-bordercol rounded-xl"></textarea>
+              </div>
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeContactReplyModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">Cancel</button>
+                <button type="button" onclick="sendContactReplyEmail()" class="gradient-btn text-white font-bold px-5 py-2 rounded-xl flex items-center gap-1.5">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i><span>Send Email Reply</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white rounded-3xl border border-bordercol overflow-hidden shadow-sm">
             <div class="p-5 border-b border-bordercol bg-slate-50 flex items-center justify-between">
               <h3 class="text-sm font-bold text-dark flex items-center gap-2">
@@ -2069,32 +2669,6 @@
                 </thead>
                 <tbody id="enrollments-table-body" class="divide-y divide-slate-100">
                   <tr><td colspan="7" class="py-6 text-center text-muted">No enrollments yet.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-3xl border border-bordercol overflow-hidden shadow-sm">
-            <div class="p-5 border-b border-bordercol bg-slate-50 flex items-center justify-between">
-              <h3 class="text-sm font-bold text-dark flex items-center gap-2">
-                <i data-lucide="mail" class="w-4 h-4 text-brand-600"></i>
-                <span>Contact Messages & Inquiries</span>
-              </h3>
-              <span id="contacts-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 font-bold">0 records</span>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
-                  <tr>
-                    <th class="py-3 px-4">Name</th>
-                    <th class="py-3 px-4">Email</th>
-                    <th class="py-3 px-4">Subject</th>
-                    <th class="py-3 px-4">Message</th>
-                    <th class="py-3 px-4">Date</th>
-                  </tr>
-                </thead>
-                <tbody id="contacts-table-body" class="divide-y divide-slate-100">
-                  <tr><td colspan="5" class="py-6 text-center text-muted">No messages yet.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2579,6 +3153,46 @@
                 <input id="modal-course-level" type="text" value="Beginner to Advanced" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
               </div>
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Language</label>
+                <input id="modal-course-language" type="text" value="English" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">Course Type</label>
+                <label class="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer">
+                  <input id="modal-course-is-free" type="checkbox" class="w-4 h-4 text-emerald-600 rounded">
+                  <span class="font-bold text-emerald-800 text-[11px]">100% Free Course</span>
+                </label>
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-700 mb-1">External Learning Link</label>
+                <input id="modal-course-external-url" type="url" placeholder="https://cs50.harvard.edu/..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono text-[11px]">
+              </div>
+            </div>
+
+            <!-- PROMOTIONAL FREE OFFER CONTROLS -->
+            <div class="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 cursor-pointer font-bold text-amber-900">
+                  <input id="modal-course-free-offer" type="checkbox" class="w-4 h-4 text-amber-600 rounded">
+                  <span>Enable Temporary Promotional Free Offer ("FREE OFFER — Enroll Now")</span>
+                </label>
+                <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-200 text-amber-900">Zero Payment</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                <div>
+                  <label class="block font-bold text-amber-950 mb-1">Offer Start Date & Time (Optional)</label>
+                  <input id="modal-course-offer-start" type="datetime-local" class="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-xl">
+                </div>
+                <div>
+                  <label class="block font-bold text-amber-950 mb-1">Offer Expiration Date & Time (Optional)</label>
+                  <input id="modal-course-offer-expiry" type="datetime-local" class="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-xl">
+                </div>
+              </div>
+              <p class="text-[11px] text-amber-800">When enabled and active, students enroll immediately for ₹0 without payment. Once expired, the course automatically reverts to its configured price.</p>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block font-bold uppercase text-slate-700 mb-1">Course Thumbnail Image</label>
@@ -2595,6 +3209,15 @@
                 <input id="modal-course-video" type="text" placeholder="https://... or /api/media/file/..." class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono">
               </div>
             </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block font-bold uppercase text-slate-700">Downloadable Resources (JSON Array)</label>
+                <span class="text-[10px] text-muted font-mono">Must have real files in /public/downloads/courses/</span>
+              </div>
+              <textarea id="modal-course-downloads" rows="3" placeholder='[{"id":"pdf-1","title":"Course Guide","filename":"guide.pdf","size":"2.5 MB","format":"PDF","download_url":"/api/courses/.../download/pdf-1","description":"Complete course guide"}]' class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl font-mono text-[11px]"></textarea>
+            </div>
+
             <div>
               <label class="block font-bold uppercase text-slate-700 mb-1">Key Highlights / Outcomes (One per line)</label>
               <textarea id="modal-course-highlights" rows="3" placeholder="100% Practical Projects&#10;Complete Source Code Included&#10;Certificate of Completion" class="w-full px-3 py-2 bg-surface border border-bordercol rounded-xl"></textarea>
@@ -2884,6 +3507,17 @@
 
   <!-- SCRIPT -->
   <script>
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    window.escapeHtml = escapeHtml;
+
     window.ADMIN = {
       me: null,
       articles: [],
@@ -3744,6 +4378,7 @@
       if (tabName === 'pages-manager' && typeof window.loadCmsPagesManager === 'function') window.loadCmsPagesManager();
       if (tabName === 'qa-health' && typeof window.runFullQaAndHealthSuite === 'function') window.runFullQaAndHealthSuite();
       if (tabName === 'seo-settings' && typeof window.updateLiveSeoSnippetPreview === 'function') window.updateLiveSeoSnippetPreview();
+      if (tabName === 'hero-slider' && typeof window.renderHeroSliderAdmin === 'function') window.renderHeroSliderAdmin();
       lucide.createIcons();
     };
 
@@ -4562,7 +5197,7 @@
 
     async function loadCmsExtras() {
       try {
-        const [hp, app, nav, ftr, abt, cnt, seo, redirects, med, pay, fc, cats, revs, logs, drafts] = await Promise.all([
+        const [hp, app, nav, ftr, abt, cnt, seo, redirects, med, pay, fc, cats, revs, logs, drafts, featAnn, marqueeCfg, hSlides, hSliderCfg] = await Promise.all([
           req('/admin/cms/homepage').catch(() => ({})),
           req('/admin/cms/appearance').catch(() => ({})),
           req('/admin/cms/navigation').catch(() => ({})),
@@ -4578,6 +5213,10 @@
           req('/admin/cms/revisions').catch(() => []),
           req('/admin/cms/audit-logs').catch(() => []),
           req('/admin/emails/drafts').catch(() => []),
+          req('/admin/featured-announcements').catch(() => []),
+          req('/admin/cms/marquee-config').catch(() => ({})),
+          req('/admin/hero-slides').catch(() => []),
+          req('/admin/hero-slider-config').catch(() => ({})),
         ]);
 
         window.ADMIN.cmsHomepage = hp || {};
@@ -4595,6 +5234,10 @@
         window.ADMIN.cmsRevisions = revs || [];
         window.ADMIN.cmsAuditLogs = logs || [];
         window.ADMIN.emailDrafts = Array.isArray(drafts) ? drafts : [];
+        window.ADMIN.featuredAnnouncements = Array.isArray(featAnn) ? featAnn : [];
+        window.ADMIN.cmsMarqueeConfig = marqueeCfg || {};
+        window.ADMIN.heroSlides = Array.isArray(hSlides) ? hSlides : (hSlides && Array.isArray(hSlides.slides) ? hSlides.slides : []);
+        window.ADMIN.heroSliderConfig = (hSliderCfg && typeof hSliderCfg === 'object' && Object.keys(hSliderCfg).length > 0) ? hSliderCfg : ((hSlides && hSlides.config) ? hSlides.config : {});
 
         renderHomepageBuilder();
         renderNavigationManager();
@@ -4610,6 +5253,9 @@
         renderMediaLibrary();
         renderRevisionsAndLogs();
         renderEmailDrafts();
+        renderFeaturedAnnouncementsList();
+        renderMarqueeManager();
+        renderHeroSliderAdmin();
         if (typeof window.loadCmsPagesManager === 'function') window.loadCmsPagesManager();
       } catch (err) {
         console.warn('CMS extras load warning:', err);
@@ -5031,56 +5677,86 @@
     // 17 & 18. ABOUT & CONTACT EDITORS
     function populateAboutForm() {
       const a = window.ADMIN.cmsAbout || {};
-      if (document.getElementById('about-heading')) document.getElementById('about-heading').value = a.heading || '';
-      if (document.getElementById('about-role')) document.getElementById('about-role').value = a.founder_role || '';
+      if (document.getElementById('about-heading')) document.getElementById('about-heading').value = a.heading || 'Empowering Your Digital Future with AI, Technology & Practical Skills.';
+      if (document.getElementById('about-subtitle')) document.getElementById('about-subtitle').value = a.subtitle || 'Web Nasir is a digital learning and technology platform built to make modern digital skills accessible to everyone. We bring together practical AI tools, website development resources, SEO strategies, digital marketing education and professional online courses in one place.';
+      if (document.getElementById('about-founder-heading')) document.getElementById('about-founder-heading').value = a.founder_heading || 'Meet Nasir — Founder of Web Nasir';
+      if (document.getElementById('about-founder-desc')) document.getElementById('about-founder-desc').value = a.founder_description || "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.";
+      if (document.getElementById('about-role')) document.getElementById('about-role').value = a.founder_role || 'Founder of Web Nasir';
       if (document.getElementById('about-founder-photo')) document.getElementById('about-founder-photo').value = a.founder_photo || '';
       if (document.getElementById('about-video-url')) document.getElementById('about-video-url').value = a.video_url || '';
       if (document.getElementById('about-bio')) document.getElementById('about-bio').value = a.biography || '';
       if (document.getElementById('about-mission')) document.getElementById('about-mission').value = a.mission || '';
       if (document.getElementById('about-vision')) document.getElementById('about-vision').value = a.vision || '';
-      if (document.getElementById('about-cta-text')) document.getElementById('about-cta-text').value = a.cta_text || '';
-      if (document.getElementById('about-cta-link')) document.getElementById('about-cta-link').value = a.cta_link || '';
+      if (document.getElementById('about-cta-text')) document.getElementById('about-cta-text').value = a.cta_text || 'Explore Our Free Tools';
+      if (document.getElementById('about-cta-link')) document.getElementById('about-cta-link').value = a.cta_link || '/tools';
+      if (document.getElementById('about-secondary-cta-text')) document.getElementById('about-secondary-cta-text').value = a.secondary_cta_text || 'Explore Our Courses';
+      if (document.getElementById('about-secondary-cta-link')) document.getElementById('about-secondary-cta-link').value = a.secondary_cta_link || '/courses';
+      if (document.getElementById('about-why-items')) {
+        const whyArr = Array.isArray(a.why_items) && a.why_items.length ? a.why_items : [
+          'Practical learning resources.',
+          'Useful free AI tools.',
+          'Technology-focused education.',
+          'Professional learning pathways.',
+          'Regular guides and tutorials.',
+          'Beginner-friendly resources.'
+        ];
+        document.getElementById('about-why-items').value = whyArr.join('\n');
+      }
+      if (document.getElementById('about-final-cta-heading')) document.getElementById('about-final-cta-heading').value = a.final_cta_heading || 'Start Building Your Digital Future Today.';
     }
 
-    window.handleSaveAboutPage = async function() {
+    window.handleSaveAboutPage = async function(isDraft) {
+      const whyRaw = document.getElementById('about-why-items') ? document.getElementById('about-why-items').value : '';
+      const whyItems = whyRaw.split('\n').map(s => s.trim()).filter(Boolean);
       const payload = {
         ...window.ADMIN.cmsAbout,
-        heading: document.getElementById('about-heading').value,
-        founder_role: document.getElementById('about-role').value,
+        heading: document.getElementById('about-heading').value.trim(),
+        subtitle: document.getElementById('about-subtitle') ? document.getElementById('about-subtitle').value.trim() : '',
+        founder_heading: document.getElementById('about-founder-heading') ? document.getElementById('about-founder-heading').value.trim() : 'Meet Nasir — Founder of Web Nasir',
+        founder_description: document.getElementById('about-founder-desc') ? document.getElementById('about-founder-desc').value.trim() : '',
+        founder_role: document.getElementById('about-role').value.trim(),
         founder_photo: document.getElementById('about-founder-photo') ? document.getElementById('about-founder-photo').value.trim() : '',
         video_url: document.getElementById('about-video-url') ? document.getElementById('about-video-url').value.trim() : '',
-        biography: document.getElementById('about-bio').value,
-        mission: document.getElementById('about-mission').value,
-        vision: document.getElementById('about-vision').value,
-        cta_text: document.getElementById('about-cta-text').value,
-        cta_link: document.getElementById('about-cta-link').value,
+        biography: document.getElementById('about-bio').value.trim(),
+        mission: document.getElementById('about-mission').value.trim(),
+        vision: document.getElementById('about-vision').value.trim(),
+        cta_text: document.getElementById('about-cta-text').value.trim(),
+        cta_link: document.getElementById('about-cta-link').value.trim(),
+        secondary_cta_text: document.getElementById('about-secondary-cta-text') ? document.getElementById('about-secondary-cta-text').value.trim() : 'Explore Our Courses',
+        secondary_cta_link: document.getElementById('about-secondary-cta-link') ? document.getElementById('about-secondary-cta-link').value.trim() : '/courses',
+        why_items: whyItems.length ? whyItems : undefined,
+        final_cta_heading: document.getElementById('about-final-cta-heading') ? document.getElementById('about-final-cta-heading').value.trim() : 'Start Building Your Digital Future Today.',
+        status: isDraft ? 'draft' : 'published',
       };
       window.ADMIN.cmsAbout = payload;
       await req('/admin/cms/about', { method: 'PUT', body: JSON.stringify(payload) });
-      showToast('About Us page updated!', 'success');
+      showToast(isDraft ? 'About Us draft saved!' : 'About Us page published live!', 'success');
     };
 
     function populateContactForm() {
       const c = window.ADMIN.cmsContact || {};
-      if (document.getElementById('contact-heading')) document.getElementById('contact-heading').value = c.heading || '';
+      if (document.getElementById('contact-heading')) document.getElementById('contact-heading').value = c.heading || "Let's Connect — We're Here to Help.";
+      if (document.getElementById('contact-subtitle')) document.getElementById('contact-subtitle').value = c.subtitle || "Have a question about our AI tools, online courses, website development or learning resources? Get in touch with the Web Nasir team. We're here to help you find the right information and support.";
       if (document.getElementById('contact-email')) document.getElementById('contact-email').value = c.email || '';
       if (document.getElementById('contact-whatsapp')) document.getElementById('contact-whatsapp').value = c.whatsapp || '';
       if (document.getElementById('contact-hours')) document.getElementById('contact-hours').value = c.office_hours || '';
       if (document.getElementById('contact-address')) document.getElementById('contact-address').value = c.address || '';
     }
 
-    window.handleSaveContactPage = async function() {
+    window.handleSaveContactPage = async function(isDraft) {
       const payload = {
         ...window.ADMIN.cmsContact,
-        heading: document.getElementById('contact-heading').value,
-        email: document.getElementById('contact-email').value,
-        whatsapp: document.getElementById('contact-whatsapp').value,
-        office_hours: document.getElementById('contact-hours').value,
-        address: document.getElementById('contact-address').value,
+        heading: document.getElementById('contact-heading').value.trim(),
+        subtitle: document.getElementById('contact-subtitle') ? document.getElementById('contact-subtitle').value.trim() : '',
+        email: document.getElementById('contact-email').value.trim(),
+        whatsapp: document.getElementById('contact-whatsapp').value.trim(),
+        office_hours: document.getElementById('contact-hours').value.trim(),
+        address: document.getElementById('contact-address').value.trim(),
+        status: isDraft ? 'draft' : 'published',
       };
       window.ADMIN.cmsContact = payload;
       await req('/admin/cms/contact', { method: 'PUT', body: JSON.stringify(payload) });
-      showToast('Contact page settings updated!', 'success');
+      showToast(isDraft ? 'Contact page draft saved!' : 'Contact page published live!', 'success');
     };
 
     // 19. FOOTER BUILDER
@@ -5937,7 +6613,7 @@
       const container = document.getElementById('courses-manager-list');
       if (!container) return;
       if (!window.ADMIN.courses.length) {
-        container.innerHTML = '<div class="col-span-2 text-center py-8 text-muted">No masterclasses found.</div>';
+        container.innerHTML = '<div class="col-span-2 text-center py-8 text-muted">No courses found.</div>';
         return;
       }
 
@@ -5945,34 +6621,87 @@
         <div class="bg-white p-6 rounded-2xl border border-bordercol shadow-xs space-y-4">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-800 uppercase">${c.category || 'Masterclass'}</span>
-              <h3 class="text-base font-bold text-dark mt-1">${c.title}</h3>
-              <p class="text-xs text-muted line-clamp-2 mt-1">${c.description}</p>
+              <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-800 uppercase">${escapeHtml(c.category || 'Course')}</span>
+                ${c.is_free ? '<span class="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">100% FREE</span>' : ''}
+                ${c.free_offer_active ? '<span class="text-[10px] font-black px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">FREE OFFER ACTIVE</span>' : ''}
+              </div>
+              <h3 class="text-base font-bold text-dark">${escapeHtml(c.title)}</h3>
+              <p class="text-xs text-muted line-clamp-2 mt-1">${escapeHtml(c.description || '')}</p>
             </div>
             <div class="text-right flex-shrink-0">
-              <span class="text-base font-extrabold text-violet-600">₹${(c.price || 0).toLocaleString()}</span>
-              ${c.original_price ? `<span class="text-xs text-slate-400 line-through block">₹${c.original_price.toLocaleString()}</span>` : ''}
+              ${c.is_free ? '<span class="text-base font-extrabold text-emerald-600">FREE</span>' : `<span class="text-base font-extrabold text-violet-600">₹${(c.price || 0).toLocaleString()}</span>`}
+              ${c.original_price && !c.is_free ? `<span class="text-xs text-slate-400 line-through block">₹${c.original_price.toLocaleString()}</span>` : ''}
             </div>
           </div>
 
-          <div class="flex items-center gap-4 text-xs text-slate-500 border-t border-slate-100 pt-3">
+          <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 border-t border-slate-100 pt-3">
             <span>⭐ <strong>${c.rating || '4.9'}</strong></span>
-            <span>⏱️ <strong>${c.duration || '8 Weeks'}</strong></span>
+            <span>⏱️ <strong>${c.duration || 'Self-paced'}</strong></span>
             <span>👥 <strong>${c.enrolled_count || 120}+ Enrolled</strong></span>
+            <span>📦 <strong>${(c.downloadable_files || []).length} Verified Files</strong></span>
             <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded ${c.is_active !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
               ${c.is_active !== false ? 'Active' : 'Hidden'}
             </span>
           </div>
 
-          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-            <button onclick="editCourse('${c.id}')" class="text-xs font-semibold text-violet-600 hover:text-violet-800 px-3 py-1.5 rounded-lg bg-violet-50">Edit</button>
-            <button onclick="toggleCourseActive('${c.id}', ${c.is_active === false})" class="text-xs font-semibold text-slate-600 hover:text-dark px-3 py-1.5 rounded-lg bg-slate-100">${c.is_active !== false ? 'Deactivate' : 'Activate'}</button>
-            <button onclick="deleteCourse('${c.id}')" class="text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-1.5 rounded-lg bg-rose-50">Delete</button>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <div>
+              ${c.external_learning_url ? `<a href="${escapeHtml(c.external_learning_url)}" target="_blank" class="text-[11px] font-semibold text-brand-600 hover:underline inline-flex items-center gap-1"><i data-lucide="external-link" class="w-3 h-3"></i> Provider Link</a>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="/courses/${c.slug || c.id}" target="_blank" class="text-xs font-semibold text-slate-600 hover:text-dark px-2.5 py-1.5 rounded-lg bg-slate-100 inline-flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> View Page</a>
+              <button onclick="editCourse('${c.id}')" class="text-xs font-semibold text-violet-600 hover:text-violet-800 px-3 py-1.5 rounded-lg bg-violet-50">Edit</button>
+              <button onclick="toggleCourseActive('${c.id}', ${c.is_active === false})" class="text-xs font-semibold text-slate-600 hover:text-dark px-3 py-1.5 rounded-lg bg-slate-100">${c.is_active !== false ? 'Deactivate' : 'Activate'}</button>
+              <button onclick="deleteCourse('${c.id}')" class="text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-1.5 rounded-lg bg-rose-50">Delete</button>
+            </div>
           </div>
         </div>
       `).join('');
       lucide.createIcons();
+      loadDownloadAuditLogs();
     }
+
+    window.loadDownloadAuditLogs = async function() {
+      const container = document.getElementById('course-download-logs-container');
+      if (!container) return;
+      try {
+        const res = await req('/admin/download-logs');
+        const logs = Array.isArray(res) ? res : ((res && res.logs) || []);
+        if (!logs.length) {
+          container.innerHTML = '<div class="py-6 text-center text-slate-400">No verified course resource downloads recorded yet.</div>';
+          return;
+        }
+        container.innerHTML = `
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500 font-semibold text-[11px]">
+                <th class="py-2.5 px-3">Date & Time</th>
+                <th class="py-2.5 px-3">Student Email</th>
+                <th class="py-2.5 px-3">Course Title</th>
+                <th class="py-2.5 px-3">Resource File</th>
+                <th class="py-2.5 px-3">Format</th>
+                <th class="py-2.5 px-3">Client IP</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-xs">
+              ${logs.map(l => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-2.5 px-3 whitespace-nowrap text-slate-600">${new Date(l.timestamp || l.created_at).toLocaleString()}</td>
+                  <td class="py-2.5 px-3 font-semibold text-brand-700">${escapeHtml(l.student_email || 'Student')}</td>
+                  <td class="py-2.5 px-3 font-medium text-slate-800">${escapeHtml(l.course_title || l.course_id || '-')}</td>
+                  <td class="py-2.5 px-3 font-mono text-slate-700">${escapeHtml(l.filename || l.file_id || '-')}</td>
+                  <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-800 uppercase">${escapeHtml(l.format || 'FILE')}</span></td>
+                  <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${escapeHtml(l.ip || '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="py-4 text-center text-rose-500 text-xs">Error loading download logs: ${err.message}</div>`;
+      }
+    };
 
     window.openNewCourseModal = function() {
       document.getElementById('course-modal-title').textContent = 'Add New Masterclass';
@@ -5987,6 +6716,13 @@
       document.getElementById('modal-course-badge').value = 'New Masterclass';
       document.getElementById('modal-course-level').value = 'Beginner to Advanced';
       document.getElementById('modal-course-enrolled').value = 100;
+      if (document.getElementById('modal-course-language')) document.getElementById('modal-course-language').value = 'English';
+      if (document.getElementById('modal-course-is-free')) document.getElementById('modal-course-is-free').checked = false;
+      if (document.getElementById('modal-course-free-offer')) document.getElementById('modal-course-free-offer').checked = false;
+      if (document.getElementById('modal-course-offer-start')) document.getElementById('modal-course-offer-start').value = '';
+      if (document.getElementById('modal-course-offer-expiry')) document.getElementById('modal-course-offer-expiry').value = '';
+      if (document.getElementById('modal-course-external-url')) document.getElementById('modal-course-external-url').value = '';
+      if (document.getElementById('modal-course-downloads')) document.getElementById('modal-course-downloads').value = '';
       if (document.getElementById('modal-course-image')) document.getElementById('modal-course-image').value = '';
       if (document.getElementById('modal-course-video')) document.getElementById('modal-course-video').value = '';
       document.getElementById('modal-course-highlights').value = '';
@@ -6013,9 +6749,18 @@
       document.getElementById('modal-course-badge').value = c.badge || '';
       document.getElementById('modal-course-level').value = c.level || '';
       document.getElementById('modal-course-enrolled').value = c.enrolled_count || 0;
+      if (document.getElementById('modal-course-language')) document.getElementById('modal-course-language').value = c.language || 'English';
+      if (document.getElementById('modal-course-is-free')) document.getElementById('modal-course-is-free').checked = !!c.is_free;
+      if (document.getElementById('modal-course-free-offer')) document.getElementById('modal-course-free-offer').checked = !!c.free_offer_active;
+      if (document.getElementById('modal-course-offer-start')) document.getElementById('modal-course-offer-start').value = c.offer_start_date ? c.offer_start_date.substring(0, 16) : '';
+      if (document.getElementById('modal-course-offer-expiry')) document.getElementById('modal-course-offer-expiry').value = c.offer_expiry_date ? c.offer_expiry_date.substring(0, 16) : '';
+      if (document.getElementById('modal-course-external-url')) document.getElementById('modal-course-external-url').value = c.external_learning_url || '';
+      if (document.getElementById('modal-course-downloads')) {
+        document.getElementById('modal-course-downloads').value = c.downloadable_files && c.downloadable_files.length ? JSON.stringify(c.downloadable_files, null, 2) : '';
+      }
       if (document.getElementById('modal-course-image')) document.getElementById('modal-course-image').value = c.image || '';
       if (document.getElementById('modal-course-video')) document.getElementById('modal-course-video').value = c.video_preview || '';
-      document.getElementById('modal-course-highlights').value = (c.highlights || []).join('\n');
+      document.getElementById('modal-course-highlights').value = (c.highlights || c.outcomes || []).join('\n');
       document.getElementById('modal-course-active').checked = c.is_active !== false;
       document.getElementById('course-modal').classList.remove('hidden');
     };
@@ -6025,6 +6770,18 @@
       const id = document.getElementById('modal-course-id').value;
       const rawHighlights = document.getElementById('modal-course-highlights').value;
       const highlights = rawHighlights.split('\n').map(h => h.trim()).filter(Boolean);
+
+      let downloadable_files = [];
+      const rawDownloads = document.getElementById('modal-course-downloads') ? document.getElementById('modal-course-downloads').value.trim() : '';
+      if (rawDownloads) {
+        try {
+          downloadable_files = JSON.parse(rawDownloads);
+          if (!Array.isArray(downloadable_files)) throw new Error('Downloadable resources must be a JSON array of file objects.');
+        } catch (parseErr) {
+          showToast('Invalid JSON in Downloadable Resources: ' + parseErr.message, 'error');
+          return;
+        }
+      }
 
       const payload = {
         title: document.getElementById('modal-course-title').value.trim(),
@@ -6040,6 +6797,14 @@
         image: document.getElementById('modal-course-image') ? document.getElementById('modal-course-image').value.trim() : '',
         video_preview: document.getElementById('modal-course-video') ? document.getElementById('modal-course-video').value.trim() : '',
         highlights,
+        outcomes: highlights,
+        language: document.getElementById('modal-course-language') ? document.getElementById('modal-course-language').value.trim() : 'English',
+        is_free: document.getElementById('modal-course-is-free') ? document.getElementById('modal-course-is-free').checked : false,
+        free_offer_active: document.getElementById('modal-course-free-offer') ? document.getElementById('modal-course-free-offer').checked : false,
+        offer_start_date: document.getElementById('modal-course-offer-start') && document.getElementById('modal-course-offer-start').value ? document.getElementById('modal-course-offer-start').value : null,
+        offer_expiry_date: document.getElementById('modal-course-offer-expiry') && document.getElementById('modal-course-offer-expiry').value ? document.getElementById('modal-course-offer-expiry').value : null,
+        external_learning_url: document.getElementById('modal-course-external-url') ? document.getElementById('modal-course-external-url').value.trim() : null,
+        downloadable_files,
         is_active: document.getElementById('modal-course-active').checked,
       };
 
@@ -6194,17 +6959,28 @@
       }
     };
 
-    // MARQUEE & VIDEO SETTINGS
+    // NEWS TICKER (MARQUEE) & VIDEO SETTINGS
     function renderMarqueeManager() {
+      const cfg = window.ADMIN.cmsMarqueeConfig || {};
+      if (document.getElementById('ticker-bg-color')) document.getElementById('ticker-bg-color').value = cfg.bg_color || '#ffffff';
+      if (document.getElementById('ticker-text-color')) document.getElementById('ticker-text-color').value = cfg.text_color || '#000000';
+      if (document.getElementById('ticker-speed')) document.getElementById('ticker-speed').value = cfg.speed || 32;
+      if (document.getElementById('ticker-enabled')) document.getElementById('ticker-enabled').checked = cfg.enabled !== false;
+      if (document.getElementById('ticker-pause-hover')) document.getElementById('ticker-pause-hover').checked = cfg.pause_on_hover !== false;
+
       const container = document.getElementById('marquee-items-list');
       if (!container) return;
       container.innerHTML = (window.ADMIN.marquee || []).map((item, idx) => {
         const textVal = typeof item === 'object' && item !== null ? (item.text || '') : String(item || '');
         const linkVal = typeof item === 'object' && item !== null ? (item.link || '/courses') : '/courses';
+        const enabledVal = typeof item === 'object' && item !== null ? item.enabled !== false : true;
         return `
         <div class="flex items-center gap-3 p-3 bg-surface rounded-xl border border-bordercol">
-          <input type="text" value="${textVal.replace(/"/g, '&quot;')}" placeholder="Marquee item text..." class="marquee-input flex-grow px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-medium">
-          <input type="text" value="${linkVal.replace(/"/g, '&quot;')}" placeholder="/courses" class="marquee-link-input w-36 px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-mono">
+          <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 shrink-0 cursor-pointer">
+            <input type="checkbox" class="marquee-enabled-input w-4 h-4 text-brand-600 rounded" ${enabledVal ? 'checked' : ''}>
+          </label>
+          <input type="text" value="${textVal.replace(/"/g, '&quot;')}" placeholder="News ticker item text..." class="marquee-input flex-grow px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-medium">
+          <input type="text" value="${linkVal.replace(/"/g, '&quot;')}" placeholder="/courses (optional)" class="marquee-link-input w-40 px-3 py-2 text-xs bg-white border border-bordercol rounded-lg font-mono">
           <button onclick="removeMarqueeRow(${idx})" class="text-rose-500 hover:text-rose-700 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
       `}).join('');
@@ -6212,7 +6988,7 @@
     }
 
     window.addMarqueeRow = function() {
-      window.ADMIN.marquee.push({ text: '✨ New Announcement Item', link: '/courses' });
+      window.ADMIN.marquee.push({ text: 'New Web Nasir Update — Explore Free AI Tools & Courses', link: '/tools', enabled: true });
       renderMarqueeManager();
     };
 
@@ -6224,16 +7000,474 @@
     window.handleSaveMarqueeItems = async function() {
       const inputs = document.querySelectorAll('.marquee-input');
       const linkInputs = document.querySelectorAll('.marquee-link-input');
+      const enabledInputs = document.querySelectorAll('.marquee-enabled-input');
       const items = Array.from(inputs).map((inp, idx) => ({
         text: inp.value.trim(),
-        link: (linkInputs[idx] && linkInputs[idx].value.trim()) || '/courses'
+        link: (linkInputs[idx] && linkInputs[idx].value.trim()) || '',
+        enabled: enabledInputs[idx] ? enabledInputs[idx].checked : true
       })).filter(it => it.text);
+      const tickerConfig = {
+        ...window.ADMIN.cmsMarqueeConfig,
+        bg_color: document.getElementById('ticker-bg-color') ? document.getElementById('ticker-bg-color').value : '#ffffff',
+        text_color: document.getElementById('ticker-text-color') ? document.getElementById('ticker-text-color').value : '#000000',
+        speed: document.getElementById('ticker-speed') ? Number(document.getElementById('ticker-speed').value) || 32 : 32,
+        enabled: document.getElementById('ticker-enabled') ? document.getElementById('ticker-enabled').checked : true,
+        pause_on_hover: document.getElementById('ticker-pause-hover') ? document.getElementById('ticker-pause-hover').checked : true,
+      };
       try {
-        await req('/admin/marquee', { method: 'PUT', body: JSON.stringify({ items }) });
-        showToast('Marquee items saved & published!', 'success');
+        await Promise.all([
+          req('/admin/marquee', { method: 'PUT', body: JSON.stringify({ items }) }),
+          req('/admin/cms/marquee-config', { method: 'PUT', body: JSON.stringify(tickerConfig) }),
+        ]);
+        window.ADMIN.cmsMarqueeConfig = tickerConfig;
+        showToast('News Ticker items & white/black styling published!', 'success');
         loadAllAdminData();
       } catch (err) {
-        showToast('Error saving marquee: ' + err.message, 'error');
+        showToast('Error saving news ticker: ' + err.message, 'error');
+      }
+    };
+
+    // FEATURED ANNOUNCEMENTS (CENTER MODAL POPUP MANAGER)
+    function renderFeaturedAnnouncementsList() {
+      const container = document.getElementById('featured-announcements-list');
+      if (!container) return;
+      const list = window.ADMIN.featuredAnnouncements || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div class="col-span-full p-6 rounded-2xl bg-white border border-bordercol text-center text-xs text-muted">No Featured Announcements created yet. Use the form below to create an Image, Video, or Text center popup.</div>`;
+        return;
+      }
+      container.innerHTML = list.map(a => `
+        <div class="bg-white p-5 rounded-2xl border ${a.enabled ? 'border-emerald-300 ring-1 ring-emerald-500/20' : 'border-bordercol'} shadow-2xs flex flex-col justify-between gap-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${a.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                  ${a.enabled ? '● Active Live' : '○ Disabled / Draft'}
+                </span>
+                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase">${a.content_type || 'text'} popup</span>
+                <span class="text-[10px] text-slate-400 font-mono">Priority #${a.priority || 1}</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-semibold">${a.animation || 'zoom-in'} • ${a.frequency || 'once_per_session'}</span>
+            </div>
+            <h4 class="text-sm font-extrabold text-slate-900">${a.title || 'Untitled Announcement'}</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">${a.description || ''}</p>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs">
+            <div class="flex items-center gap-2">
+              <button onclick="openFeaturedAnnouncementEditor('${a.id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700">Edit</button>
+              <button onclick="toggleFeaturedAnnouncementEnabled('${a.id}', ${!a.enabled})" class="px-3 py-1.5 rounded-xl ${a.enabled ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'} font-bold">
+                ${a.enabled ? 'Disable' : 'Enable Live'}
+              </button>
+              <a href="/?preview_announcement=${encodeURIComponent(a.id)}" target="_blank" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100">Preview Live</a>
+            </div>
+            <button onclick="deleteFeaturedAnnouncement('${a.id}')" class="text-rose-600 hover:text-rose-800 font-bold px-2 py-1">Delete</button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    window.openFeaturedAnnouncementEditor = function(id) {
+      const list = window.ADMIN.featuredAnnouncements || [];
+      const item = id ? list.find(x => x.id === id) : null;
+      document.getElementById('fa-editor-heading').textContent = item ? `Edit Featured Announcement: ${item.title}` : 'Create New Featured Announcement Popup';
+      document.getElementById('fa-id').value = item ? item.id : '';
+      document.getElementById('fa-title').value = item ? (item.title || '') : '';
+      document.getElementById('fa-description').value = item ? (item.description || '') : '';
+      document.getElementById('fa-highlighted-text').value = item ? (item.highlighted_text || '') : 'Featured Update';
+      document.getElementById('fa-content-type').value = item ? (item.content_type || 'text') : 'text';
+      document.getElementById('fa-image-url').value = item ? (item.image_url || '') : '';
+      document.getElementById('fa-video-url').value = item ? (item.video_url || '') : '';
+      document.getElementById('fa-cta-enabled').checked = item ? item.cta_enabled !== false : true;
+      document.getElementById('fa-cta-text').value = item ? (item.cta_text || '') : 'Explore Free Tools';
+      document.getElementById('fa-cta-url').value = item ? (item.cta_url || '') : '/tools';
+      document.getElementById('fa-animation').value = item ? (item.animation || 'zoom-in') : 'zoom-in';
+      document.getElementById('fa-priority').value = item ? (item.priority || 1) : 1;
+      document.getElementById('fa-start-date').value = item ? (item.start_date || '') : '';
+      document.getElementById('fa-expiry-date').value = item ? (item.expiry_date || '') : '';
+      document.getElementById('fa-delay').value = item && item.delay_seconds !== undefined ? item.delay_seconds : 2;
+      document.getElementById('fa-duration').value = item && item.duration_seconds !== undefined ? item.duration_seconds : 0;
+      document.getElementById('fa-frequency').value = item ? (item.frequency || 'once_per_session') : 'once_per_session';
+      document.getElementById('fa-audience').value = item ? (item.target_audience || 'all') : 'all';
+      document.getElementById('fa-show-desktop').checked = item ? item.show_on_desktop !== false : true;
+      document.getElementById('fa-show-mobile').checked = item ? item.show_on_mobile !== false : true;
+      document.getElementById('fa-enabled').checked = item ? Boolean(item.enabled) : true;
+      document.getElementById('featured-announcement-editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.handleSaveFeaturedAnnouncement = async function(asDraft) {
+      const id = document.getElementById('fa-id').value.trim();
+      const payload = {
+        id: id || undefined,
+        title: document.getElementById('fa-title').value.trim() || 'Featured Announcement',
+        description: document.getElementById('fa-description').value.trim(),
+        highlighted_text: document.getElementById('fa-highlighted-text').value.trim(),
+        content_type: document.getElementById('fa-content-type').value,
+        image_url: document.getElementById('fa-image-url').value.trim(),
+        video_url: document.getElementById('fa-video-url').value.trim(),
+        cta_enabled: document.getElementById('fa-cta-enabled').checked,
+        cta_text: document.getElementById('fa-cta-text').value.trim() || 'Learn More',
+        cta_url: document.getElementById('fa-cta-url').value.trim() || '/tools',
+        animation: document.getElementById('fa-animation').value,
+        priority: Number(document.getElementById('fa-priority').value) || 1,
+        start_date: document.getElementById('fa-start-date').value || '',
+        expiry_date: document.getElementById('fa-expiry-date').value || '',
+        delay_seconds: Number(document.getElementById('fa-delay').value) || 0,
+        duration_seconds: Number(document.getElementById('fa-duration').value) || 0,
+        frequency: document.getElementById('fa-frequency').value,
+        target_audience: document.getElementById('fa-audience').value,
+        show_on_desktop: document.getElementById('fa-show-desktop').checked,
+        show_on_mobile: document.getElementById('fa-show-mobile').checked,
+        enabled: asDraft ? false : document.getElementById('fa-enabled').checked,
+        status: asDraft ? 'draft' : 'published',
+      };
+      try {
+        if (id) {
+          await req(`/admin/featured-announcements/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          const res = await req('/admin/featured-announcements', { method: 'POST', body: JSON.stringify(payload) });
+          if (res && res.item && res.item.id) document.getElementById('fa-id').value = res.item.id;
+        }
+        showToast(asDraft ? 'Featured Announcement saved as draft!' : 'Featured Announcement published!', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Failed to save announcement: ' + err.message, 'error');
+      }
+    };
+
+    window.toggleFeaturedAnnouncementEnabled = async function(id, enabled) {
+      try {
+        await req(`/admin/featured-announcements/${id}`, { method: 'PUT', body: JSON.stringify({ enabled, status: enabled ? 'published' : 'draft' }) });
+        showToast(enabled ? 'Announcement enabled on live website!' : 'Announcement disabled.', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteFeaturedAnnouncement = async function(id) {
+      if (!confirm('Delete this Featured Announcement popup?')) return;
+      try {
+        await req(`/admin/featured-announcements/${id}`, { method: 'DELETE' });
+        showToast('Announcement deleted.', 'info');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    window.previewCurrentFeaturedAnnouncement = async function() {
+      await handleSaveFeaturedAnnouncement(true);
+      const id = document.getElementById('fa-id').value.trim();
+      if (id) {
+        window.open(`/?preview_announcement=${encodeURIComponent(id)}`, '_blank');
+      }
+    };
+
+    // ==========================================
+    // HERO SLIDER MANAGER (ADMIN CRUD & CONTROLS)
+    // ==========================================
+    function renderHeroSliderAdmin() {
+      renderHeroSlidesList();
+      populateHeroSliderConfig();
+    }
+
+    function renderHeroSlidesList() {
+      const container = document.getElementById('hero-slides-admin-list');
+      const badge = document.getElementById('hero-slides-count-badge');
+      if (!container) return;
+      const list = (window.ADMIN.heroSlides || []).sort((a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99));
+      if (badge) badge.textContent = `${list.length} Slides`;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full p-8 rounded-2xl bg-white border border-bordercol text-center text-xs text-muted">
+            No slides currently found. Click "+ Add New Slide" above or save the defaults.
+          </div>
+        `;
+        return;
+      }
+
+      const visualTypeLabels = {
+        ai_tools: 'AI Tools Workspace',
+        web_dev: 'Web Dev Code IDE',
+        seo_growth: 'SEO & AdSense Analytics',
+        courses: 'Academy Certification Card',
+        custom_image: 'Custom Uploaded Imagery'
+      };
+
+      container.innerHTML = list.map((sl, index) => {
+        const vLabel = visualTypeLabels[sl.slide_type || sl.visual_type] || 'Interactive Visual';
+        const isLive = sl.enabled !== false;
+        return `
+          <div class="bg-white p-5 rounded-2xl border ${isLive ? 'border-brand-200 ring-1 ring-brand-500/20' : 'border-slate-200'} shadow-2xs flex flex-col justify-between gap-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${isLive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                    ${isLive ? '● Live' : '○ Draft'}
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold">
+                    ${vLabel}
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono font-bold">Slide #${sl.sort_order || index + 1}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button onclick="moveHeroSlideOrder('${sl.id}', -1)" title="Move Up" class="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer ${index === 0 ? 'opacity-40 pointer-events-none' : ''}">
+                    <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button onclick="moveHeroSlideOrder('${sl.id}', 1)" title="Move Down" class="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer ${index === list.length - 1 ? 'opacity-40 pointer-events-none' : ''}">
+                    <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-[10px] font-bold uppercase text-brand-600 tracking-wider">${escapeHtml(sl.badge_text || sl.badge || 'AI • Technology • Academy')}</div>
+                <h4 class="text-sm font-extrabold text-slate-900 line-clamp-1 mt-0.5">${escapeHtml(sl.heading || sl.title || 'Untitled Slide')}</h4>
+                <p class="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">${escapeHtml(sl.description || '')}</p>
+              </div>
+
+              <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-600 pt-1">
+                <span>CTA: <strong>${escapeHtml(sl.cta_primary_text || 'None')}</strong> &rarr; <code class="text-[10px] font-mono text-brand-700">${escapeHtml(sl.cta_primary_link || '#')}</code></span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs">
+              <div class="flex items-center gap-1.5">
+                <button onclick="openHeroSlideEditor('${sl.id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 cursor-pointer">
+                  Edit
+                </button>
+                <button onclick="duplicateHeroSlide('${sl.id}')" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-700 cursor-pointer" title="Duplicate Slide">
+                  Duplicate
+                </button>
+                <button onclick="toggleHeroSlideEnabled('${sl.id}', ${!isLive})" class="px-2.5 py-1.5 rounded-xl font-bold cursor-pointer ${isLive ? 'bg-amber-50 text-amber-800 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'}">
+                  ${isLive ? 'Disable' : 'Enable'}
+                </button>
+              </div>
+              <button onclick="deleteHeroSlide('${sl.id}')" class="text-rose-600 hover:text-rose-800 font-bold px-2 py-1 cursor-pointer">
+                Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function populateHeroSliderConfig() {
+      const cfg = window.ADMIN.heroSliderConfig || {};
+      const elEn = document.getElementById('hero-cfg-enabled');
+      const elAuto = document.getElementById('hero-cfg-autoplay');
+      const elInt = document.getElementById('hero-cfg-interval');
+      const elEff = document.getElementById('hero-cfg-effect');
+      const elHover = document.getElementById('hero-cfg-pause-hover');
+      const elArr = document.getElementById('hero-cfg-arrows');
+      const elDots = document.getElementById('hero-cfg-dots');
+      const elSwipe = document.getElementById('hero-cfg-swipe');
+
+      if (elEn) elEn.checked = cfg.enabled !== false;
+      if (elAuto) elAuto.checked = cfg.autoplay !== false;
+      if (elInt) elInt.value = cfg.autoplay_interval || 5;
+      if (elEff) elEff.value = cfg.transition_effect || 'fade';
+      if (elHover) elHover.checked = cfg.pause_on_hover !== false;
+      if (elArr) elArr.checked = cfg.show_arrows !== false;
+      if (elDots) elDots.checked = cfg.show_dots !== false;
+      if (elSwipe) elSwipe.checked = cfg.enable_swipe !== false;
+    }
+
+    window.openHeroSlideEditor = function(id) {
+      const list = window.ADMIN.heroSlides || [];
+      const item = id ? list.find(s => s.id === id) : null;
+      document.getElementById('hero-slide-editor-heading').textContent = item ? `Edit Slide: ${item.title || item.heading}` : 'Create New Hero Slide';
+      document.getElementById('hero-slide-id').value = item ? item.id : '';
+      document.getElementById('hero-slide-title').value = item ? (item.title || '') : `Slide ${list.length + 1}`;
+      document.getElementById('hero-slide-badge').value = item ? (item.badge_text || item.badge || '') : 'AI • Technology • Digital Skills Academy';
+      document.getElementById('hero-slide-visual-type').value = item ? (item.slide_type || item.visual_type || 'ai_tools') : 'ai_tools';
+      document.getElementById('hero-slide-heading').value = item ? (item.heading || '') : '';
+      document.getElementById('hero-slide-description').value = item ? (item.description || '') : '';
+      document.getElementById('hero-slide-desktop-image').value = item ? (item.desktop_image || '') : '';
+      document.getElementById('hero-slide-mobile-image').value = item ? (item.mobile_image || '') : '';
+      document.getElementById('hero-slide-cta-prim-text').value = item ? (item.cta_primary_text || '') : 'Explore Free AI Tools';
+      document.getElementById('hero-slide-cta-prim-link').value = item ? (item.cta_primary_link || '/tools') : '/tools';
+      document.getElementById('hero-slide-cta-sec-text').value = item ? (item.cta_secondary_text || '') : 'Explore Paid Courses';
+      document.getElementById('hero-slide-cta-sec-link').value = item ? (item.cta_secondary_link || '/courses') : '/courses';
+      document.getElementById('hero-slide-video-text').value = item ? (item.cta_video_text || '') : 'Watch Introduction';
+      document.getElementById('hero-slide-order').value = item ? (item.sort_order || 1) : (list.length + 1);
+      document.getElementById('hero-slide-enabled').checked = item ? (item.enabled !== false) : true;
+
+      window.toggleHeroSlideVisualFields();
+      const card = document.getElementById('hero-slide-editor-card');
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    window.closeHeroSlideEditor = function() {
+      document.getElementById('hero-slide-id').value = '';
+      document.getElementById('hero-slide-editor-heading').textContent = 'Create New Hero Slide';
+      document.getElementById('hero-slide-heading').value = '';
+      document.getElementById('hero-slide-description').value = '';
+    };
+
+    window.toggleHeroSlideVisualFields = function() {
+      const vtype = document.getElementById('hero-slide-visual-type').value;
+      const box = document.getElementById('hero-slide-custom-image-fields');
+      if (box) {
+        if (vtype === 'custom_image') {
+          box.classList.remove('hidden');
+        } else {
+          box.classList.add('hidden');
+        }
+      }
+    };
+
+    window.uploadHeroSlideImage = async function(input, targetInputId) {
+      const file = input && input.files ? input.files[0] : null;
+      if (!file) return;
+      try {
+        showToast('Uploading slide image...', 'info');
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const base64Data = e.target.result;
+            const res = await req('/admin/media/upload', {
+              method: 'POST',
+              body: JSON.stringify({
+                dataUrl: base64Data,
+                filename: file.name,
+                mimeType: file.type || 'image/jpeg'
+              })
+            });
+            if (res && res.url) {
+              const target = document.getElementById(targetInputId);
+              if (target) target.value = res.url;
+              showToast('Image uploaded successfully!', 'success');
+            } else {
+              showToast('Upload completed!', 'success');
+            }
+          } catch (err) {
+            showToast('Upload error: ' + err.message, 'error');
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        showToast('File read error: ' + err.message, 'error');
+      }
+    };
+
+    window.handleSaveHeroSlide = async function(publish) {
+      const id = document.getElementById('hero-slide-id').value.trim();
+      const payload = {
+        title: document.getElementById('hero-slide-title').value.trim() || 'Hero Slide',
+        badge_text: document.getElementById('hero-slide-badge').value.trim(),
+        slide_type: document.getElementById('hero-slide-visual-type').value,
+        visual_type: document.getElementById('hero-slide-visual-type').value,
+        heading: document.getElementById('hero-slide-heading').value.trim(),
+        description: document.getElementById('hero-slide-description').value.trim(),
+        desktop_image: document.getElementById('hero-slide-desktop-image').value.trim(),
+        mobile_image: document.getElementById('hero-slide-mobile-image').value.trim(),
+        cta_primary_text: document.getElementById('hero-slide-cta-prim-text').value.trim(),
+        cta_primary_link: document.getElementById('hero-slide-cta-prim-link').value.trim(),
+        cta_secondary_text: document.getElementById('hero-slide-cta-sec-text').value.trim(),
+        cta_secondary_link: document.getElementById('hero-slide-cta-sec-link').value.trim(),
+        cta_video_text: document.getElementById('hero-slide-video-text').value.trim(),
+        sort_order: Number(document.getElementById('hero-slide-order').value) || 1,
+        enabled: publish ? true : document.getElementById('hero-slide-enabled').checked
+      };
+
+      if (!payload.heading) {
+        showToast('Please enter a headline for the slide.', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await req(`/admin/hero-slides/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          showToast('Hero slide updated successfully!', 'success');
+        } else {
+          const res = await req('/admin/hero-slides', { method: 'POST', body: JSON.stringify(payload) });
+          if (res && res.slide && res.slide.id) document.getElementById('hero-slide-id').value = res.slide.id;
+          showToast('Hero slide created and published!', 'success');
+        }
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error saving hero slide: ' + err.message, 'error');
+      }
+    };
+
+    window.duplicateHeroSlide = async function(id) {
+      try {
+        showToast('Duplicating hero slide...', 'info');
+        await req(`/admin/hero-slides/${id}/duplicate`, { method: 'POST' });
+        showToast('Slide duplicated successfully!', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error duplicating slide: ' + err.message, 'error');
+      }
+    };
+
+    window.moveHeroSlideOrder = async function(id, delta) {
+      const list = [...(window.ADMIN.heroSlides || [])].sort((a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99));
+      const idx = list.findIndex(s => s.id === id);
+      if (idx < 0) return;
+      const targetIdx = idx + delta;
+      if (targetIdx < 0 || targetIdx >= list.length) return;
+
+      // Swap
+      const temp = list[idx];
+      list[idx] = list[targetIdx];
+      list[targetIdx] = temp;
+
+      const updated = list.map((s, i) => ({ ...s, sort_order: i + 1 }));
+      try {
+        await req('/admin/hero-slides', { method: 'PUT', body: JSON.stringify({ slides: updated }) });
+        showToast('Slides reordered successfully!', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error reordering slides: ' + err.message, 'error');
+      }
+    };
+
+    window.toggleHeroSlideEnabled = async function(id, enabled) {
+      try {
+        await req(`/admin/hero-slides/${id}`, { method: 'PUT', body: JSON.stringify({ enabled }) });
+        showToast(enabled ? 'Slide enabled on homepage!' : 'Slide disabled.', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteHeroSlide = async function(id) {
+      if (!confirm('Are you sure you want to delete this hero slide?')) return;
+      try {
+        await req(`/admin/hero-slides/${id}`, { method: 'DELETE' });
+        showToast('Hero slide deleted.', 'info');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    window.handleSaveHeroSliderConfig = async function() {
+      const payload = {
+        enabled: document.getElementById('hero-cfg-enabled').checked,
+        autoplay: document.getElementById('hero-cfg-autoplay').checked,
+        autoplay_interval: Number(document.getElementById('hero-cfg-interval').value) || 5,
+        transition_effect: document.getElementById('hero-cfg-effect').value,
+        pause_on_hover: document.getElementById('hero-cfg-pause-hover').checked,
+        show_arrows: document.getElementById('hero-cfg-arrows').checked,
+        show_dots: document.getElementById('hero-cfg-dots').checked,
+        enable_swipe: document.getElementById('hero-cfg-swipe').checked
+      };
+
+      try {
+        await req('/admin/hero-slider-config', { method: 'PUT', body: JSON.stringify(payload) });
+        showToast('Hero Slider global settings updated & published!', 'success');
+        await loadCmsExtras();
+      } catch (err) {
+        showToast('Error saving slider settings: ' + err.message, 'error');
       }
     };
 
@@ -6256,7 +7490,7 @@
       }
     };
 
-    // ENROLLMENTS & CONTACTS
+    // ENROLLMENTS & CONTACT MESSAGES
     function renderEnrollmentsAndContacts() {
       const enrollTbody = document.getElementById('enrollments-table-body');
       const countBadge = document.getElementById('enrollments-count-badge');
@@ -6290,23 +7524,118 @@
 
       const contactsTbody = document.getElementById('contacts-table-body');
       const contactBadge = document.getElementById('contacts-count-badge');
+      const searchQ = (document.getElementById('contacts-search-input') ? document.getElementById('contacts-search-input').value : '').toLowerCase().trim();
+      const statusFilter = document.getElementById('contacts-status-filter') ? document.getElementById('contacts-status-filter').value : 'all';
+
       if (contactsTbody && contactBadge) {
-        contactBadge.textContent = `${window.ADMIN.contacts.length} records`;
-        if (window.ADMIN.contacts.length === 0) {
-          contactsTbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-muted">No contact inquiries yet.</td></tr>';
+        let list = Array.isArray(window.ADMIN.contacts) ? window.ADMIN.contacts : [];
+        if (statusFilter === 'unread') list = list.filter(c => !c.read);
+        else if (statusFilter === 'read') list = list.filter(c => c.read);
+        else if (statusFilter === 'replied') list = list.filter(c => c.status === 'replied' || (Array.isArray(c.replies) && c.replies.length > 0));
+
+        if (searchQ) {
+          list = list.filter(c =>
+            String(c.name || '').toLowerCase().includes(searchQ) ||
+            String(c.email || '').toLowerCase().includes(searchQ) ||
+            String(c.subject || '').toLowerCase().includes(searchQ) ||
+            String(c.message || '').toLowerCase().includes(searchQ)
+          );
+        }
+
+        contactBadge.textContent = `${list.length} records`;
+        if (list.length === 0) {
+          contactsTbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-muted">No matching contact messages found.</td></tr>';
         } else {
-          contactsTbody.innerHTML = window.ADMIN.contacts.map(c => `
-            <tr class="hover:bg-slate-50">
-              <td class="py-3 px-4 font-semibold text-dark">${c.name}</td>
-              <td class="py-3 px-4 text-slate-600">${c.email}</td>
-              <td class="py-3 px-4 font-medium text-brand-700">${c.subject || '--'}</td>
-              <td class="py-3 px-4 text-slate-600 max-w-xs truncate">${c.message}</td>
-              <td class="py-3 px-4 text-slate-400 text-[10px]">${c.created_at ? new Date(c.created_at).toLocaleDateString() : '--'}</td>
+          contactsTbody.innerHTML = list.map(c => {
+            const cid = c.id || '';
+            const isRead = Boolean(c.read);
+            const isReplied = c.status === 'replied' || (Array.isArray(c.replies) && c.replies.length > 0);
+            return `
+            <tr class="hover:bg-slate-50 ${!isRead ? 'bg-indigo-50/40' : ''}">
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReplied ? 'bg-emerald-100 text-emerald-800' : (!isRead ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600')}">
+                  ${isReplied ? 'Replied' : (!isRead ? 'Unread' : 'Read')}
+                </span>
+              </td>
+              <td class="py-3 px-4 font-semibold text-dark">${c.name || 'Visitor'}<div class="text-[10px] text-brand-700">${c.email || ''}</div></td>
+              <td class="py-3 px-4 font-medium text-slate-800">${c.subject || 'General Inquiry'}</td>
+              <td class="py-3 px-4 text-slate-600 max-w-xs truncate">${c.message || ''}</td>
+              <td class="py-3 px-4 text-slate-400 text-[10px]">${c.created_at ? new Date(c.created_at).toLocaleString() : '--'}</td>
+              <td class="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                <button onclick="openContactReplyModal('${cid}')" class="px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 font-bold hover:bg-brand-100">View / Reply</button>
+                <button onclick="toggleContactReadStatus('${cid}', ${!isRead})" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200">${isRead ? 'Mark Unread' : 'Mark Read'}</button>
+                <button onclick="deleteContactMessage('${cid}')" class="px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 font-bold">Delete</button>
+              </td>
             </tr>
-          `).join('');
+          `}).join('');
         }
       }
     }
+
+    window.toggleContactReadStatus = async function(id, read) {
+      if (!id) return;
+      try {
+        await req(`/admin/contacts/${id}`, { method: 'PUT', body: JSON.stringify({ read, status: read ? 'read' : 'unread' }) });
+        const item = (window.ADMIN.contacts || []).find(c => String(c.id) === String(id));
+        if (item) { item.read = read; item.status = read ? 'read' : 'unread'; }
+        renderEnrollmentsAndContacts();
+        showToast(read ? 'Marked as read' : 'Marked as unread', 'info');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteContactMessage = async function(id) {
+      if (!id || !confirm('Delete this contact message permanently?')) return;
+      try {
+        await req(`/admin/contacts/${id}`, { method: 'DELETE' });
+        window.ADMIN.contacts = (window.ADMIN.contacts || []).filter(c => String(c.id) !== String(id));
+        renderEnrollmentsAndContacts();
+        showToast('Contact message deleted', 'info');
+      } catch (err) {
+        showToast('Delete error: ' + err.message, 'error');
+      }
+    };
+
+    window.openContactReplyModal = function(id) {
+      const c = (window.ADMIN.contacts || []).find(item => String(item.id) === String(id));
+      if (!c) return;
+      document.getElementById('crm-id').value = c.id;
+      document.getElementById('crm-sender').textContent = c.name || 'Visitor';
+      document.getElementById('crm-email').textContent = c.email || '';
+      document.getElementById('crm-date').textContent = c.created_at ? new Date(c.created_at).toLocaleString() : '';
+      document.getElementById('crm-subject').textContent = 'Subject: ' + (c.subject || 'General Inquiry');
+      document.getElementById('crm-message').textContent = c.message || '';
+      document.getElementById('crm-reply-subject').value = `Re: ${c.subject || 'Your Inquiry at Web Nasir'}`;
+      document.getElementById('crm-reply-body').value = '';
+      document.getElementById('contact-reply-modal').classList.remove('hidden');
+      if (!c.read) toggleContactReadStatus(c.id, true);
+    };
+
+    window.closeContactReplyModal = function() {
+      document.getElementById('contact-reply-modal').classList.add('hidden');
+    };
+
+    window.sendContactReplyEmail = async function() {
+      const id = document.getElementById('crm-id').value;
+      const subject = document.getElementById('crm-reply-subject').value.trim();
+      const replyMessage = document.getElementById('crm-reply-body').value.trim();
+      if (!replyMessage) {
+        showToast('Please enter a reply message.', 'error');
+        return;
+      }
+      try {
+        await req(`/admin/contacts/${id}/reply`, {
+          method: 'POST',
+          body: JSON.stringify({ subject, reply_message: replyMessage })
+        });
+        showToast('Reply email sent and saved!', 'success');
+        closeContactReplyModal();
+        loadAllAdminData();
+      } catch (err) {
+        showToast('Reply error: ' + err.message, 'error');
+      }
+    };
 
     window.updateEnrollmentStatus = async function(enrollmentId, status) {
       if (!enrollmentId) return;

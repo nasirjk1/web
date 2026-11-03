@@ -53,6 +53,7 @@ async function startServer() {
   // Mount API routes to match Netlify redirects (/api/* and /.netlify/functions/api/*)
   app.all('/api/*', invokeNetlifyFunction);
   app.all('/.netlify/functions/api/*', invokeNetlifyFunction);
+  app.all('/downloads/courses/*', invokeNetlifyFunction);
   app.get('/sitemap.xml', invokeNetlifyFunction);
   app.get('/robots.txt', invokeNetlifyFunction);
 

@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getBlob, setBlob, deleteBlob, listBlobs, initBlobEnvironment } from './lib/store.js';
 import {
   hashPassword,
@@ -8,9 +10,12 @@ import {
   extractTokenFromEvent,
   createAuthCookie,
   createLogoutCookie,
+  signStudentToken,
+  verifyStudentToken,
 } from './lib/auth.js';
 import { ensureSeeded } from './lib/seed.js';
 import { sendEmailMessage, renderEmailTemplate } from './lib/email.js';
+import { enrichCourseWithOfferStatus, isCourseFreeOfferActive } from './lib/courses-data.js';
 
 // Resilient Gemini AI caller: Try dynamic SDK first, fallback to native REST fetch (zero-dependency for Netlify Functions)
 async function callGeminiAPI(prompt, systemInstruction = '') {
@@ -430,12 +435,157 @@ export const handler = async (event, context) => {
     if (method === 'GET' && cleanPath === '/courses') {
       const courses = (await getBlob('courses_index')) || [];
       const category = event.queryStringParameters?.category;
-      let published = courses.filter((c) => c.is_published !== false && c.is_active !== false);
+      const type = event.queryStringParameters?.type; // 'free' | 'paid' | 'all'
+      let published = courses
+        .filter((c) => c.is_published !== false && c.is_active !== false)
+        .map(enrichCourseWithOfferStatus);
+
       if (category && category !== 'all') {
         published = published.filter((c) => (c.category || '').toLowerCase() === category.toLowerCase());
       }
+      if (type === 'free') {
+        published = published.filter((c) => c.is_effective_free);
+      } else if (type === 'paid') {
+        published = published.filter((c) => !c.is_effective_free);
+      }
       published.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
       return jsonResponse(200, published);
+    }
+
+    // GET /api/courses/:id/download/:fileId or /downloads/courses/:filename (Verified Secure Course Download)
+    if (method === 'GET' && (cleanPath.includes('/download/') || cleanPath.startsWith('/downloads/courses/'))) {
+      const studentEmail = (event.queryStringParameters?.email || event.queryStringParameters?.student_email || '').toLowerCase().trim();
+      const courses = (await getBlob('courses_index')) || [];
+      let course = null;
+      let fileId = null;
+      let filename = null;
+
+      if (cleanPath.startsWith('/downloads/courses/')) {
+        filename = cleanPath.replace('/downloads/courses/', '').trim();
+        course = courses.find((c) => (c.downloadable_files || []).some((f) => f.filename === filename || f.id === filename));
+        fileId = course ? (course.downloadable_files || []).find((f) => f.filename === filename || f.id === filename)?.id : filename;
+      } else {
+        const parts = cleanPath.split('/download/');
+        const courseId = parts[0].replace('/courses/', '').trim();
+        fileId = parts[1].trim();
+        course = courses.find((c) => c.id === courseId || c.slug === courseId);
+      }
+
+      if (!course) {
+        return jsonResponse(404, { error: 'Course or learning resource not found' });
+      }
+
+      const fileMeta = (course.downloadable_files || []).find((f) => f.id === fileId || f.filename === fileId || f.filename === filename);
+      filename = fileMeta?.filename || filename || fileId;
+
+      const isFree = course.is_free === true || Number(course.price) === 0 || isCourseFreeOfferActive(course);
+      let isAuthorized = isFree;
+      let verifiedEmail = isFree ? (studentEmail || 'free_student@webnasir.com') : null;
+
+      if (!isAuthorized) {
+        const admin = await requireAuth();
+        if (admin) {
+          isAuthorized = true;
+          verifiedEmail = 'admin';
+        }
+      }
+
+      if (!isAuthorized) {
+        // Enforce cryptographic token verification for paid course materials
+        const token = extractTokenFromEvent(event) || event.queryStringParameters?.student_token;
+        if (!token) {
+          return jsonResponse(401, {
+            error: 'Authentication Required: Downloading paid course materials requires a verified student session token. Plain unverified email parameters are rejected.',
+            course_id: course.id,
+            course_title: course.title,
+            price: course.price,
+            help: 'Please sign in to your student dashboard or complete course enrollment to obtain your access token.',
+          });
+        }
+
+        const decoded = verifyToken(token);
+        if (!decoded || !decoded.sub) {
+          return jsonResponse(401, {
+            error: 'Invalid or expired student session token. Please re-authenticate.',
+          });
+        }
+
+        verifiedEmail = decoded.sub;
+        const enrollments = (await getBlob('enrollments_list')) || [];
+        const hasEnrollment = enrollments.some(
+          (e) => (e.course_id === course.id || e.course_id === course.slug) && e.student_email === verifiedEmail && e.status === 'active'
+        );
+
+        if (hasEnrollment) {
+          isAuthorized = true;
+        } else {
+          return jsonResponse(403, {
+            error: 'Access Denied: You are not enrolled in this paid course. Verified payment or enrollment required.',
+            student_email: verifiedEmail,
+            course_id: course.id,
+            course_title: course.title,
+            price: course.price,
+          });
+        }
+      }
+
+      // Log download audit record
+      try {
+        const logs = (await getBlob('cms_download_logs')) || [];
+        logs.unshift({
+          id: 'dl-' + Date.now().toString(36),
+          course_id: course.id,
+          course_title: course.title,
+          file_id: fileId,
+          filename,
+          student_email: studentEmail || 'student@webnasir.com',
+          downloaded_at: new Date().toISOString(),
+          ip: event.headers?.['x-forwarded-for'] || 'client',
+        });
+        await setBlob('cms_download_logs', logs.slice(0, 500));
+      } catch (err) {
+        console.warn('Download logging notice:', err);
+      }
+
+      // Check on disk first in storage/downloads/courses/ then public/downloads/courses/
+      let localFilePath = path.join(process.cwd(), 'storage', 'downloads', 'courses', filename);
+      if (!fs.existsSync(localFilePath)) {
+        localFilePath = path.join(process.cwd(), 'public', 'downloads', 'courses', filename);
+      }
+      if (fs.existsSync(localFilePath)) {
+        const fileBuffer = fs.readFileSync(localFilePath);
+        const mimeType = filename.endsWith('.pdf') ? 'application/pdf' : (filename.endsWith('.zip') ? 'application/zip' : 'application/octet-stream');
+        return {
+          statusCode: 200,
+          isBase64Encoded: true,
+          headers: {
+            'Content-Type': mimeType,
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': String(fileBuffer.length),
+            'Cache-Control': 'private, no-cache, no-store',
+            ...getCorsHeaders(event),
+          },
+          body: fileBuffer.toString('base64'),
+        };
+      }
+
+      // Check in blob storage
+      const blobFile = (await getBlob(`course_file:${fileId}`)) || (await getBlob(`course_file:${filename}`));
+      if (blobFile && blobFile.base64) {
+        return {
+          statusCode: 200,
+          isBase64Encoded: true,
+          headers: {
+            'Content-Type': blobFile.mime_type || 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Cache-Control': 'private, no-cache, no-store',
+            ...getCorsHeaders(event),
+          },
+          body: blobFile.base64,
+        };
+      }
+
+      return jsonResponse(404, { error: 'Downloadable resource file not found on server' });
     }
 
     // GET /api/courses/:id
@@ -455,7 +605,7 @@ export const handler = async (event, context) => {
       if (!course) {
         return jsonResponse(404, { error: 'Course not found' });
       }
-      return jsonResponse(200, course);
+      return jsonResponse(200, enrichCourseWithOfferStatus(course));
     }
 
     // GET /api/testimonials
@@ -474,9 +624,22 @@ export const handler = async (event, context) => {
 
     // GET /api/free-courses
     if (method === 'GET' && cleanPath === '/free-courses') {
-      const freeCourses = (await getBlob('free_courses_index')) || [];
-      const published = freeCourses.filter((c) => c.is_published !== false).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-      return jsonResponse(200, published);
+      const allCourses = (await getBlob('courses_index')) || [];
+      const freeCoursesIndex = (await getBlob('free_courses_index')) || [];
+      const combined = [...allCourses, ...freeCoursesIndex];
+      const seen = new Set();
+      const uniqueFree = [];
+
+      for (const c of combined) {
+        if (!c || seen.has(c.id || c.slug)) continue;
+        seen.add(c.id || c.slug);
+        const enriched = enrichCourseWithOfferStatus(c);
+        if (enriched.is_published !== false && enriched.is_effective_free) {
+          uniqueFree.push(enriched);
+        }
+      }
+      uniqueFree.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      return jsonResponse(200, uniqueFree);
     }
 
     // GET /api/cms-bundle (Centralized theme, homepage layout, navigation, footer, pages, sidebars, announcement, marquee, featured_announcements, redirects, social, and SEO)
@@ -747,9 +910,24 @@ export const handler = async (event, context) => {
       const body = parseJsonBody(event.body);
       if (!body || !body.course_id) return jsonResponse(400, { error: 'course_id is required' });
 
-      const courses = (await getBlob('courses_index')) || [];
-      const course = courses.find((c) => c.id === body.course_id);
+      let courses = (await getBlob('courses_index')) || [];
+      let course = courses.find((c) => c.id === body.course_id || c.slug === body.course_id);
+      if (!course) {
+        const freeCourses = (await getBlob('free_courses_index')) || [];
+        course = freeCourses.find((c) => c.id === body.course_id || c.slug === body.course_id);
+      }
       if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      // If course is naturally free or has an active promotional free offer, do not charge
+      if (isCourseFreeOfferActive(course) || course.is_free === true || Number(course.price) === 0) {
+        return jsonResponse(200, {
+          success: true,
+          free_offer: true,
+          message: 'This course is currently available for free enrollment! No payment required.',
+          course_id: course.id,
+          course_title: course.title,
+        });
+      }
 
       const [settings, cmsPayments] = await Promise.all([
         getBlob('settings').then((r) => r || {}),
@@ -797,8 +975,12 @@ export const handler = async (event, context) => {
         });
       }
 
-      const courses = (await getBlob('courses_index')) || [];
-      const course = courses.find((c) => c.id === course_id);
+      let courses = (await getBlob('courses_index')) || [];
+      let course = courses.find((c) => c.id === course_id || c.slug === course_id);
+      if (!course) {
+        const freeList = (await getBlob('free_courses_index')) || [];
+        course = freeList.find((c) => c.id === course_id || c.slug === course_id);
+      }
       if (!course) return jsonResponse(404, { error: 'Course not found' });
 
       // Record payment
@@ -807,7 +989,7 @@ export const handler = async (event, context) => {
         order_id: razorpay_order_id || 'order_direct',
         amount: course.price,
         currency: 'INR',
-        course_id,
+        course_id: course.id,
         course_title: course.title,
         student_email: String(student_email).toLowerCase().trim(),
         student_name: String(student_name || 'Student').trim(),
@@ -820,11 +1002,11 @@ export const handler = async (event, context) => {
 
       // Create enrollment (check duplicate enrollment)
       const enrollments = (await getBlob('enrollments_list')) || [];
-      let enrollment = enrollments.find((e) => e.course_id === course_id && e.student_email === paymentRecord.student_email);
+      let enrollment = enrollments.find((e) => (e.course_id === course.id || e.course_id === course_id) && e.student_email === paymentRecord.student_email);
       if (!enrollment) {
         enrollment = {
           enrollment_id: 'ENR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
-          course_id,
+          course_id: course.id,
           course_title: course.title,
           student_email: paymentRecord.student_email,
           student_name: paymentRecord.student_name,
@@ -846,8 +1028,19 @@ export const handler = async (event, context) => {
       const students = (await getBlob('students_index')) || [];
       const stdIdx = students.findIndex((s) => s.email === paymentRecord.student_email);
       if (stdIdx !== -1) {
-        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course.id]));
         students[stdIdx].payment_status = 'paid';
+        await setBlob('students_index', students);
+      } else {
+        students.push({
+          id: 'std-' + Date.now(),
+          name: paymentRecord.student_name,
+          email: paymentRecord.student_email,
+          phone: paymentRecord.student_phone,
+          enrolled_courses: [course.id],
+          payment_status: 'paid',
+          joined_at: new Date().toISOString(),
+        });
         await setBlob('students_index', students);
       }
 
@@ -898,14 +1091,16 @@ export const handler = async (event, context) => {
         console.warn('Payment emails dispatch warning:', mailErr);
       }
 
+      const studentToken = signStudentToken(paymentRecord.student_email, paymentRecord.student_name);
       return jsonResponse(200, {
         success: true,
         message: 'Payment verified and course unlocked successfully!',
         enrollment,
+        student_token: studentToken,
       });
     }
 
-    // POST /api/courses/enroll-free (Direct free enrollment without Razorpay)
+    // POST /api/courses/enroll-free (Direct free enrollment + Promotional Free Offer)
     if (method === 'POST' && cleanPath === '/courses/enroll-free') {
       const body = parseJsonBody(event.body);
       if (!body) return jsonResponse(400, { error: 'Invalid payload' });
@@ -915,13 +1110,26 @@ export const handler = async (event, context) => {
         return jsonResponse(400, { error: 'course_id and student_email are required' });
       }
 
-      const courses = (await getBlob('courses_index')) || [];
-      const course = courses.find((c) => c.id === course_id);
+      let courses = (await getBlob('courses_index')) || [];
+      let course = courses.find((c) => c.id === course_id || c.slug === course_id);
+      if (!course) {
+        const freeList = (await getBlob('free_courses_index')) || [];
+        course = freeList.find((c) => c.id === course_id || c.slug === course_id);
+      }
       if (!course) return jsonResponse(404, { error: 'Course not found' });
+
+      const isFreeActive = course.is_free === true || Number(course.price) === 0 || isCourseFreeOfferActive(course);
+      if (!isFreeActive) {
+        return jsonResponse(400, {
+          error: 'This course requires payment. The promotional free offer is currently inactive.',
+          requires_payment: true,
+          price: course.price,
+        });
+      }
 
       const enrollments = (await getBlob('enrollments_list')) || [];
       const cleanEmail = String(student_email).toLowerCase().trim();
-      let enrollment = enrollments.find((e) => e.course_id === course_id && e.student_email === cleanEmail);
+      let enrollment = enrollments.find((e) => (e.course_id === course.id || e.course_id === course_id) && e.student_email === cleanEmail);
 
       if (enrollment) {
         return jsonResponse(200, {
@@ -931,17 +1139,18 @@ export const handler = async (event, context) => {
         });
       }
 
+      const isOffer = isCourseFreeOfferActive(course);
       enrollment = {
         enrollment_id: 'ENR-FREE-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
-        course_id,
+        course_id: course.id,
         course_title: course.title,
         student_email: cleanEmail,
         student_name: String(student_name || 'Student').trim(),
         student_phone: String(student_phone || '').trim(),
         amount: 0,
         currency: 'INR',
-        payment_id: 'FREE-ENROLL',
-        payment_method: 'free_enrollment',
+        payment_id: isOffer ? 'PROMO-FREE-OFFER' : 'FREE-ENROLL',
+        payment_method: isOffer ? 'promotional_free_offer' : 'free_enrollment',
         status: 'active',
         progress_pct: 0,
         completed_lessons: [],
@@ -950,11 +1159,22 @@ export const handler = async (event, context) => {
       enrollments.unshift(enrollment);
       await setBlob('enrollments_list', enrollments);
 
-      // Update student profile
+      // Update or create student profile
       const students = (await getBlob('students_index')) || [];
       const stdIdx = students.findIndex((s) => s.email === cleanEmail);
       if (stdIdx !== -1) {
-        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course.id]));
+        await setBlob('students_index', students);
+      } else {
+        students.push({
+          id: 'std-' + Date.now(),
+          name: enrollment.student_name,
+          email: cleanEmail,
+          phone: enrollment.student_phone,
+          enrolled_courses: [course.id],
+          payment_status: 'free',
+          joined_at: new Date().toISOString(),
+        });
         await setBlob('students_index', students);
       }
 
@@ -997,12 +1217,12 @@ export const handler = async (event, context) => {
         return jsonResponse(400, { error: 'Course ID and student email are required' });
       }
       const courses = (await getBlob('courses_index')) || [];
-      const course = courses.find((c) => c.id === course_id);
+      const course = courses.find((c) => c.id === course_id || c.slug === course_id);
       if (!course) return jsonResponse(404, { error: 'Course not found' });
 
       const cleanEmail = String(student_email).toLowerCase().trim();
       const enrollments = (await getBlob('enrollments_list')) || [];
-      let existingEnroll = enrollments.find(e => e.course_id === course_id && e.student_email === cleanEmail);
+      let existingEnroll = enrollments.find(e => (e.course_id === course.id || e.course_id === course_id) && e.student_email === cleanEmail);
       if (existingEnroll) {
         return jsonResponse(200, { success: true, message: 'Already enrolled', enrollment: existingEnroll });
       }
@@ -1010,7 +1230,7 @@ export const handler = async (event, context) => {
       const enrollmentId = 'ENR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
       const newEnrollment = {
         enrollment_id: enrollmentId,
-        course_id,
+        course_id: course.id,
         course_title: course.title,
         student_email: cleanEmail,
         student_name: String(student_name || 'Student').trim(),
@@ -1031,15 +1251,185 @@ export const handler = async (event, context) => {
       const students = (await getBlob('students_index')) || [];
       const stdIdx = students.findIndex((s) => s.email === cleanEmail);
       if (stdIdx !== -1) {
-        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course_id]));
+        students[stdIdx].enrolled_courses = Array.from(new Set([...(students[stdIdx].enrolled_courses || []), course.id]));
         students[stdIdx].payment_status = 'paid';
         await setBlob('students_index', students);
       }
 
+      const studentToken = signStudentToken(cleanEmail, String(student_name || 'Student').trim());
       return jsonResponse(201, {
         success: true,
         message: 'Successfully enrolled in ' + course.title,
         enrollment: newEnrollment,
+        student_token: studentToken,
+      });
+    }
+
+    // POST /api/student/auth-token (Issue cryptographic session token for authenticated students)
+    if (method === 'POST' && cleanPath === '/student/auth-token') {
+      const body = parseJsonBody(event.body);
+      const email = (body?.email || '').toLowerCase().trim();
+      if (!email) return jsonResponse(400, { error: 'Student email is required' });
+
+      const enrollments = (await getBlob('enrollments_list')) || [];
+      const hasEnrollment = enrollments.some((e) => e.student_email === email);
+      const students = (await getBlob('students_index')) || [];
+      const student = students.find((s) => s.email === email);
+
+      if (!hasEnrollment && !student) {
+        return jsonResponse(404, { error: 'No student enrollment or registration found for this email.' });
+      }
+
+      const token = signStudentToken(email, student?.name || 'Student');
+      return jsonResponse(200, {
+        success: true,
+        student_token: token,
+        student: { email, name: student?.name || 'Student' },
+      });
+    }
+
+    // GET /api/student/dashboard (Comprehensive Student Portal Data)
+    if (method === 'GET' && cleanPath === '/student/dashboard') {
+      const email = (event.queryStringParameters?.email || '').toLowerCase().trim();
+      if (!email) {
+        return jsonResponse(400, { error: 'Email parameter is required to access Student Dashboard' });
+      }
+
+      const [allCourses, allFreeCourses, enrollments, payments, students] = await Promise.all([
+        getBlob('courses_index').then((r) => r || []),
+        getBlob('free_courses_index').then((r) => r || []),
+        getBlob('enrollments_list').then((r) => r || []),
+        getBlob('payments_list').then((r) => r || []),
+        getBlob('students_index').then((r) => r || []),
+      ]);
+
+      const courseCatalog = new Map();
+      [...allCourses, ...allFreeCourses].forEach((c) => {
+        if (c && c.id) courseCatalog.set(c.id, enrichCourseWithOfferStatus(c));
+        if (c && c.slug) courseCatalog.set(c.slug, enrichCourseWithOfferStatus(c));
+      });
+
+      const studentProfile = students.find((s) => (s.email || '').toLowerCase().trim() === email) || {
+        name: email.split('@')[0],
+        email,
+        enrolled_courses: [],
+        joined_at: new Date().toISOString(),
+      };
+
+      const myEnrollments = enrollments.filter((e) => (e.student_email || '').toLowerCase().trim() === email);
+      const myPayments = payments.filter((p) => (p.student_email || '').toLowerCase().trim() === email);
+
+      const enrolledCoursesDetailed = [];
+      const freeCoursesDetailed = [];
+      const paidCoursesDetailed = [];
+      const downloadableResources = [];
+
+      for (const enr of myEnrollments) {
+        const course = courseCatalog.get(enr.course_id) || {
+          id: enr.course_id,
+          title: enr.course_title || 'Enrolled Course',
+          category: 'Web Nasir Academy',
+          is_free: enr.amount === 0,
+        };
+
+        const item = {
+          enrollment_id: enr.enrollment_id,
+          course_id: course.id,
+          slug: course.slug || course.id,
+          title: course.title,
+          subtitle: course.subtitle || course.description || '',
+          category: course.category,
+          level: course.level || 'All Levels',
+          duration: course.duration || 'Self-Paced',
+          image: course.image || '',
+          price: enr.amount,
+          payment_method: enr.payment_method,
+          payment_id: enr.payment_id,
+          enrolled_at: enr.enrolled_at,
+          status: enr.status || 'active',
+          progress_pct: Number(enr.progress_pct) || 0,
+          completed_lessons: enr.completed_lessons || [],
+          modules: course.modules || course.curriculum || [],
+          external_learning_url: course.external_learning_url || '',
+          downloadable_files: course.downloadable_files || [],
+        };
+
+        enrolledCoursesDetailed.push(item);
+
+        if (enr.amount === 0 || enr.payment_method === 'free_enrollment' || enr.payment_method === 'promotional_free_offer' || course.is_free) {
+          freeCoursesDetailed.push(item);
+        } else {
+          paidCoursesDetailed.push(item);
+        }
+
+        // Collect all downloadable resources with secure download URLs
+        if (Array.isArray(course.downloadable_files)) {
+          course.downloadable_files.forEach((file) => {
+            downloadableResources.push({
+              file_id: file.id,
+              filename: file.filename,
+              name: file.name || file.filename,
+              format: file.format || (file.filename.endsWith('.pdf') ? 'PDF' : (file.filename.endsWith('.zip') ? 'ZIP' : 'FILE')),
+              size_formatted: file.size_formatted || 'Verified File',
+              size_bytes: file.size_bytes || 0,
+              description: file.description || `Course materials for ${course.title}`,
+              course_id: course.id,
+              course_title: course.title,
+              download_url: `/api/courses/${course.id}/download/${file.id}?email=${encodeURIComponent(email)}`,
+            });
+          });
+        }
+      }
+
+      // Build purchase history
+      const purchaseHistory = myPayments.map((p) => ({
+        id: p.payment_id,
+        order_id: p.order_id,
+        course_title: p.course_title,
+        amount: p.amount,
+        currency: p.currency || 'INR',
+        payment_method: p.payment_method,
+        status: p.status,
+        date: p.created_at,
+      }));
+
+      // Include free enrollments in history as well for transparency
+      myEnrollments
+        .filter((e) => e.amount === 0)
+        .forEach((e) => {
+          purchaseHistory.push({
+            id: e.payment_id,
+            order_id: e.enrollment_id,
+            course_title: e.course_title,
+            amount: 0,
+            currency: 'INR',
+            payment_method: e.payment_method === 'promotional_free_offer' ? 'Promotional Free Offer ($0.00)' : 'Free Enrollment',
+            status: 'completed',
+            date: e.enrolled_at,
+          });
+        });
+
+      purchaseHistory.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+      return jsonResponse(200, {
+        student: {
+          name: studentProfile.name || email.split('@')[0],
+          email,
+          phone: studentProfile.phone || '',
+          joined_at: studentProfile.joined_at || studentProfile.created_at || new Date().toISOString(),
+        },
+        stats: {
+          total_enrolled: enrolledCoursesDetailed.length,
+          free_courses_count: freeCoursesDetailed.length,
+          paid_courses_count: paidCoursesDetailed.length,
+          downloadable_files_count: downloadableResources.length,
+          completed_courses_count: enrolledCoursesDetailed.filter((c) => c.progress_pct >= 100).length,
+        },
+        enrolled_courses: enrolledCoursesDetailed,
+        free_courses: freeCoursesDetailed,
+        paid_courses: paidCoursesDetailed,
+        downloadable_resources: downloadableResources,
+        purchase_history: purchaseHistory,
       });
     }
 
@@ -1860,19 +2250,28 @@ export const handler = async (event, context) => {
           subtitle: String(body.subtitle || body.description || '').trim().slice(0, 400),
           description: String(body.description || body.overview || body.subtitle || '').trim().slice(0, 2500),
           overview: String(body.overview || body.description || '').trim().slice(0, 2500),
-          category: String(body.category || 'AI & Automation').trim(),
+          category: String(body.category || 'AI Tools & Automation').trim(),
           level: String(body.level || 'All Levels').trim(),
           duration: String(body.duration || '6 Weeks').trim(),
+          language: String(body.language || 'English / Urdu').trim(),
           modules_count: Number(body.modules_count) || (modulesList.length || 8),
           price: body.price !== undefined ? Number(body.price) : 2999,
           original_price: body.original_price !== undefined ? Number(body.original_price) : 7999,
+          is_free: body.is_free === true || Number(body.price) === 0,
+          free_offer_active: Boolean(body.free_offer_active),
+          offer_start_date: body.offer_start_date || '',
+          offer_expiry_date: body.offer_expiry_date || '',
           rating: Number(body.rating) || 4.9,
           enrolled_count: Number(body.enrolled_count) || 120,
           instructor: String(body.instructor || 'Nasir').trim(),
           instructor_title: String(body.instructor_title || 'Lead Technical Mentor').trim(),
-          badge: String(body.badge || 'Popular').trim(),
+          badge: String(body.badge || (body.is_free ? 'Free Course' : 'Popular')).trim(),
           image: String(body.image || '').trim(),
           video_preview: String(body.video_preview || '').trim(),
+          external_learning_url: String(body.external_learning_url || '').trim(),
+          downloadable_files: Array.isArray(body.downloadable_files) ? body.downloadable_files : [],
+          requirements: Array.isArray(body.requirements) ? body.requirements : ['Basic computer and internet literacy'],
+          outcomes: Array.isArray(body.outcomes) ? body.outcomes : [],
           seo_title: String(body.seo_title || `${body.title} — Web Nasir Academy`).trim(),
           seo_description: String(body.seo_description || body.description || body.subtitle || '').trim(),
           is_published: body.is_published !== false && body.is_active !== false,
@@ -1906,6 +2305,19 @@ export const handler = async (event, context) => {
           ...body,
           id: existing.id,
         };
+        if (body.price !== undefined) {
+          updated.price = Number(body.price);
+          if (updated.price === 0) updated.is_free = true;
+        }
+        if (body.is_free !== undefined) updated.is_free = Boolean(body.is_free);
+        if (body.free_offer_active !== undefined) updated.free_offer_active = Boolean(body.free_offer_active);
+        if (body.offer_start_date !== undefined) updated.offer_start_date = body.offer_start_date;
+        if (body.offer_expiry_date !== undefined) updated.offer_expiry_date = body.offer_expiry_date;
+        if (Array.isArray(body.downloadable_files)) updated.downloadable_files = body.downloadable_files;
+        if (body.external_learning_url !== undefined) updated.external_learning_url = String(body.external_learning_url).trim();
+        if (Array.isArray(body.outcomes)) updated.outcomes = body.outcomes;
+        if (Array.isArray(body.requirements)) updated.requirements = body.requirements;
+
         if (body.description !== undefined && body.overview === undefined) updated.overview = body.description;
         if (body.overview !== undefined && body.description === undefined) updated.description = body.overview;
         if (Array.isArray(body.highlights) && !body.features) updated.features = body.highlights;
@@ -1929,6 +2341,12 @@ export const handler = async (event, context) => {
         await setBlob('courses_index', filtered);
         await deleteBlob(`course:${id}`);
         return jsonResponse(200, { success: true, message: 'Course deleted successfully' });
+      }
+
+      // GET /api/admin/download-logs (Admin download audit trails)
+      if (method === 'GET' && cleanPath === '/admin/download-logs') {
+        const logs = (await getBlob('cms_download_logs')) || [];
+        return jsonResponse(200, { success: true, logs, total: logs.length });
       }
 
       // ==========================================

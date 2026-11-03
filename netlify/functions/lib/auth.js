@@ -111,3 +111,36 @@ export function createLogoutCookie(isSecure = false) {
   }
   return `${TOKEN_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax`;
 }
+
+/**
+ * Sign cryptographic JWT session token for authenticated students
+ */
+export function signStudentToken(studentEmail, studentName = '') {
+  return jwt.sign(
+    {
+      sub: (studentEmail || '').toLowerCase().trim(),
+      name: studentName,
+      role: 'student',
+      type: 'student_auth',
+    },
+    JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+}
+
+/**
+ * Verify and decode student session token
+ */
+export function verifyStudentToken(token) {
+  if (!token) return null;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded && (decoded.role === 'student' || decoded.sub)) {
+      return decoded;
+    }
+    return null;
+  } catch (err) {
+    console.warn('verifyStudentToken notice:', err.message);
+    return null;
+  }
+}

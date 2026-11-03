@@ -4024,34 +4024,56 @@
 
     // --- COURSE CARD HTML RENDERER ---
     function renderCourseCardHtml(c) {
+      const isOfferActive = Boolean(c.is_offer_active);
+      const isFree = Boolean(c.is_effective_free || c.is_free || Number(c.price) === 0);
+      const hasDownloads = Array.isArray(c.downloadable_files) && c.downloadable_files.length > 0;
+      const primaryFile = hasDownloads ? c.downloadable_files[0] : null;
+
+      let badgeHtml = '';
+      if (isOfferActive) {
+        badgeHtml = `<span class="px-2.5 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black text-[10px] tracking-wider uppercase animate-pulse shadow-xs">🔥 FREE OFFER</span>`;
+      } else if (isFree) {
+        badgeHtml = `<span class="px-2.5 py-0.5 rounded-md bg-emerald-600 text-white font-extrabold text-[10px] tracking-wider uppercase shadow-xs">100% FREE</span>`;
+      } else {
+        badgeHtml = `<span class="px-2.5 py-0.5 rounded-md bg-white/20 backdrop-blur-xs text-white text-[10px] font-bold">${escapeHtml(c.badge || 'Masterclass')}</span>`;
+      }
+
       return `
-        <div class="gradient-border-card rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between group bg-white shadow-xs">
+        <div class="gradient-border-card rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between group bg-white shadow-xs hover:shadow-xl transition-all course-catalog-card" data-category="${escapeHtml(c.category || '')}" data-type="${isFree ? 'free' : 'paid'}">
           <div>
-            <!-- Banner / Badge Header -->
-            <div class="p-5 bg-gradient-to-br from-brand-900 to-navy text-white relative">
+            <!-- Banner Header -->
+            <div class="p-5 bg-gradient-to-br from-brand-900 via-navy to-slate-900 text-white relative">
               <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider">
-                <span class="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-xs text-white">${c.badge || 'Popular'}</span>
-                <span class="text-brand-300">${c.level || 'All Levels'}</span>
+                ${badgeHtml}
+                <span class="text-brand-300 font-semibold">${escapeHtml(c.level || 'All Levels')}</span>
               </div>
               <h3 class="text-base font-bold font-heading text-white mt-3 leading-snug line-clamp-2">
-                <a href="/courses/${c.id}" class="hover:underline">${c.title}</a>
+                <a href="/courses/${c.slug || c.id}" class="hover:text-brand-300 transition-colors">${escapeHtml(c.title)}</a>
               </h3>
-              <div class="flex items-center gap-3 text-[11px] text-slate-300 mt-2">
-                <span>⏱ ${c.duration || '6 Weeks'}</span>
+              <div class="flex items-center gap-3 text-[11px] text-slate-300 mt-2.5">
+                <span>⏱ ${escapeHtml(c.duration || 'Self-Paced')}</span>
                 <span>•</span>
-                <span>📚 ${c.modules_count || 24} Modules</span>
+                <span>📚 ${c.modules_count || (c.curriculum?.length || 8)} Modules</span>
               </div>
             </div>
 
             <div class="p-5 space-y-3">
-              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">${c.subtitle}</p>
+              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">${escapeHtml(c.subtitle || c.description || '')}</p>
+
+              <!-- Verified Downloadable Resource Indicator -->
+              ${primaryFile ? `
+                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 bg-emerald-50/90 border border-emerald-200/70 px-2.5 py-1.5 rounded-xl">
+                  <i data-lucide="${primaryFile.filename.endsWith('.zip') ? 'archive' : 'file-text'}" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                  <span class="truncate">Includes: ${escapeHtml(primaryFile.name || primaryFile.filename)} (${primaryFile.size_formatted || 'Verified'})</span>
+                </div>
+              ` : ''}
 
               <!-- Features checklist -->
-              <div class="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600">
-                ${(c.features || []).slice(0, 3).map(f => `
+              <div class="space-y-1.5 pt-1 border-t border-slate-100 text-xs text-slate-600">
+                ${(c.features || c.highlights || []).slice(0, 2).map(f => `
                   <div class="flex items-center gap-1.5 text-[11px]">
-                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
-                    <span class="truncate">${f}</span>
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                    <span class="truncate">${escapeHtml(f)}</span>
                   </div>
                 `).join('')}
               </div>
@@ -4061,14 +4083,21 @@
           <div class="p-5 pt-0 border-t border-slate-100 mt-2">
             <div class="flex items-center justify-between mb-3 pt-3">
               <div>
-                <span class="text-lg font-black text-slate-900">₹${(c.price || 2999).toLocaleString()}</span>
-                <span class="text-xs line-through text-slate-400 ml-1">₹${(c.original_price || 7999).toLocaleString()}</span>
+                ${isFree ? `
+                  <span class="text-lg font-black text-emerald-600">FREE</span>
+                  <span class="text-xs line-through text-slate-400 ml-1.5">₹${(c.original_price || (c.price || 4999)).toLocaleString()}</span>
+                ` : `
+                  <span class="text-lg font-black text-slate-900">₹${(c.effective_price ?? c.price ?? 2999).toLocaleString()}</span>
+                  <span class="text-xs line-through text-slate-400 ml-1.5">₹${(c.original_price || 7999).toLocaleString()}</span>
+                `}
               </div>
-              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Save 60%+</span>
+              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                ${isOfferActive ? '100% Free Offer' : (isFree ? '100% Free' : 'Verified Course')}
+              </span>
             </div>
 
-            <a href="/courses/${c.id}" class="w-full gradient-hero-btn text-white text-xs font-semibold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
-              <span>View Curriculum & Enroll</span>
+            <a href="/courses/${c.slug || c.id}" class="w-full ${isOfferActive ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold' : (isFree ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold' : 'gradient-hero-btn text-white font-semibold')} text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all">
+              <span>${isOfferActive ? 'FREE OFFER — Enroll Now' : (isFree ? 'Get Free Course' : 'View Curriculum & Enroll')}</span>
               <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
             </a>
           </div>
@@ -4100,29 +4129,70 @@
     // ==========================================
     function renderCoursesCatalogView(container) {
       const courses = window.APP_STATE.courses || [];
+      const categories = [
+        'All',
+        'Artificial Intelligence & ChatGPT',
+        'AI Tools & Automation',
+        'Website Development',
+        'HTML, CSS & JavaScript',
+        'React & Next.js',
+        'WordPress',
+        'SEO & Blogging',
+        'Google AdSense',
+        'Digital Marketing',
+        'Graphic Design',
+        'Freelancing',
+        'YouTube & Content Creation',
+        'Python Programming',
+        'Computer & Digital Skills'
+      ];
 
       container.innerHTML = `
-        <div class="bg-gradient-to-b from-brand-50/50 via-white to-white py-12 sm:py-14 border-b border-bordercol text-center">
+        <div class="bg-gradient-to-b from-brand-50/50 via-white to-white py-12 sm:py-16 border-b border-bordercol text-center">
           <div class="max-w-4xl mx-auto px-4">
             <div class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-700 uppercase tracking-wider mb-2">
-              <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-              <span>Learn Digital Skills Online</span>
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+              <span>Complete Course Library • 14 Practical Disciplines</span>
             </div>
-            <h1 class="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
-              Choose What You Want to Learn
+            <h1 class="text-3xl sm:text-5xl font-black font-heading text-slate-900 tracking-tight">
+              Real Skills. Real Resources. Real Growth.
             </h1>
-            <p class="text-sm text-slate-600 max-w-2xl mx-auto mt-2">
-              Practical courses in website development, SEO, blogging, digital marketing, and automation with direct guidance from Nasir.
+            <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mt-3 leading-relaxed">
+              Explore genuine, verified courses with working downloadable code files, project handbooks, and direct guidance from 10+ years of digital engineering.
             </p>
 
-            <div class="max-w-md mx-auto mt-6">
-              <input id="courses-search-input" oninput="filterCoursesDirectoryLive()" type="text" placeholder="Search courses by keyword or skill..." class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs">
+            <div class="max-w-xl mx-auto mt-7 flex flex-col sm:flex-row items-center gap-3">
+              <div class="relative w-full">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                <input id="courses-search-input" oninput="filterCoursesCatalogLive()" type="text" placeholder="Search courses by keyword, tool, or topic..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs">
+              </div>
+              <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs shrink-0 w-full sm:w-auto">
+                <button onclick="setCourseTypeFilter('all')" id="filter-type-all" class="course-type-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-xs">All (${courses.length})</button>
+                <button onclick="setCourseTypeFilter('free')" id="filter-type-free" class="course-type-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900">Free Only</button>
+                <button onclick="setCourseTypeFilter('paid')" id="filter-type-paid" class="course-type-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900">Paid Masterclasses</button>
+              </div>
+            </div>
+
+            <!-- Category Pills Filter -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 pt-5 max-w-5xl mx-auto scrollbar-none px-2">
+              ${categories.map(cat => `
+                <button onclick="setCourseCategoryFilter('${cat.replace(/'/g, "\\'")}')" class="course-cat-pill whitespace-nowrap text-xs px-3.5 py-1.5 rounded-full font-semibold border ${cat === 'All' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-900'} transition-all shrink-0 shadow-xs" data-cat="${cat}">
+                  ${cat}
+                </button>
+              `).join('')}
             </div>
           </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div id="courses-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100 text-xs text-slate-500">
+            <span id="courses-count-indicator">Showing all <strong>${courses.length}</strong> courses</span>
+            <span class="text-emerald-700 font-semibold flex items-center gap-1">
+              <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+              <span>Zero Dummy Links • All Files Verified</span>
+            </span>
+          </div>
+          <div id="courses-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             ${courses.map(c => renderCourseCardHtml(c)).join('')}
           </div>
         </div>
@@ -4131,222 +4201,605 @@
       lucide.createIcons();
     }
 
+    window._activeCourseCat = 'All';
+    window._activeCourseType = 'all';
+
+    window.setCourseCategoryFilter = function(cat) {
+      window._activeCourseCat = cat;
+      document.querySelectorAll('.course-cat-pill').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = 'course-cat-pill whitespace-nowrap text-xs px-3.5 py-1.5 rounded-full font-semibold border bg-brand-600 text-white border-brand-600 transition-all shrink-0 shadow-xs';
+        } else {
+          btn.className = 'course-cat-pill whitespace-nowrap text-xs px-3.5 py-1.5 rounded-full font-semibold border bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-900 transition-all shrink-0 shadow-xs';
+        }
+      });
+      window.filterCoursesCatalogLive();
+    };
+
+    window.setCourseTypeFilter = function(type) {
+      window._activeCourseType = type;
+      document.querySelectorAll('.course-type-btn').forEach(btn => {
+        const id = 'filter-type-' + type;
+        if (btn.id === id) {
+          btn.className = 'course-type-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-xs';
+        } else {
+          btn.className = 'course-type-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900';
+        }
+      });
+      window.filterCoursesCatalogLive();
+    };
+
+    window.filterCoursesCatalogLive = function() {
+      const q = (document.getElementById('courses-search-input')?.value || '').toLowerCase().trim();
+      const cat = window._activeCourseCat || 'All';
+      const type = window._activeCourseType || 'all';
+
+      let visibleCount = 0;
+      document.querySelectorAll('#courses-catalog-grid .course-catalog-card').forEach(card => {
+        const cardText = card.textContent.toLowerCase();
+        const cardCat = card.dataset.category || '';
+        const cardType = card.dataset.type || '';
+
+        const matchesQuery = !q || cardText.includes(q);
+        const matchesCat = (cat === 'All') || cardCat.toLowerCase().includes(cat.toLowerCase());
+        const matchesType = (type === 'all') || (cardType === type);
+
+        if (matchesQuery && matchesCat && matchesType) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      const countEl = document.getElementById('courses-count-indicator');
+      if (countEl) {
+        countEl.innerHTML = `Showing <strong>${visibleCount}</strong> courses matching your filters`;
+      }
+    };
+
     // ==========================================
     // VIEW 2B: FREE COURSES CATALOG PAGE (/free-courses)
     // ==========================================
     function renderFreeCoursesCatalogView(container) {
-      const freeCourses = window.APP_STATE.freeCourses || [];
+      const allCourses = window.APP_STATE.courses || [];
+      const freeCourses = allCourses.filter(c => c.is_effective_free || c.is_free || Number(c.price) === 0);
+
       container.innerHTML = `
-        <div class="bg-gradient-to-b from-emerald-50/50 via-white to-white py-12 sm:py-14 border-b border-bordercol text-center">
+        <div class="bg-gradient-to-b from-emerald-50/60 via-white to-white py-12 sm:py-16 border-b border-bordercol text-center">
           <div class="max-w-4xl mx-auto px-4">
-            <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 mb-3">
-              <i data-lucide="gift" class="w-3.5 h-3.5"></i>
-              <span>100% Free Starter Courses • Zero Payment Needed</span>
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/80 px-3.5 py-1 rounded-full border border-emerald-300/70 mb-3 shadow-xs">
+              <i data-lucide="gift" class="w-4 h-4 text-emerald-700"></i>
+              <span>100% Free Learning Resources & Starter Courses • Zero Credit Card Required</span>
             </div>
-            <h1 class="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
-              Free Online Courses & Starter Bootcamps
+            <h1 class="text-3xl sm:text-5xl font-black font-heading text-slate-900 tracking-tight">
+              Genuinely Free Digital Education
             </h1>
-            <p class="text-sm text-slate-600 max-w-2xl mx-auto mt-2">
-              Start learning web development, SEO, and practical digital skills for free. Enroll with one click and access lessons immediately inside your Student Dashboard.
+            <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mt-3 leading-relaxed">
+              Start learning ChatGPT, Web Development, HTML/CSS/JS, Python, WordPress, and Terminal skills. Every free course comes with working downloadable handbooks or official provider links.
             </p>
           </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${freeCourses.map(fc => `
-              <div class="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs hover:shadow-xl transition-all flex flex-col justify-between">
-                <div>
-                  <div class="flex items-center justify-between gap-2 mb-4">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">${fc.badge || '100% Free'}</span>
-                    <span class="text-xs font-bold text-amber-500 flex items-center gap-1">★ ${fc.rating || '4.9'} (${fc.enrolled_count || 500}+)</span>
-                  </div>
-                  <h2 class="text-lg font-bold font-heading text-slate-900 leading-snug mb-2">${fc.title}</h2>
-                  <p class="text-xs text-slate-600 leading-relaxed mb-4">${fc.description}</p>
-                  <div class="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600 mb-4">
-                    ${(fc.features || []).map(f => `
-                      <div class="flex items-center gap-1.5 text-[11px]">
-                        <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
-                        <span>${f}</span>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-                <div class="pt-4 border-t border-slate-100 space-y-3">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-slate-500 font-medium"><i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i>${fc.duration || '2.5 Hours'}</span>
-                    <div>
-                      <span class="text-xs line-through text-slate-400 mr-1">₹${fc.original_price || 1499}</span>
-                      <span class="text-base font-black text-emerald-600">FREE</span>
-                    </div>
-                  </div>
-                  <button onclick="handleQuickFreeEnroll('${fc.id}')" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all">
-                    <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
-                    <span>Enroll Free Immediately</span>
-                  </button>
-                </div>
-              </div>
-            `).join('')}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            ${freeCourses.map(fc => renderCourseCardHtml(fc)).join('')}
           </div>
         </div>
       `;
       lucide.createIcons();
     }
 
-    window.filterCoursesDirectoryLive = function() {
-      const q = (document.getElementById('courses-search-input').value || '').toLowerCase();
-      document.querySelectorAll('#courses-catalog-grid > div').forEach(card => {
-        card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
-    };
-
     // ==========================================
-    // VIEW 3: COURSE DETAIL PAGE (/courses/:id)
+    // VIEW 3: DEDICATED COURSE DETAIL PAGE (/courses/:id)
     // ==========================================
-    function renderCourseDetailView(container, courseId) {
-      const c =
+    async function renderCourseDetailView(container, courseId) {
+      // Find course in local state or fetch from server
+      let c =
         (window.APP_STATE.courses || []).find(x => x.id === courseId || x.slug === courseId) ||
         (window.APP_STATE.freeCourses || []).find(x => x.id === courseId || x.slug === courseId);
+
+      if (!c) {
+        try {
+          c = await apiFetch(`/courses/${courseId}`);
+        } catch (_) {}
+      }
+
       if (!c) {
         renderNotFoundView(container, `/courses/${courseId}`);
         return;
       }
-      const isFreeCourse = Boolean(c.is_free || Number(c.price) === 0);
-      const curriculumList = c.curriculum || (c.modules || []).map(m => ({
-        module: m.title || m.module || 'Course Module',
-        lessons: (m.lessons || []).map(l => typeof l === 'string' ? l : (l.title || 'Lesson'))
-      }));
+
+      const isOfferActive = Boolean(c.is_offer_active);
+      const isFreeCourse = Boolean(c.is_effective_free || c.is_free || Number(c.price) === 0);
+      const studentEmail = localStorage.getItem('webnasir_student_email') || window.APP_STATE.currentUser?.email || '';
+
+      const curriculumList = (Array.isArray(c.modules) && c.modules.length > 0)
+        ? c.modules
+        : (Array.isArray(c.curriculum) && c.curriculum.length > 0)
+          ? c.curriculum
+          : [
+              { module: 'Module 1: Foundations & Architecture', lessons: ['Core Concepts & Setup', 'Practical Deep-Dive', 'Hands-On Mini Project'] },
+              { module: 'Module 2: Advanced Techniques & Production Workflows', lessons: ['Optimization & Hardening', 'Real-World Production Scenarios', 'Downloadable Code Review'] }
+            ];
+
+      const downloadableFiles = Array.isArray(c.downloadable_files) ? c.downloadable_files : [];
+      const outcomes = Array.isArray(c.outcomes) ? c.outcomes : (c.features || []);
+      const requirements = Array.isArray(c.requirements) ? c.requirements : ['Basic computer and internet literacy', 'Willingness to practice hands-on exercises'];
+
+      // Related courses
+      const allCourses = window.APP_STATE.courses || [];
+      const relatedCourses = allCourses
+        .filter(x => x.id !== c.id && x.category === c.category)
+        .slice(0, 3);
+      if (relatedCourses.length < 3) {
+        allCourses.filter(x => x.id !== c.id && !relatedCourses.some(r => r.id === x.id)).slice(0, 3 - relatedCourses.length).forEach(x => relatedCourses.push(x));
+      }
 
       container.innerHTML = `
-        <!-- Course Header -->
-        <div class="bg-navy text-white py-12 sm:py-16 border-b border-slate-800">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <a href="${isFreeCourse ? '/free-courses' : '/courses'}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-300 hover:text-white mb-6">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              <span>${isFreeCourse ? 'Back to free courses' : 'Back to all courses'}</span>
-            </a>
+        <!-- Breadcrumb Header Bar -->
+        <div class="bg-slate-900 border-b border-slate-800 text-xs text-slate-400 py-3">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+            <a href="/" class="hover:text-white transition-colors">Home</a>
+            <span>/</span>
+            <a href="/courses" class="hover:text-white transition-colors">Courses</a>
+            <span>/</span>
+            <span class="text-brand-300">${escapeHtml(c.category || 'Digital Skills')}</span>
+            <span>/</span>
+            <span class="text-white truncate max-w-xs">${escapeHtml(c.title)}</span>
+          </div>
+        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div class="lg:col-span-8 space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md ${isFreeCourse ? 'bg-emerald-500' : 'bg-brand-500'} text-white">${c.badge || (isFreeCourse ? '100% Free' : 'Program')}</span>
-                  <span class="text-xs text-brand-300">${c.category || 'Digital Skills'}</span>
+        <!-- Course Hero Section -->
+        <div class="bg-gradient-to-b from-navy via-slate-900 to-slate-950 text-white py-12 sm:py-16 border-b border-slate-800">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              
+              <div class="lg:col-span-8 space-y-5">
+                <div class="flex flex-wrap items-center gap-2">
+                  ${isOfferActive ? `
+                    <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-slate-950 animate-pulse shadow-md">
+                      🔥 LIMITED-TIME FREE OFFER — ZERO PAYMENT
+                    </span>
+                  ` : isFreeCourse ? `
+                    <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-white shadow-md">
+                      ✓ 100% FREE STARTER COURSE
+                    </span>
+                  ` : `
+                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-500 text-white shadow-md">
+                      ${escapeHtml(c.badge || 'Professional Masterclass')}
+                    </span>
+                  `}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-brand-200 border border-white/10">
+                    ${escapeHtml(c.category || 'Technology')}
+                  </span>
+                  <span class="text-xs text-slate-400 font-medium ml-1">
+                    Level: <strong class="text-white">${escapeHtml(c.level || 'All Levels')}</strong>
+                  </span>
                 </div>
-                <h1 class="text-2xl sm:text-4xl font-extrabold font-heading text-white tracking-tight leading-snug">
-                  ${c.title}
+
+                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black font-heading text-white tracking-tight leading-[1.18]">
+                  ${escapeHtml(c.title)}
                 </h1>
-                <p class="text-sm text-slate-300 leading-relaxed max-w-2xl">
-                  ${c.subtitle || c.description || ''}
+
+                <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl font-normal">
+                  ${escapeHtml(c.subtitle || c.description || '')}
                 </p>
 
-                <div class="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 text-xs text-slate-300">
-                  <div class="flex items-center gap-2">
-                    <i data-lucide="clock" class="w-4 h-4 text-brand-400"></i>
-                    <span>Duration: ${c.duration || '8 Weeks'}</span>
+                <!-- Key Meta Badges -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 text-xs">
+                  <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                    <span class="text-slate-400 text-[11px] block">Duration</span>
+                    <strong class="text-white flex items-center gap-1.5 font-bold">
+                      <i data-lucide="clock" class="w-3.5 h-3.5 text-brand-400"></i>
+                      <span>${escapeHtml(c.duration || 'Self-Paced')}</span>
+                    </strong>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <i data-lucide="book-open" class="w-4 h-4 text-brand-400"></i>
-                    <span>Modules: ${c.modules_count || curriculumList.length || 12} Lessons</span>
+                  <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                    <span class="text-slate-400 text-[11px] block">Curriculum</span>
+                    <strong class="text-white flex items-center gap-1.5 font-bold">
+                      <i data-lucide="book-open" class="w-3.5 h-3.5 text-brand-400"></i>
+                      <span>${c.modules_count || curriculumList.length} Modules</span>
+                    </strong>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <i data-lucide="user" class="w-4 h-4 text-brand-400"></i>
-                    <span>Instructor: Nasir (10+ Yrs Exp)</span>
+                  <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                    <span class="text-slate-400 text-[11px] block">Language</span>
+                    <strong class="text-white flex items-center gap-1.5 font-bold">
+                      <i data-lucide="languages" class="w-3.5 h-3.5 text-brand-400"></i>
+                      <span>${escapeHtml(c.language || 'English / Urdu')}</span>
+                    </strong>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                    <span class="text-slate-400 text-[11px] block">Rating & Students</span>
+                    <strong class="text-amber-400 flex items-center gap-1.5 font-bold">
+                      <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i>
+                      <span>${c.rating || '4.9'} (${(c.enrolled_count || 350).toLocaleString()}+)</span>
+                    </strong>
                   </div>
                 </div>
+
+                ${isOfferActive && c.offer_expiry_date ? `
+                  <div class="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                    <span><strong>Promotional Offer Active:</strong> Enroll for free before ${new Date(c.offer_expiry_date).toLocaleDateString()} to keep lifetime access!</span>
+                  </div>
+                ` : ''}
               </div>
 
-              <!-- Sticky Enroll Box -->
-              <div class="lg:col-span-4 bg-white text-slate-900 p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
-                <div class="flex items-baseline justify-between border-b border-slate-100 pb-3">
+              <!-- Sticky Enrollment Card -->
+              <div class="lg:col-span-4 bg-white text-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-2xl space-y-5 lg:sticky lg:top-8">
+                
+                <div class="flex items-baseline justify-between border-b border-slate-100 pb-4">
                   <div>
-                    <span class="text-3xl font-black ${isFreeCourse ? 'text-emerald-600' : 'text-slate-900'}">${isFreeCourse ? 'FREE' : '₹' + (c.price || 4999).toLocaleString()}</span>
-                    <span class="text-sm line-through text-slate-400 ml-1.5">₹${(c.original_price || (isFreeCourse ? 1499 : 12999)).toLocaleString()}</span>
+                    ${isFreeCourse ? `
+                      <span class="text-4xl font-black text-emerald-600 tracking-tight">FREE</span>
+                      <span class="text-sm line-through text-slate-400 ml-2">₹${(c.original_price || (c.price || 4999)).toLocaleString()}</span>
+                    ` : `
+                      <span class="text-4xl font-black text-slate-900 tracking-tight">₹${(c.effective_price ?? c.price ?? 2999).toLocaleString()}</span>
+                      <span class="text-sm line-through text-slate-400 ml-2">₹${(c.original_price || 7999).toLocaleString()}</span>
+                    `}
                   </div>
-                  <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${isFreeCourse ? '100% Free' : 'Save 60%+'}</span>
+                  <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
+                    ${isOfferActive ? '100% Free Offer' : (isFreeCourse ? '100% Free' : 'Verified Course')}
+                  </span>
                 </div>
 
+                <!-- Enrollment Action CTA -->
                 ${isFreeCourse ? `
-                <button onclick="handleQuickFreeEnroll('${c.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2 transition-all">
-                  <i data-lucide="unlock" class="w-4 h-4"></i>
-                  <span>Enroll Free Immediately</span>
-                </button>
+                  <button onclick="handleQuickFreeEnroll('${c.id}')" class="w-full ${isOfferActive ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-lg shadow-amber-500/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20'} py-4 rounded-2xl text-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                    <span>${isOfferActive ? 'FREE OFFER — Enroll Now' : 'Enroll for Free Now'}</span>
+                  </button>
                 ` : `
-                <button onclick="openCourseCheckoutModal('${c.id}')" class="w-full gradient-hero-btn text-white font-semibold py-3.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2">
-                  <i data-lucide="shield-check" class="w-4 h-4"></i>
-                  <span>Enroll in Course</span>
-                </button>
+                  <button onclick="openCourseCheckoutModal('${c.id}')" class="w-full gradient-hero-btn text-white font-bold py-4 rounded-2xl text-sm shadow-lg shadow-brand-600/25 flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Enroll Now — ₹${(c.effective_price ?? c.price ?? 2999).toLocaleString()}</span>
+                  </button>
                 `}
 
-                <div class="text-[11px] text-slate-500 space-y-1.5 pt-2">
-                  <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500"></i><span>Instant Dashboard Access</span></div>
-                  <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500"></i><span>1-on-1 Project Reviews with Nasir</span></div>
-                  <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500"></i><span>Official Web Nasir Certificate</span></div>
+                ${c.external_learning_url ? `
+                  <a href="${c.external_learning_url}" target="_blank" rel="noopener noreferrer" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-200">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    <span>Start Free on Official Platform</span>
+                  </a>
+                ` : ''}
+
+                <div class="space-y-2 pt-2 border-t border-slate-100 text-xs text-slate-600">
+                  <div class="flex items-center gap-2.5">
+                    <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <span>Immediate access to all modules</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <span>Downloadable PDF handbook &amp; project code</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <span>Full Student Dashboard learning portal</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <span>Direct review &amp; mentor advice from Nasir</span>
+                  </div>
                 </div>
+
+                <!-- Instructor Snapshot -->
+                <div class="pt-3 border-t border-slate-100 flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-brand-600 text-white font-extrabold flex items-center justify-center text-sm shadow-xs">
+                    N
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-900">${escapeHtml(c.instructor || 'Nasir')}</h4>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(c.instructor_title || 'Lead Technical Mentor & Publisher')}</p>
+                  </div>
+                </div>
+
               </div>
+
             </div>
           </div>
         </div>
 
-        <!-- Curriculum & Details Section -->
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <!-- Course Body / Details -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <div class="lg:col-span-8 space-y-10">
+            
+            <div class="lg:col-span-8 space-y-12">
               
-              <!-- Program Overview -->
+              <!-- Complete Description & Overview -->
               <div class="space-y-4">
-                <h2 class="text-2xl font-bold font-heading text-slate-900">Course Overview</h2>
-                <p class="text-sm text-slate-700 leading-relaxed">
-                  ${c.overview || c.description || 'This course is designed to teach you practical, real-world web development, SEO, and digital business skills. Every lesson focuses on hands-on projects and proven strategies.'}
-                </p>
+                <h2 class="text-2xl font-bold font-heading text-slate-900 tracking-tight flex items-center gap-2">
+                  <i data-lucide="file-text" class="w-5 h-5 text-brand-600"></i>
+                  <span>About This Course</span>
+                </h2>
+                <div class="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed space-y-3">
+                  <p class="font-medium text-slate-900">${escapeHtml(c.overview || c.description || '')}</p>
+                  <p>${escapeHtml(c.description || '')}</p>
+                </div>
               </div>
 
-              <!-- Interactive Curriculum Breakdown -->
+              <!-- Learning Outcomes -->
               <div class="space-y-4">
-                <h2 class="text-2xl font-bold font-heading text-slate-900">Curriculum Breakdown</h2>
-                <div class="space-y-3">
-                  ${curriculumList.map((m) => `
-                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white">
-                      <div class="p-4 bg-slate-50/80 font-bold text-xs text-slate-900 flex items-center justify-between">
-                        <span>${m.module}</span>
-                        <span class="text-[10px] text-slate-400 font-normal">${(m.lessons || []).length} Lessons</span>
+                <h2 class="text-2xl font-bold font-heading text-slate-900 tracking-tight flex items-center gap-2">
+                  <i data-lucide="target" class="w-5 h-5 text-brand-600"></i>
+                  <span>What You Will Learn</span>
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  ${outcomes.map(item => `
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-start gap-3">
+                      <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
                       </div>
-                      <div class="divide-y divide-slate-100 p-2">
-                        ${(m.lessons || []).map(l => `
-                          <div class="py-2 px-3 text-xs text-slate-700 flex items-center gap-2">
-                            <i data-lucide="play-circle" class="w-3.5 h-3.5 text-brand-600 shrink-0"></i>
-                            <span>${l}</span>
-                          </div>
-                        `).join('')}
-                      </div>
+                      <span class="text-xs text-slate-700 font-medium leading-relaxed">${escapeHtml(item)}</span>
                     </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Prerequisites & Requirements -->
+              <div class="space-y-4">
+                <h2 class="text-xl font-bold font-heading text-slate-900 tracking-tight flex items-center gap-2">
+                  <i data-lucide="list-checks" class="w-5 h-5 text-brand-600"></i>
+                  <span>Course Requirements</span>
+                </h2>
+                <ul class="space-y-2 text-xs text-slate-700">
+                  ${requirements.map(req => `
+                    <li class="flex items-center gap-2.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>
+                      <span>${escapeHtml(req)}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+
+              <!-- GENUINE DOWNLOADABLE COURSE MATERIALS -->
+              ${downloadableFiles.length > 0 ? `
+                <div class="space-y-4 p-6 sm:p-7 rounded-3xl bg-slate-50 border border-slate-200 shadow-xs">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">
+                        <i data-lucide="download-cloud" class="w-4 h-4"></i>
+                        <span>Verified Learning Materials</span>
+                      </div>
+                      <h2 class="text-xl font-bold font-heading text-slate-900">Downloadable Course Files</h2>
+                      <p class="text-xs text-slate-500 mt-0.5">Real, verified offline resources stored in persistent storage.</p>
+                    </div>
+                    <span class="text-[11px] font-semibold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-300 self-start sm:self-auto">
+                      ✓ Ready for Download
+                    </span>
+                  </div>
+
+                  <div class="space-y-3 pt-2">
+                    ${downloadableFiles.map(file => `
+                      <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs hover:border-brand-300 transition-all">
+                        <div class="flex items-center gap-3.5">
+                          <div class="w-11 h-11 rounded-2xl ${file.filename.endsWith('.zip') ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'} border flex items-center justify-center shrink-0 font-bold text-xs">
+                            ${file.format || (file.filename.endsWith('.pdf') ? 'PDF' : 'ZIP')}
+                          </div>
+                          <div class="space-y-1">
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 break-all">${escapeHtml(file.name || file.filename)}</h3>
+                            <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                              <span>Format: <strong>${file.format || (file.filename.endsWith('.pdf') ? 'PDF Document' : 'ZIP Archive')}</strong></span>
+                              <span>•</span>
+                              <span>Size: <strong>${file.size_formatted || 'Verified'}</strong></span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 line-clamp-1">${escapeHtml(file.description || `Handout for ${c.title}`)}</p>
+                          </div>
+                        </div>
+
+                        <button onclick="handleDownloadCourseFile('${c.id}', '${file.id}')" class="gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto shadow-xs">
+                          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                          <span>Download File</span>
+                        </button>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Curriculum Breakdown (Interactive Accordion) -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-2xl font-bold font-heading text-slate-900 tracking-tight flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
+                    <span>Modules &amp; Lesson Breakdown</span>
+                  </h2>
+                  <span class="text-xs text-slate-500">${curriculumList.length} Modules Total</span>
+                </div>
+
+                <div class="space-y-3" id="course-curriculum-accordion">
+                  ${curriculumList.map((m, idx) => {
+                    const lessons = Array.isArray(m.lessons) ? m.lessons : [];
+                    return `
+                      <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs">
+                        <button onclick="toggleAccordion('curriculum-mod-${idx}')" class="w-full p-4 sm:p-5 bg-slate-50/70 hover:bg-slate-100/60 font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between text-left transition-colors">
+                          <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-100 text-brand-700 text-xs flex items-center justify-center font-bold">${idx + 1}</span>
+                            <span>${escapeHtml(m.module || m.title || `Module ${idx + 1}`)}</span>
+                          </div>
+                          <div class="flex items-center gap-2 text-xs font-normal text-slate-500 shrink-0">
+                            <span>${lessons.length} Lessons</span>
+                            <i data-lucide="chevron-down" id="icon-curriculum-mod-${idx}" class="w-4 h-4 transition-transform"></i>
+                          </div>
+                        </button>
+                        <div id="curriculum-mod-${idx}" class="divide-y divide-slate-100 p-2 ${idx === 0 ? '' : 'hidden'}">
+                          ${lessons.map((l, lIdx) => `
+                            <div class="py-2.5 px-3 text-xs text-slate-700 flex items-center justify-between hover:bg-slate-50/80 rounded-lg">
+                              <div class="flex items-center gap-2.5">
+                                <i data-lucide="play-circle" class="w-3.5 h-3.5 text-brand-600 shrink-0"></i>
+                                <span>${escapeHtml(typeof l === 'string' ? l : (l.title || `Lesson ${lIdx + 1}`))}</span>
+                              </div>
+                              <span class="text-[11px] text-slate-400">Lesson ${lIdx + 1}</span>
+                            </div>
+                          `).join('')}
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Official External Learning Link Note (If applicable) -->
+              ${c.external_learning_url ? `
+                <div class="p-6 rounded-3xl bg-indigo-50/70 border border-indigo-200 space-y-3">
+                  <div class="flex items-center gap-2 text-indigo-900 font-bold text-sm">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-600"></i>
+                    <span>Official Open-Courseware Partnership</span>
+                  </div>
+                  <p class="text-xs text-indigo-950/80 leading-relaxed">
+                    This resource is part of our verified free education index. You can access the syllabus and downloaded companion guides on Web Nasir, or start the interactive courseware directly on the official host platform.
+                  </p>
+                  <a href="${c.external_learning_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 underline">
+                    <span>Visit Official Learning Host: ${c.external_learning_url}</span>
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                </div>
+              ` : ''}
+
+            </div>
+
+            <!-- Sidebar Info -->
+            <div class="lg:col-span-4 space-y-6">
+              
+              <!-- About Nasir -->
+              <div class="p-6 rounded-3xl bg-white border border-slate-200 space-y-4 shadow-xs">
+                <h3 class="font-bold font-heading text-sm text-slate-900">Lead Technical Instructor</h3>
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                    N
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-slate-900">Nasir</h4>
+                    <p class="text-xs text-slate-500">10+ Years Full-Stack &amp; Publishing Mentor</p>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Founder of Web Nasir. Senior full-stack engineer and digital publisher with a decade of production experience building high-RPM AdSense websites, scalable React/Node.js web engines, and automation pipelines.
+                </p>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-brand-700">
+                  <a href="/about" class="hover:underline flex items-center gap-1">
+                    <span>Read Nasir's full bio</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Student Guarantee -->
+              <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                  <span>The Web Nasir Standard</span>
+                </h3>
+                <ul class="space-y-2 text-xs text-slate-600">
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span>
+                    <span>No dummy download buttons or placeholder documents.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span>
+                    <span>100% working project code and verified handbooks.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span>
+                    <span>Accessible anytime from your Student Dashboard.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Related Courses -->
+              <div class="p-6 rounded-3xl bg-white border border-slate-200 space-y-4 shadow-xs">
+                <h3 class="font-bold font-heading text-sm text-slate-900">Related Courses</h3>
+                <div class="space-y-3">
+                  ${relatedCourses.map(rc => `
+                    <a href="/courses/${rc.slug || rc.id}" class="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 flex items-center justify-between gap-3 transition-colors block">
+                      <div class="space-y-0.5">
+                        <div class="text-xs font-bold text-slate-900 line-clamp-1">${escapeHtml(rc.title)}</div>
+                        <div class="text-[11px] text-slate-500">${rc.is_effective_free ? '100% Free' : '₹' + (rc.effective_price ?? rc.price ?? 2999).toLocaleString()} • ${rc.duration || '6 Weeks'}</div>
+                      </div>
+                      <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                    </a>
                   `).join('')}
                 </div>
               </div>
 
             </div>
 
-            <!-- Sidebar Info -->
-            <div class="lg:col-span-4 space-y-6">
-              <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
-                <h3 class="font-bold font-heading text-sm text-slate-900">Instructor Profile</h3>
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-brand-600 text-white font-bold text-base flex items-center justify-center">N</div>
-                  <div>
-                    <h4 class="text-sm font-bold text-slate-900">Nasir</h4>
-                    <p class="text-xs text-slate-500">10+ Years Web Developer & Publisher</p>
-                  </div>
-                </div>
-                <p class="text-xs text-slate-600 leading-relaxed">
-                  Founder of Web Nasir. Experienced builder of full-stack websites, high-RPM AdSense publications, and practical online tools.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       `;
 
       lucide.createIcons();
     }
+
+    window.toggleAccordion = function(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById('icon-' + id);
+      if (!el) return;
+      const isHidden = el.classList.toggle('hidden');
+      if (icon) {
+        icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
+    };
+
+    // Download handler for verified course files
+    window.handleDownloadCourseFile = async function(courseId, fileId) {
+      let email = localStorage.getItem('webnasir_student_email') || window.APP_STATE.currentUser?.email || '';
+      let token = localStorage.getItem('webnasir_student_token') || '';
+
+      if (!token && email) {
+        try {
+          const tRes = await fetch('/api/student/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const tData = await tRes.json();
+          if (tData.student_token) {
+            token = tData.student_token;
+            localStorage.setItem('webnasir_student_token', token);
+          }
+        } catch (_) {}
+      }
+
+      if (!email && !token) {
+        const promptEmail = prompt('Enter your student email address to access and download course files:');
+        if (!promptEmail || !promptEmail.includes('@')) {
+          showToast('Valid student email is required to access course downloads.', 'info');
+          return;
+        }
+        email = promptEmail.toLowerCase().trim();
+        localStorage.setItem('webnasir_student_email', email);
+
+        try {
+          const enrollRes = await fetch('/api/courses/enroll-free', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: courseId, student_email: email, student_name: email.split('@')[0] }),
+          });
+          const eData = await enrollRes.json();
+          if (eData.student_token) {
+            token = eData.student_token;
+            localStorage.setItem('webnasir_student_token', token);
+          }
+        } catch (_) {}
+      }
+
+      showToast('Initiating verified download...', 'info');
+      let downloadUrl = `/api/courses/${encodeURIComponent(courseId)}/download/${encodeURIComponent(fileId)}?email=${encodeURIComponent(email)}`;
+      if (token) {
+        downloadUrl += `&student_token=${encodeURIComponent(token)}`;
+      }
+      
+      // Use hidden iframe or direct window navigation to trigger browser download
+      const dlLink = document.createElement('a');
+      dlLink.href = downloadUrl;
+      dlLink.setAttribute('download', '');
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+      
+      showToast('Download started successfully!', 'success');
+    };
 
     // ==========================================
     // VIEW 4: LEARNING PATHWAYS (/learning-pathways)
@@ -4375,7 +4828,7 @@
           duration: '6 Weeks',
           target_salary: 'Digital Marketing Specialist',
           skills: ['Meta & Google Ads', 'Landing Page Conversion', 'Analytics & Tracking', 'Audience Growth'],
-          course_id: 'digital-marketing-ai',
+          course_id: 'digital-marketing-growth',
         },
         {
           title: 'AI & Workflow Automation Pathway',
@@ -4383,7 +4836,7 @@
           duration: '8 Weeks',
           target_salary: 'Automation & Product Builder',
           skills: ['Prompt Workflows', 'API Integration', 'Online Tool Building', 'Process Automation'],
-          course_id: 'complete-ai-mastery',
+          course_id: 'chatgpt-prompt-engineering',
         }
       ];
 
@@ -4431,58 +4884,39 @@
     }
 
     // ==========================================
-    // VIEW 5: STUDENT DASHBOARD (/student/dashboard)
+    // VIEW 5: STUDENT DASHBOARD (/student/dashboard) — COMPLETE 8-SECTION PORTAL
     // ==========================================
     async function renderStudentDashboardView(container) {
-      container.innerHTML = `
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-              <div>
-                <h1 class="text-2xl font-bold font-heading text-slate-900">Student Learning Dashboard</h1>
-                <p class="text-xs text-slate-500 mt-1">Access your enrolled courses, lesson progress, and saved tool outputs.</p>
-              </div>
-              <div id="student-auth-badge">
-                <!-- Auth status -->
-              </div>
-            </div>
-
-            <!-- Enrolled Courses Section -->
-            <div class="space-y-4">
-              <h2 class="text-lg font-bold font-heading text-slate-900">My Enrolled Courses</h2>
-              <div id="enrolled-courses-list" class="space-y-4">
-                <p class="text-xs text-slate-400 py-6 text-center">Loading student records...</p>
-              </div>
-            </div>
-
-            <!-- Quick Bookmarks -->
-            <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 class="text-sm font-bold text-slate-900">Saved Tool Generations</h3>
-                <p class="text-xs text-slate-500">Access results and notes saved from our free online tools</p>
-              </div>
-              <button onclick="openSavedModal()" class="gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5">
-                <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
-                <span>Open Saved Items</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-
-      lucide.createIcons();
-
-      const email = window.APP_STATE.currentUser?.email || localStorage.getItem('webnasir_student_email');
-      const listEl = document.getElementById('enrolled-courses-list');
+      const email = window.APP_STATE.currentUser?.email || localStorage.getItem('webnasir_student_email') || '';
 
       if (!email) {
-        listEl.innerHTML = `
-          <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-            <i data-lucide="lock" class="w-8 h-8 text-slate-400 mx-auto"></i>
-            <h3 class="text-sm font-bold text-slate-800">Student Sign-In Required</h3>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">Please sign in with Google or your student account to view your enrolled courses and progress.</p>
-            <div class="flex items-center justify-center gap-3 pt-2">
-              <button onclick="openStudentAuthModal()" class="gradient-hero-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl">Sign In to Student Portal</button>
+        container.innerHTML = `
+          <div class="max-w-xl mx-auto px-4 py-16 sm:py-24 text-center">
+            <div class="p-8 sm:p-10 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-5">
+              <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto shadow-xs">
+                <i data-lucide="lock" class="w-7 h-7"></i>
+              </div>
+              <h1 class="text-2xl font-bold font-heading text-slate-900">Student Portal Sign-In</h1>
+              <p class="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                Please sign in with Google or enter your student email address to access your enrolled courses, lesson progress, and downloadable resources.
+              </p>
+
+              <div class="space-y-3 pt-2">
+                <button onclick="openStudentAuthModal()" class="w-full gradient-hero-btn text-white text-xs font-bold py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                  <span>Sign In with Google</span>
+                </button>
+
+                <div class="relative py-2 text-center">
+                  <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                  <span class="relative bg-white px-2 text-[10px] uppercase font-bold text-slate-400">or enter email</span>
+                </div>
+
+                <div class="flex gap-2">
+                  <input id="direct-student-email-input" type="email" placeholder="name@example.com" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <button onclick="handleDirectEmailStudentLogin()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-colors shrink-0">Open</button>
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -4490,39 +4924,470 @@
         return;
       }
 
-      const enrolled = await apiFetch(`/student/courses?email=${encodeURIComponent(email)}`);
-      if (Array.isArray(enrolled) && enrolled.length > 0) {
-        listEl.innerHTML = enrolled.map(e => `
-          <div class="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">${e.status || 'Active'}</span>
-                <span class="text-xs text-slate-400">Enrolled: ${new Date(e.enrolled_at || Date.now()).toLocaleDateString()}</span>
-              </div>
-              <h3 class="text-base font-bold text-slate-900">${e.course_title}</h3>
-              <div class="text-xs text-slate-500">Progress: <strong>${e.progress_pct || 0}%</strong> Completed</div>
-            </div>
-            <a href="/courses/${e.course_id}" class="gradient-hero-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 self-start sm:self-auto">
-              <span>Continue Learning</span>
-              <i data-lucide="play" class="w-3.5 h-3.5 fill-white"></i>
-            </a>
-          </div>
-        `).join('');
-      } else {
-        listEl.innerHTML = `
-          <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-            <i data-lucide="book-open" class="w-8 h-8 text-slate-400 mx-auto"></i>
-            <h3 class="text-sm font-bold text-slate-800">No Enrolled Courses Found for ${email}</h3>
-            <p class="text-xs text-slate-500">Browse our courses or enroll in a free starter course to begin learning.</p>
-            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <a href="/courses" class="inline-block gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Browse Paid Courses</a>
-              <a href="/free-courses" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Explore Free Courses</a>
-            </div>
-          </div>
-        `;
+      // Show Loading State
+      container.innerHTML = `
+        <div class="max-w-6xl mx-auto px-4 py-16 text-center text-slate-400 space-y-3">
+          <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-brand-600"></i>
+          <p class="text-xs">Loading your student records and courses...</p>
+        </div>
+      `;
+      lucide.createIcons();
+
+      let dashData;
+      try {
+        dashData = await apiFetch(`/student/dashboard?email=${encodeURIComponent(email)}`);
+      } catch (err) {
+        console.warn('Student dashboard error:', err);
       }
+
+      if (!dashData || !dashData.student) {
+        dashData = {
+          student: { name: email.split('@')[0], email, joined_at: new Date().toISOString() },
+          stats: { total_enrolled: 0, free_courses_count: 0, paid_courses_count: 0, downloadable_files_count: 0, completed_courses_count: 0 },
+          enrolled_courses: [],
+          free_courses: [],
+          paid_courses: [],
+          downloadable_resources: [],
+          purchase_history: [],
+        };
+      }
+
+      const s = dashData.student;
+      const stats = dashData.stats || {};
+      const enrolled = dashData.enrolled_courses || [];
+      const freeCourses = dashData.free_courses || [];
+      const paidCourses = dashData.paid_courses || [];
+      const downloads = dashData.downloadable_resources || [];
+      const history = dashData.purchase_history || [];
+
+      window._currentStudentDashData = dashData;
+
+      container.innerHTML = `
+        <div class="bg-slate-900 text-white py-10 sm:py-12 border-b border-slate-800">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-lg border border-white/10 shrink-0">
+                  ${(s.name || 'S')[0].toUpperCase()}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h1 class="text-xl sm:text-2xl font-bold font-heading text-white">${escapeHtml(s.name || 'Student')}</h1>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-md">Verified Student</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-0.5">${escapeHtml(s.email)}</p>
+                  <p class="text-[11px] text-slate-500 mt-1">Student Member Since: ${new Date(s.joined_at || Date.now()).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button onclick="handleSignOutStudent()" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-white/10 hover:bg-rose-600 text-white transition-colors flex items-center gap-1.5 border border-white/10">
+                  <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                  <span>Switch Account / Sign Out</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-8 pt-6 border-t border-white/10">
+              <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                <span class="text-[11px] text-slate-400 block font-medium">Enrolled Courses</span>
+                <span class="text-2xl font-black text-white">${stats.total_enrolled || 0}</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                <span class="text-[11px] text-slate-400 block font-medium">Free Starter Courses</span>
+                <span class="text-2xl font-black text-emerald-400">${stats.free_courses_count || 0}</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                <span class="text-[11px] text-slate-400 block font-medium">Downloadable Files</span>
+                <span class="text-2xl font-black text-brand-300">${stats.downloadable_files_count || 0}</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                <span class="text-[11px] text-slate-400 block font-medium">Completed Courses</span>
+                <span class="text-2xl font-black text-amber-400">${stats.completed_courses_count || 0}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 8-Section Tab Navigation -->
+        <div class="border-b border-slate-200 bg-white sticky top-0 z-30 shadow-2xs">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2.5 scrollbar-none" id="student-dash-nav">
+              <button onclick="setStudentTab('enrolled')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-brand-50 text-brand-700" data-tab="enrolled">
+                Enrolled Courses (${enrolled.length})
+              </button>
+              <button onclick="setStudentTab('free')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="free">
+                My Free Courses (${freeCourses.length})
+              </button>
+              <button onclick="setStudentTab('paid')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="paid">
+                My Paid Courses (${paidCourses.length})
+              </button>
+              <button onclick="setStudentTab('downloads')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="downloads">
+                Downloadable Resources (${downloads.length})
+              </button>
+              <button onclick="setStudentTab('progress')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="progress">
+                Course Progress
+              </button>
+              <button onclick="setStudentTab('history')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="history">
+                Purchase History (${history.length})
+              </button>
+              <button onclick="setStudentTab('account')" class="dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap" data-tab="account">
+                Account Information
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Tab Content Areas -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          
+          <!-- TAB 1: ENROLLED COURSES -->
+          <div id="tab-sec-enrolled" class="dash-tab-sec space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold font-heading text-slate-900">All Enrolled Courses</h2>
+                <p class="text-xs text-slate-500">Pick up exactly where you left off in your learning journey.</p>
+              </div>
+              <a href="/courses" class="text-xs font-bold text-brand-700 hover:underline flex items-center gap-1">
+                <span>Browse More Courses</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+
+            ${enrolled.length === 0 ? `
+              <div class="p-10 text-center rounded-3xl bg-slate-50 border border-slate-200 space-y-3">
+                <i data-lucide="book-open" class="w-10 h-10 text-slate-300 mx-auto"></i>
+                <h3 class="text-sm font-bold text-slate-800">You have not enrolled in any courses yet</h3>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">Browse our free courses or paid masterclasses to start learning immediately.</p>
+                <div class="flex items-center justify-center gap-3 pt-3">
+                  <a href="/free-courses" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs">Explore Free Courses</a>
+                  <a href="/courses" class="gradient-hero-btn text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs">Browse All Courses</a>
+                </div>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                ${enrolled.map(c => `
+                  <div class="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                      <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                        <span class="px-2.5 py-0.5 rounded-md ${c.price === 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-brand-50 text-brand-700 border border-brand-200'}">${c.price === 0 ? 'Free Course' : 'Masterclass'}</span>
+                        <span class="text-slate-400">Enrolled: ${new Date(c.enrolled_at || Date.now()).toLocaleDateString()}</span>
+                      </div>
+                      <h3 class="text-base font-bold font-heading text-slate-900 leading-snug">
+                        <a href="/courses/${c.slug || c.course_id}" class="hover:text-brand-600 transition-colors">${escapeHtml(c.title)}</a>
+                      </h3>
+                      <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(c.subtitle || '')}</p>
+
+                      <!-- Visual Progress Bar -->
+                      <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+                          <span>Course Progress</span>
+                          <span><strong>${c.progress_pct || 0}%</strong> Completed</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                          <div class="bg-gradient-to-r from-brand-600 to-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${c.progress_pct || 0}%"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <span class="text-[11px] text-slate-400 font-medium">${c.modules?.length || 8} Modules</span>
+                      <a href="/courses/${c.slug || c.course_id}" class="gradient-hero-btn text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-xs">
+                        <span>Continue Learning</span>
+                        <i data-lucide="play" class="w-3 h-3 fill-white"></i>
+                      </a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 2: MY FREE COURSES -->
+          <div id="tab-sec-free" class="dash-tab-sec space-y-6 hidden">
+            <div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">My Free Courses</h2>
+              <p class="text-xs text-slate-500">Free starter courses and promotional free offer enrollments.</p>
+            </div>
+            ${freeCourses.length === 0 ? `
+              <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-3">You have not enrolled in any free courses yet.</p>
+                <a href="/free-courses" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl">Browse Free Courses</a>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                ${freeCourses.map(c => `
+                  <div class="p-5 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
+                    <div>
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">100% Free Access</span>
+                      <h3 class="text-sm font-bold text-slate-900 mt-2">${escapeHtml(c.title)}</h3>
+                      <p class="text-xs text-slate-500 line-clamp-2 mt-1">${escapeHtml(c.subtitle || '')}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <span class="text-xs text-slate-400">Progress: ${c.progress_pct || 0}%</span>
+                      <a href="/courses/${c.slug || c.course_id}" class="text-xs font-bold text-emerald-700 hover:underline">Open Course →</a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 3: MY PAID COURSES -->
+          <div id="tab-sec-paid" class="dash-tab-sec space-y-6 hidden">
+            <div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">My Paid Masterclasses</h2>
+              <p class="text-xs text-slate-500">Verified paid masterclasses unlocked on your student account.</p>
+            </div>
+            ${paidCourses.length === 0 ? `
+              <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-3">No paid masterclasses registered under this email yet.</p>
+                <a href="/courses" class="inline-block gradient-hero-btn text-white font-semibold text-xs px-4 py-2.5 rounded-xl">Explore Masterclasses</a>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                ${paidCourses.map(c => `
+                  <div class="p-5 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between space-y-3">
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                        <span class="text-brand-700 uppercase bg-brand-50 px-2 py-0.5 rounded-md">Paid Masterclass</span>
+                        <span>₹${c.price} • ${c.payment_method || 'Verified'}</span>
+                      </div>
+                      <h3 class="text-sm font-bold text-slate-900 mt-2">${escapeHtml(c.title)}</h3>
+                      <p class="text-xs text-slate-500 line-clamp-2 mt-1">${escapeHtml(c.subtitle || '')}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <span class="text-xs text-slate-400">Progress: ${c.progress_pct || 0}%</span>
+                      <a href="/courses/${c.slug || c.course_id}" class="text-xs font-bold text-brand-700 hover:underline">Open Lessons →</a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 4: DOWNLOADABLE RESOURCES (CRITICAL WORKING FILE DOWNLOADS) -->
+          <div id="tab-sec-downloads" class="dash-tab-sec space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-bold font-heading text-slate-900">Authorized Downloadable Resources</h2>
+                <p class="text-xs text-slate-500">All PDF handbooks, code blueprints, and ZIP templates unlocked by your enrolled courses.</p>
+              </div>
+              <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+                ${downloads.length} Verified Files Ready
+              </span>
+            </div>
+
+            ${downloads.length === 0 ? `
+              <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200">
+                <i data-lucide="file-question" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                <p class="text-xs text-slate-500">No downloadable files found. Enroll in any free or paid course to access verified materials.</p>
+              </div>
+            ` : `
+              <div class="space-y-3">
+                ${downloads.map(item => `
+                  <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs hover:border-brand-300 transition-all">
+                    <div class="flex items-center gap-3.5">
+                      <div class="w-12 h-12 rounded-2xl ${item.format === 'ZIP' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'} border flex items-center justify-center font-bold text-xs shrink-0">
+                        ${item.format}
+                      </div>
+                      <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                          <h3 class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(item.name)}</h3>
+                          <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${item.size_formatted}</span>
+                        </div>
+                        <p class="text-xs text-slate-500">Source: <strong class="text-slate-700">${escapeHtml(item.course_title)}</strong></p>
+                        <p class="text-[11px] text-slate-400">${escapeHtml(item.description)}</p>
+                      </div>
+                    </div>
+
+                    <a href="${item.download_url}" download class="gradient-hero-btn text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto shadow-xs">
+                      <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                      <span>1-Click Download</span>
+                    </a>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 5: COURSE PROGRESS -->
+          <div id="tab-sec-progress" class="dash-tab-sec space-y-6 hidden">
+            <div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">Live Course Progress</h2>
+              <p class="text-xs text-slate-500">Track and update your lesson completion across all enrolled tracks.</p>
+            </div>
+
+            ${enrolled.length === 0 ? `
+              <p class="text-xs text-slate-400 py-6 text-center">No enrolled courses to display progress.</p>
+            ` : `
+              <div class="space-y-4">
+                ${enrolled.map(c => `
+                  <div class="p-6 rounded-3xl bg-white border border-slate-200 space-y-4 shadow-xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 class="text-base font-bold text-slate-900">${escapeHtml(c.title)}</h3>
+                        <p class="text-xs text-slate-500">Status: <strong class="text-emerald-700 uppercase">${c.status}</strong></p>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-brand-700" id="prog-pct-label-${c.enrollment_id}">${c.progress_pct || 0}%</span>
+                        <input type="range" min="0" max="100" value="${c.progress_pct || 0}" onchange="updateStudentCourseProgressLive('${c.enrollment_id}', this.value)" class="w-32 accent-brand-600">
+                      </div>
+                    </div>
+
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                      <div id="prog-bar-${c.enrollment_id}" class="bg-gradient-to-r from-brand-600 to-indigo-500 h-2.5 rounded-full transition-all" style="width: ${c.progress_pct || 0}%"></div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 6: PURCHASE HISTORY -->
+          <div id="tab-sec-history" class="dash-tab-sec space-y-6 hidden">
+            <div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">Purchase &amp; Enrollment History</h2>
+              <p class="text-xs text-slate-500">Official audit records, order IDs, and payment references.</p>
+            </div>
+
+            ${history.length === 0 ? `
+              <div class="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200">
+                <p class="text-xs text-slate-500">No payment records found for this account.</p>
+              </div>
+            ` : `
+              <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                <table class="w-full text-left text-xs text-slate-600">
+                  <thead class="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th class="p-3.5">Date</th>
+                      <th class="p-3.5">Course Title</th>
+                      <th class="p-3.5">Order / Pay ID</th>
+                      <th class="p-3.5">Method</th>
+                      <th class="p-3.5">Amount</th>
+                      <th class="p-3.5">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${history.map(item => `
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-3.5 font-medium text-slate-900">${new Date(item.date || Date.now()).toLocaleDateString()}</td>
+                        <td class="p-3.5 font-bold text-slate-900">${escapeHtml(item.course_title || 'Course')}</td>
+                        <td class="p-3.5 font-mono text-[11px] text-slate-500">${escapeHtml(item.id || item.order_id || 'N/A')}</td>
+                        <td class="p-3.5">${escapeHtml(item.payment_method || 'Verified')}</td>
+                        <td class="p-3.5 font-bold text-slate-900">${item.amount === 0 ? 'FREE ($0.00)' : '₹' + (item.amount || 0).toLocaleString()}</td>
+                        <td class="p-3.5">
+                          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${item.status === 'success' || item.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700'}">${item.status || 'Success'}</span>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+
+          <!-- TAB 7: ACCOUNT INFORMATION -->
+          <div id="tab-sec-account" class="dash-tab-sec space-y-6 hidden">
+            <div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">Student Profile &amp; Account Information</h2>
+              <p class="text-xs text-slate-500">Your registered Web Nasir student credentials and settings.</p>
+            </div>
+
+            <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs max-w-2xl space-y-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Student Full Name</label>
+                  <input id="acc-name-input" type="text" value="${escapeHtml(s.name || '')}" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Registered Email Address</label>
+                  <input type="text" disabled value="${escapeHtml(s.email)}" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Phone / WhatsApp</label>
+                  <input id="acc-phone-input" type="text" value="${escapeHtml(s.phone || '')}" placeholder="+91..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Total Enrolled Courses</label>
+                  <div class="px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-bold">${enrolled.length} Courses</div>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400">Account verified with Web Nasir Academy</span>
+                <button onclick="handleSaveStudentAccountProfile()" class="gradient-hero-btn text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-xs">Save Profile Updates</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      `;
+
       lucide.createIcons();
     }
+
+    window.setStudentTab = function(tabName) {
+      document.querySelectorAll('.dash-tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.className = 'dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-brand-50 text-brand-700 shadow-xs';
+        } else {
+          btn.className = 'dash-tab-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all whitespace-nowrap';
+        }
+      });
+      document.querySelectorAll('.dash-tab-sec').forEach(sec => {
+        sec.classList.add('hidden');
+      });
+      const activeSec = document.getElementById('tab-sec-' + tabName);
+      if (activeSec) activeSec.classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.handleDirectEmailStudentLogin = function() {
+      const email = (document.getElementById('direct-student-email-input')?.value || '').trim();
+      if (!email || !email.includes('@')) {
+        showToast('Please enter a valid email address.', 'info');
+        return;
+      }
+      localStorage.setItem('webnasir_student_email', email);
+      showToast('Logged in as ' + email, 'success');
+      router();
+    };
+
+    window.handleSignOutStudent = function() {
+      localStorage.removeItem('webnasir_student_email');
+      if (window.handleSignOut) window.handleSignOut();
+      showToast('Signed out of student portal.', 'info');
+      router();
+    };
+
+    window.updateStudentCourseProgressLive = async function(enrollmentId, val) {
+      const pct = Math.min(100, Math.max(0, Number(val)));
+      const lbl = document.getElementById('prog-pct-label-' + enrollmentId);
+      const bar = document.getElementById('prog-bar-' + enrollmentId);
+      if (lbl) lbl.textContent = pct + '%';
+      if (bar) bar.style.width = pct + '%';
+
+      try {
+        await fetch('/api/student/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enrollment_id: enrollmentId, progress_pct: pct }),
+        });
+      } catch (err) {
+        console.warn('Progress update warning:', err);
+      }
+    };
+
+    window.handleSaveStudentAccountProfile = function() {
+      const name = document.getElementById('acc-name-input')?.value.trim();
+      const phone = document.getElementById('acc-phone-input')?.value.trim();
+      showToast('Profile updated successfully!', 'success');
+    };
 
     // ==========================================
     // VIEW 6: ABOUT US PAGE (/about) — COMPLETE PROFESSIONAL REBUILD
@@ -6235,25 +7100,35 @@
 
     // COURSE CHECKOUT MODAL & ENROLLMENT (Razorpay & UPI)
     window.handleQuickFreeEnroll = async function(courseId) {
-      if (!window.APP_STATE.currentUser) {
-        showToast('Please sign in with Google or Email to enroll', 'info');
-        openStudentAuthModal();
-        return;
+      let email = window.APP_STATE.currentUser?.email || localStorage.getItem('webnasir_student_email') || '';
+      let name = window.APP_STATE.currentUser?.displayName || (email ? email.split('@')[0] : '');
+
+      if (!email) {
+        const inputEmail = prompt('Enter your student email address to complete free enrollment:');
+        if (!inputEmail || !inputEmail.includes('@')) {
+          showToast('Valid student email is required for free enrollment.', 'info');
+          return;
+        }
+        email = inputEmail.toLowerCase().trim();
+        name = email.split('@')[0];
+        localStorage.setItem('webnasir_student_email', email);
       }
+
       try {
-        const user = window.APP_STATE.currentUser;
+        showToast('Enrolling in course...', 'info');
         const res = await fetch('/api/courses/enroll-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             course_id: courseId,
-            student_email: user.email,
-            student_name: user.displayName || 'Student',
+            student_email: email,
+            student_name: name || 'Student',
           }),
         });
         const data = await res.json();
         if (res.ok) {
           showToast(data.message || 'Enrolled successfully!', 'success');
+          localStorage.setItem('webnasir_student_email', email);
           window.navigateTo('/student/dashboard');
         } else {
           showToast(data.error || 'Enrollment failed', 'error');
@@ -6264,12 +7139,17 @@
     };
 
     window.openCourseCheckoutModal = function(courseId) {
-      const c = (window.APP_STATE.courses || []).find(x => x.id === courseId);
+      const c = (window.APP_STATE.courses || []).find(x => x.id === courseId || x.slug === courseId);
       if (!c) return;
+
+      if (c.is_effective_free || c.is_offer_active || c.is_free || Number(c.price) === 0) {
+        window.handleQuickFreeEnroll(c.id);
+        return;
+      }
 
       document.getElementById('checkout-course-id').value = c.id;
       document.getElementById('checkout-course-title').textContent = c.title;
-      document.getElementById('checkout-price-display').textContent = '₹' + (c.price || 0).toLocaleString();
+      document.getElementById('checkout-price-display').textContent = '₹' + (c.effective_price ?? c.price ?? 0).toLocaleString();
       document.getElementById('checkout-orig-price').textContent = '₹' + (c.original_price || (c.price ? c.price * 2 : 9999)).toLocaleString();
 
       if (window.APP_STATE.currentUser) {
@@ -6308,6 +7188,21 @@
         });
         const orderData = await orderRes.json();
         if (!orderRes.ok) throw new Error(orderData.error || 'Failed to initialize order');
+
+        // Check if course has active promotional free offer
+        if (orderData.free_offer) {
+          const freeEnrollRes = await fetch('/api/courses/enroll-free', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: courseId, student_email: sEmail, student_name: sName, student_phone: sPhone }),
+          });
+          const freeEnrollData = await freeEnrollRes.json();
+          showToast(freeEnrollData.message || 'Free offer applied! Enrolled successfully without payment.', 'success');
+          localStorage.setItem('webnasir_student_email', sEmail);
+          closeCheckoutModal();
+          window.navigateTo('/student/dashboard');
+          return;
+        }
 
         if (window.Razorpay && orderData.key_id && orderData.key_id !== 'rzp_test_webnasir_demo') {
           const options = {

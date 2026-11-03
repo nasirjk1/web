@@ -1,5 +1,6 @@
 import { getBlob, setBlob } from './store.js';
 import { hashPassword } from './auth.js';
+import { ALL_GENUINE_COURSES, COURSE_CATEGORIES_14 } from './courses-data.js';
 
 export async function ensureSeeded() {
   const meta = await getBlob('meta');
@@ -2213,6 +2214,30 @@ async function ensureExtendedCmsSeeded() {
       v4_hero_slider_migrated: true,
       v4_migrated_at: now,
     });
+  }
+
+  // V5: Real Free & Paid Course Library (14 Categories, verified curricula, downloads, and free offers)
+  const metaV5 = (await getBlob('meta')) || {};
+  if (!metaV5.v5_real_course_library_migrated) {
+    console.log('Migrating Web Nasir real 14-category course library...');
+    await setBlob('courses_index', ALL_GENUINE_COURSES);
+    for (const c of ALL_GENUINE_COURSES) {
+      await setBlob(`course:${c.id}`, c);
+      if (c.slug && c.slug !== c.id) {
+        await setBlob(`course:${c.slug}`, c);
+      }
+    }
+    const freeOnly = ALL_GENUINE_COURSES.filter(c => c.is_free === true || Number(c.price) === 0);
+    await setBlob('free_courses_index', freeOnly);
+    await setBlob('course_categories', COURSE_CATEGORIES_14);
+
+    await setBlob('meta', {
+      ...metaV5,
+      seeded: true,
+      v5_real_course_library_migrated: true,
+      v5_migrated_at: new Date().toISOString(),
+    });
+    console.log('Real course library migration completed successfully.');
   }
 }
 
