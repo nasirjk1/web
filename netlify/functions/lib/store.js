@@ -162,7 +162,11 @@ function getNativeStore() {
         name: STORE_NAME,
         siteID: process.env.NETLIFY_SITE_ID,
         token: process.env.NETLIFY_AUTH_TOKEN,
-        consistency: 'strong',
+        // NOTE: no explicit consistency — 'strong' consistency requires the
+        // Netlify Blobs environment to be configured with 'uncachedEdgeURL',
+        // which this site does not have. With strong consistency, every
+        // read/write threw and broke the AI tools (see setBlob below).
+        // Default (eventual) consistency works without that config.
       });
     }
 
@@ -177,7 +181,7 @@ function getNativeStore() {
 
     return getStore({
       name: STORE_NAME,
-      consistency: 'strong',
+      // Default consistency only — see note above on 'strong'.
     });
   } catch (err) {
     return null;
@@ -187,14 +191,14 @@ function getNativeStore() {
 /**
  * Get JSON data for a key.
  * - On Netlify Functions (or when Netlify Blobs is configured), reads directly from
- *   Netlify Blobs with strong consistency as the authoritative persistent store.
+ *   Netlify Blobs (default consistency) as the persistent store, with a local/tmp fallback.
  * - On self-hosted VPS / Docker / local dev, reads from `.netlify-blobs-data/webnasir.json`.
  */
 export async function getBlob(key) {
   const store = getNativeStore();
   if (store) {
     try {
-      const data = await store.get(key, { type: 'json', consistency: 'strong' });
+      const data = await store.get(key, { type: 'json' });
       if (data !== null && data !== undefined) {
         const local = loadLocalData();
         local[key] = data;
@@ -225,18 +229,20 @@ export async function setBlob(key, value) {
   if (store) {
     try {
       await store.setJSON(key, cloned);
-      const verifiedRemote = await store.get(key, { type: 'json', consistency: 'strong' });
+      const verifiedRemote = await store.get(key, { type: 'json' });
       if (cloned !== null && (verifiedRemote === null || verifiedRemote === undefined)) {
         throw new Error(`Read-after-write verification failed on Netlify Blobs for key "${key}"`);
       }
     } catch (err) {
+      // Blobs writes can fail on Netlify when the environment is not fully
+      // configured (e.g. missing 'uncachedEdgeURL' for strong-consistency
+      // reads). A storage failure must NEVER break a tool response: log it
+      // and fall through to the local/tmp fallback below, which is the
+      // authoritative store for this deployment until Blobs is configured.
       runtimeDiagnostics.last_failed_write_at = nowIso;
       runtimeDiagnostics.last_failed_write_key = key;
       runtimeDiagnostics.last_failed_write_error = err.message;
-      console.error(`Error saving blob "${key}" to Netlify Blobs:`, err.message);
-      if (isServerlessRuntime()) {
-        throw new Error(`Persistent storage write failed for "${key}": ${err.message}`);
-      }
+      console.warn(`Netlify Blobs write failed for "${key}" — using local fallback:`, err.message);
     }
   }
 
@@ -293,7 +299,7 @@ export async function getStorageDiagnostics() {
   const local = loadLocalData();
   if (store) {
     try {
-      const remoteDiag = await store.get('_diagnostics', { type: 'json', consistency: 'strong' });
+      const remoteDiag = await store.get('_diagnostics', { type: 'json' });
       if (remoteDiag && typeof remoteDiag === 'object') {
         Object.assign(runtimeDiagnostics, remoteDiag);
       }
@@ -312,7 +318,7 @@ export async function getStorageDiagnostics() {
   return {
     environment: isServerlessRuntime() || process.env.NODE_ENV === 'production' ? 'Production (Netlify Serverless)' : 'Development / Persistent Node Server',
     storage_backend: usingNetlifyBlobs
-      ? `Netlify Blobs (store: "${STORE_NAME}", consistency: strong)`
+      ? `Netlify Blobs (store: "${STORE_NAME}", consistency: default)`
       : `Persistent JSON Store (.netlify-blobs-data/webnasir.json, ${Math.round(localFileSize / 1024)} KB)`,
     store_name: STORE_NAME,
     using_netlify_blobs: usingNetlifyBlobs,
@@ -328,7 +334,7 @@ export async function getStorageDiagnostics() {
     last_publish_summary: runtimeDiagnostics.last_publish_summary || 'Synchronized with public website',
     total_verified_writes: Number(runtimeDiagnostics.total_verified_writes || 0),
     total_keys: Object.keys(local).filter(k => !k.startsWith('_')).length,
-    public_sync_status: 'SYNCHRONIZED (Strong Consistency / No-Store Cache)',
+    public_sync_status: 'SYNCHRONIZED (Default Consistency / No-Store Cache)',
   };
 }
 

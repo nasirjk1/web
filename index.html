@@ -1047,7 +1047,7 @@
         nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
         video_title: 'Welcome to Web Nasir',
         video_subtitle: 'Watch Founder Nasir introduce our free online tools, website development courses, and learning pathways.',
-        video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        video_url: '', // No founder video supplied yet — placeholder shown instead; do NOT re-add a YouTube video.
         video_presenter_name: 'Nasir',
         video_presenter_title: 'Founder & Lead Technical Mentor',
         video_script_urdu: "Assalamu Alaikum! Welcome to Web Nasir. I'm Nasir, and I've created this platform to help you learn modern digital skills, use practical online tools, build websites, master SEO, and develop your online career. Whether you are using our 11 free online tools or enrolling in our practical courses, our focus is 100% real-world results.",
@@ -1421,7 +1421,7 @@
           content: 'The 3-second hook framework and video retention pacing shared in this academy are pure gold. We hit our 60,000 eligible minutes threshold in just 18 days on a brand-new page. Nasir is the real deal—no fake hype, just honest engineering.',
           avatar: '',
           has_video: true,
-          video_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+          video_url: '',
           verified: true,
           sort_order: 4,
         }
@@ -5755,7 +5755,7 @@
 
                   <div class="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10">
                     <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                      ${window.OFFICIAL_WHATSAPP_SVG ? window.OFFICIAL_WHATSAPP_SVG('w-4 h-4 fill-current') : '<i data-lucide="phone" class="w-4 h-4"></i>'}
+                      ${window.OFFICIAL_WHATSAPP_SVG || '<i data-lucide="phone" class="w-4 h-4"></i>'}
                     </div>
                     <div>
                       <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">WhatsApp Support</span>
@@ -5788,7 +5788,7 @@
 
                 <div class="pt-2">
                   <a href="https://wa.me/${cleanWa}" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all">
-                    ${window.OFFICIAL_WHATSAPP_SVG ? window.OFFICIAL_WHATSAPP_SVG('w-4 h-4 fill-current shrink-0') : ''}
+                    ${window.OFFICIAL_WHATSAPP_SVG || ''}
                     <span>Chat on WhatsApp</span>
                   </a>
                 </div>
@@ -6898,11 +6898,10 @@
       const s = window.APP_STATE.settings || {};
 
       if (iframe) {
-        let url = s.video_url || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-        if (!url.includes('autoplay')) {
-          url += (url.includes('?') ? '&' : '?') + 'autoplay=1';
-        }
-        iframe.src = url;
+        // No founder video supplied: leave the iframe empty (the modal shows
+        // a "coming soon" placeholder). Never build a URL from an empty string.
+        const url = String(s.video_url || '').trim();
+        iframe.src = url ? (url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=1') : '';
       }
 
       if (modal) modal.classList.remove('hidden');

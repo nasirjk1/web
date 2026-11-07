@@ -51,7 +51,7 @@ export async function ensureSeeded() {
       whatsapp_number: '917006334417',
       email: 'hello@webnasir.com',
     announcement_enabled: true,
-    announcement_badge: 'New 2025 Edition',
+    announcement_badge: 'New 2026 Edition',
     announcement_text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
     announcement_link_text: 'Explore Courses →',
     announcement_link_url: '#/courses',
@@ -64,7 +64,7 @@ export async function ensureSeeded() {
     nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
     video_title: 'Welcome to Web Nasir Academy',
     video_subtitle: 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.',
-    video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    video_url: '', // Founder introduction video not supplied yet — see 'coming soon' placeholder in the frontend; do NOT re-add a placeholder YouTube video.
     video_presenter_name: 'Nasir',
     video_presenter_title: 'Founder & Lead Technical Mentor',
     video_script_urdu: "Assalamu Alaikum! Welcome to Web Nasir. I'm Nasir, and I've created this platform to help you learn modern digital skills, use AI tools, build websites, master SEO, and develop your online career. Whether you are using our 11 free AI utilities or enrolling in our comprehensive paid masterclasses, our focus is 100% practical results.",
@@ -345,7 +345,7 @@ export async function ensureSeeded() {
   const articleAi = {
     slug: 'ai-tools-monetization',
     tag: 'ai',
-    title: 'How to Build and Monetize AI Micro-SaaS Tools in 2025: A 10-Year Developer Blueprint',
+    title: 'How to Build and Monetize AI Micro-SaaS Tools in 2026: A 10-Year Developer Blueprint',
     meta: 'Step-by-step framework to conceptualize, ship, and monetize lightweight AI utility websites without massive infrastructure bills.',
     sort_order: 1,
     is_published: true,
@@ -597,7 +597,7 @@ The mathematical key is **longer retention on 3+ minute videos**:
       badge: 'Flagship Program',
       is_published: true,
       sort_order: 1,
-      overview: 'A comprehensive, zero-fluff academy program teaching you how to use modern generative AI models, craft intelligent autonomous workflows, build AI utilities, and monetize prompt engineering architectures in 2025.',
+      overview: 'A comprehensive, zero-fluff academy program teaching you how to use modern generative AI models, craft intelligent autonomous workflows, build AI utilities, and monetize prompt engineering architectures in 2026.',
       features: [
         '32 Step-by-step video lessons & code repositories',
         'Build 4 production-grade AI micro-utilities',
@@ -945,7 +945,7 @@ The mathematical key is **longer retention on 3+ minute videos**:
       content: 'The 3-second hook framework and video retention pacing shared in this academy are pure gold. We hit our 60,000 eligible minutes threshold in just 18 days on a brand-new page. Nasir is the real deal—no fake hype, just honest engineering.',
       avatar: '',
       has_video: true,
-      video_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      video_url: '',
       verified: true,
       sort_order: 4,
     }
@@ -1516,7 +1516,7 @@ The mathematical key is **longer retention on 3+ minute videos**:
     { id: 'med-1', title: 'Academy Hero Banner', url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80', type: 'image', alt: 'Web Nasir Academy Collaborative Learning', used_in: 'Homepage Hero', created_at: now },
     { id: 'med-2', title: 'AI Mastery Course Cover', url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80', type: 'image', alt: 'Complete AI Mastery Course Thumbnail', used_in: 'Courses Catalog', created_at: now },
     { id: 'med-3', title: 'Full-Stack Web Dev Cover', url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80', type: 'image', alt: 'Full-Stack Web Development Thumbnail', used_in: 'Courses Catalog', created_at: now },
-    { id: 'med-4', title: 'Founder Intro Video Stream', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', type: 'video', alt: 'Founder Nasir Welcome Video', used_in: 'Founder Video Section', created_at: now }
+    { id: 'med-4', title: 'Founder Intro Video Stream', url: '', type: 'video', alt: 'Founder Nasir Welcome Video (not supplied yet)', used_in: 'Founder Video Section', created_at: now }
   ];
   if (!(await getBlob('cms_media'))) {
     await setBlob('cms_media', cmsMedia);
@@ -1587,7 +1587,7 @@ async function ensureExtendedCmsSeeded() {
     await setBlob('cms_announcement', {
       enabled: true,
       mobile_visible: true,
-      badge: 'New 2025 Edition',
+      badge: 'New 2026 Edition',
       text: 'Web Nasir Academy is Live: Free AI Utilities, Professional Paid Courses & High-RPM Blueprints!',
       button_text: 'Explore Courses →',
       link_url: '#/courses',

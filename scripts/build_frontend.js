@@ -613,7 +613,7 @@ const html = `<!DOCTYPE html>
         nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
         video_title: 'Welcome to Web Nasir Academy',
         video_subtitle: 'Watch Founder Nasir introduce the mission, free AI utilities, and career tracks.',
-        video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        video_url: '', // No founder video supplied yet — placeholder shown instead; do NOT re-add a YouTube video.
         video_presenter_name: 'Nasir',
         video_presenter_title: 'Founder & Lead Technical Mentor',
         video_script_urdu: "Assalamu Alaikum! Welcome to Web Nasir. I'm Nasir, and I've created this platform to help you learn modern digital skills, use AI tools, build websites, master SEO, and develop your online career. Whether you are using our 11 free AI utilities or enrolling in our comprehensive paid masterclasses, our focus is 100% practical results.",
@@ -943,7 +943,7 @@ const html = `<!DOCTYPE html>
           content: 'The 3-second hook framework and video retention pacing shared in this academy are pure gold. We hit our 60,000 eligible minutes threshold in just 18 days on a brand-new page. Nasir is the real deal—no fake hype, just honest engineering.',
           avatar: '',
           has_video: true,
-          video_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+          video_url: '',
           verified: true,
           sort_order: 4,
         }
@@ -3136,11 +3136,10 @@ const html = `<!DOCTYPE html>
       const s = window.APP_STATE.settings || {};
 
       if (iframe) {
-        let url = s.video_url || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-        if (!url.includes('autoplay')) {
-          url += (url.includes('?') ? '&' : '?') + 'autoplay=1';
-        }
-        iframe.src = url;
+        // No founder video supplied: leave the iframe empty (the modal shows
+        // a "coming soon" placeholder). Never build a URL from an empty string.
+        const url = String(s.video_url || '').trim();
+        iframe.src = url ? (url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=1') : '';
       }
 
       if (modal) modal.classList.remove('hidden');

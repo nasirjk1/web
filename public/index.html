@@ -232,6 +232,13 @@
       z-index: 10;
       transform: translate3d(0, 0, 0);
     }
+    .hero-slide.slide-hidden {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+    }
+    #tool-interactive-container .max-w-2xl { max-width: 48rem; }
     .hero-slide.slide-fade-out {
       opacity: 0;
       pointer-events: none;
@@ -475,7 +482,7 @@
             </button>
           </div>
           <label class="flex items-start sm:items-center gap-2 text-[11px] text-slate-400 cursor-pointer pt-0.5">
-            <input type="checkbox" id="newsletter-consent" required checked class="mt-0.5 sm:mt-0 w-4 h-4 text-violet-600 rounded bg-slate-800 border-slate-700 shrink-0">
+            <input type="checkbox" id="newsletter-consent" required class="mt-0.5 sm:mt-0 w-4 h-4 text-violet-600 rounded bg-slate-800 border-slate-700 shrink-0">
             <span>I agree to receive helpful tutorials and tool updates. Unsubscribe anytime.</span>
           </label>
         </form>
@@ -792,9 +799,18 @@
       </div>
 
       <div class="p-6 space-y-6">
-        <!-- Video Player Container -->
-        <div class="aspect-video w-full bg-slate-950 rounded-2xl overflow-hidden relative shadow-inner">
+        <!-- Video Player Container (no founder video supplied yet: the
+             placeholder below is shown instead of any YouTube embed) -->
+        <div id="video-player-container" class="aspect-video w-full bg-slate-950 rounded-2xl overflow-hidden relative shadow-inner">
           <iframe id="video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <div id="video-coming-soon" class="hidden absolute inset-0 flex-col items-center justify-center p-6 text-center bg-gradient-to-tr from-brand-950 via-slate-950 to-indigo-950">
+            <div class="w-14 h-14 rounded-full bg-brand-600/90 text-white flex items-center justify-center shadow-xl mb-3">
+              <i data-lucide="play" class="w-6 h-6 fill-white ml-0.5"></i>
+            </div>
+            <p class="text-sm font-bold text-white">Introduction video coming soon</p>
+            <p class="text-xs text-slate-400 mt-1 max-w-sm">Nasir's own introduction video has not been added yet. Until then, explore the free AI tools and guides below.</p>
+            <a href="/tools" onclick="closeNasirVideoModal()" class="mt-4 gradient-hero-btn text-white text-xs font-semibold px-5 py-2.5 rounded-xl">Explore Free AI Tools</a>
+          </div>
         </div>
 
         <!-- Audio Presenter Narration Controls (Web Speech API) -->
@@ -900,7 +916,7 @@
         whatsapp_number: '917006334417',
         email: 'support@webnasir.com',
         announcement_enabled: true,
-        announcement_badge: 'New 2025 Edition',
+        announcement_badge: 'New 2026 Edition',
         announcement_text: 'Learn Digital Skills Online: 11+ Free AI & Online Tools, Website Development & SEO Guides!',
         announcement_link_text: 'Explore Free AI Tools →',
         announcement_link_url: '/tools',
@@ -914,7 +930,7 @@
         nasir_quote: 'Over the last decade, I have built web applications that processed millions of requests, directed traffic to AdSense accounts generating over $35 RPM, and helped dozens of developers transition into self-employed digital builders.',
         video_title: 'Welcome to Web Nasir',
         video_subtitle: 'Watch Founder Nasir introduce our free AI tools, website development tutorials, and structured learning pathways.',
-        video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        video_url: '', // No founder video supplied yet — placeholder shown instead; do NOT re-add a YouTube video.
         video_presenter_name: 'Nasir',
         video_presenter_title: 'Founder & Lead Technical Mentor',
         video_script_urdu: "Assalamu Alaikum! Welcome to Web Nasir. I'm Nasir, and I've created this platform to help you learn modern digital skills, use practical online tools, build websites, master SEO, and develop your online career. Using our 11 free online tools and step-by-step guides, our focus is 100% real-world results.",
@@ -957,7 +973,7 @@
         { slug: 'ai-tools-monetization', tag: 'ai', title: 'How to Build and Monetize Helpful Online Tools: A 10-Year Developer Blueprint', meta: 'Step-by-step framework to plan, build, and monetize fast utility websites without high server costs.', sort_order: 1, is_published: true },
         { slug: 'google-adsense-high-rpm', tag: 'adsense', title: 'Google AdSense High-RPM Strategy: From $2 to $35 RPM in 90 Days', meta: 'Detailed breakdown of ad layout placement, high-value audience acquisition, viewability, and Core Web Vitals optimization.', sort_order: 2, is_published: true },
         { slug: 'facebook-monetization-playbook', tag: 'facebook', title: 'Facebook Video Monetization: The 3-Second Hook & Retention Guide', meta: 'Learn how Facebook In-Stream Ads and video retention pacing work using original content and clear storytelling.', sort_order: 3, is_published: true },
-        { slug: 'seo-for-beginners', tag: 'blogging', title: 'SEO for Beginners: Complete Step-by-Step Guide to Ranking Websites in 2025', meta: 'Learn how search engines work, how to find low-competition keywords, structure helpful articles, and grow organic traffic from scratch.', sort_order: 4, is_published: true }
+        { slug: 'seo-for-beginners', tag: 'blogging', title: 'SEO for Beginners: Complete Step-by-Step Guide to Ranking Websites in 2026', meta: 'Learn how search engines work, how to find low-competition keywords, structure helpful articles, and grow organic traffic from scratch.', sort_order: 4, is_published: true }
       ],
       cms: {},
       testimonials: [
@@ -1006,8 +1022,8 @@
           rating: 5,
           content: 'The 3-second hook framework and video retention pacing shared in Web Nasir’s guides are pure gold. We hit our 60,000 eligible minutes threshold in just 18 days on a brand-new page. Nasir is the real deal—no fake hype, just honest engineering.',
           avatar: '',
-          has_video: true,
-          video_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+          has_video: false,
+          video_url: '',
           verified: true,
           sort_order: 4,
         }
@@ -1166,6 +1182,7 @@
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^## (.*$)/gim, '<h2>$1</h2>')
         .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/gim, '<a href="$2" class="text-brand-600 underline hover:text-brand-800">$1</a>')
         .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/gim, '<em>$1</em>')
         .replace(/```([a-z]*)\n([\s\S]*?)```/gim, '<pre><code>$2</code></pre>')
@@ -1538,8 +1555,27 @@
           : (sec.enabled !== false && (isMobileViewport ? sec.mobile_visible !== false : sec.desktop_visible !== false));
         secEl.style.display = visible ? '' : 'none';
 
-        if (sec.bg_color) secEl.style.backgroundColor = sec.bg_color;
-        if (sec.text_color) secEl.style.color = sec.text_color;
+        // Contrast guard (Phase 1 fix): a CMS background must never leave
+        // white text on a light background (the final CTA heading was
+        // invisible). Light backgrounds get dark text; the dark final CTA
+        // keeps its dark gradient and is never repainted light.
+        const _isLightBg = (hex) => {
+          if (!hex || typeof hex !== 'string') return false;
+          const m = hex.replace('#', '').match(/^([0-9a-f]{6})$/i);
+          if (!m) return false;
+          const r = parseInt(m[1].slice(0, 2), 16), g = parseInt(m[1].slice(2, 4), 16), b = parseInt(m[1].slice(4, 6), 16);
+          return (0.299 * r + 0.587 * g + 0.114 * b) > 160;
+        };
+        if (sec.id === 'final_cta') {
+          secEl.style.backgroundColor = '';
+          secEl.style.color = '#ffffff';
+        } else if (sec.bg_color) {
+          secEl.style.backgroundColor = sec.bg_color;
+          if (_isLightBg(sec.bg_color)) secEl.style.color = '#0f172a';
+          else if (sec.text_color) secEl.style.color = sec.text_color;
+        } else if (sec.text_color) {
+          secEl.style.color = sec.text_color;
+        }
         if (sec.padding_y && sec.id !== 'marquee') {
           secEl.style.paddingTop = sec.padding_y;
           secEl.style.paddingBottom = sec.padding_y;
@@ -1791,7 +1827,7 @@
           const aBadge = document.getElementById('announcement-badge');
           const aText = document.getElementById('announcement-text');
           const aLink = document.getElementById('announcement-link');
-          if (aBadge) aBadge.textContent = (settings.announcement_badge || 'New 2025 Edition') + ':';
+          if (aBadge) aBadge.textContent = (settings.announcement_badge || 'New 2026 Edition') + ':';
           if (aText) aText.textContent = settings.announcement_text || 'Learn Digital Skills Online with Web Nasir!';
           if (aLink) {
             aLink.textContent = settings.announcement_link_text || 'Explore Free AI Tools →';
@@ -2056,6 +2092,68 @@
       });
     }
 
+    // Safety net (Phase 1 fix): if any view renderer throws (e.g. /contact
+    // used to throw before innerHTML was set), show a usable error card
+    // instead of leaving the initial "Loading Web Nasir..." spinner forever.
+    function safeRenderView(renderFn, container, path) {
+      try {
+        const result = renderFn();
+        if (result && typeof result.catch === 'function') {
+          result.catch((err) => {
+            console.error('View render failed for', path, err);
+            container.innerHTML = `
+              <div class="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
+                <h1 class="text-2xl font-extrabold font-heading text-slate-900">This page could not be loaded</h1>
+                <p class="text-sm text-slate-600">Something went wrong while opening this page. Please try again, or use the links below.</p>
+                <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <a href="/" class="gradient-hero-btn text-white text-xs font-semibold px-5 py-3 rounded-xl">Go to Homepage</a>
+                  <a href="/tools" class="px-5 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold">Explore Free AI Tools</a>
+                  <a href="/contact" class="px-5 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold">Contact Us</a>
+                </div>
+              </div>`;
+            if (window.lucide) lucide.createIcons();
+          });
+        }
+      } catch (err) {
+        console.error('View render failed for', path, err);
+        container.innerHTML = `
+          <div class="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
+            <h1 class="text-2xl font-extrabold font-heading text-slate-900">This page could not be loaded</h1>
+            <p class="text-sm text-slate-600">Something went wrong while opening this page. Please try again, or use the links below.</p>
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a href="/" class="gradient-hero-btn text-white text-xs font-semibold px-5 py-3 rounded-xl">Go to Homepage</a>
+              <a href="/tools" class="px-5 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold">Explore Free AI Tools</a>
+              <a href="/contact" class="px-5 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold">Contact Us</a>
+            </div>
+          </div>`;
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    // Brand icons (Phase 1 fix): Lucide no longer ships brand glyphs, so
+    // footer/about/contact social icons rendered as blank squares. Replace
+    // any un-rendered brand <i data-lucide="..."> with an inline SVG.
+    const BRAND_ICON_SVGS = {
+      youtube: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.3 31.3 0 0 0 0 12a31.3 31.3 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.3 31.3 0 0 0 24 12a31.3 31.3 0 0 0-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z"/></svg>',
+      facebook: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>',
+      twitter: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41z"/></svg>',
+      instagram: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+      linkedin: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>',
+      github: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.49 5.92.43.38.82 1.11.82 2.24v3.32c0 .32.21.7.82.58A12 12 0 0 0 12 .3z"/></svg>',
+    };
+    function renderBrandIcons() {
+      document.querySelectorAll('i[data-lucide="youtube"], i[data-lucide="facebook"], i[data-lucide="twitter"], i[data-lucide="instagram"], i[data-lucide="linkedin"], i[data-lucide="github"]').forEach((el) => {
+        const name = el.getAttribute('data-lucide');
+        const svg = BRAND_ICON_SVGS[name];
+        if (!svg) return;
+        const span = document.createElement('span');
+        span.className = el.className;
+        span.setAttribute('aria-hidden', 'true');
+        span.innerHTML = svg;
+        el.replaceWith(span);
+      });
+    }
+
     function router() {
       const cleanPath = resolveCurrentCleanRoute();
       const redirects = (window.APP_STATE.cms && window.APP_STATE.cms.redirects) || [];
@@ -2112,7 +2210,7 @@
         renderToolsDirectoryView(appView);
       } else if (cleanPath.startsWith('/articles/')) {
         const slug = cleanPath.replace('/articles/', '').trim();
-        renderArticleDetailPage(appView, slug);
+        safeRenderView(() => renderArticleDetailPage(appView, slug), appView, cleanPath);
       } else if (cleanPath === '/articles') {
         renderArticlesListView(appView);
       } else if (cleanPath === '/topics') {
@@ -2120,7 +2218,7 @@
       } else if (cleanPath === '/about') {
         renderAboutPageView(appView);
       } else if (cleanPath === '/contact') {
-        renderContactPageView(appView);
+        safeRenderView(() => renderContactPageView(appView), appView, cleanPath);
       } else if (cleanPath === '/search') {
         renderSearchResultsView(appView);
       } else if (['/privacy', '/terms', '/disclaimer', '/faq'].includes(cleanPath) || cleanPath.startsWith('/page/')) {
@@ -2141,6 +2239,7 @@
 
       updatePageSeoAndSchema(cleanPath, isNotFound);
       lucide.createIcons();
+      renderBrandIcons();
     }
 
     // ==========================================
@@ -2530,7 +2629,7 @@
 
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
-            <div id="hero-slider-container" class="hero-slider-container relative group ${sliderCfg.transition_effect === 'fade' ? 'effect-fade' : 'effect-slide'}" role="region" aria-label="Web Nasir Hero Highlights">
+            <div id="hero-slider-container" class="hero-slider-container relative group px-10 sm:px-12 lg:px-14 ${sliderCfg.transition_effect === 'fade' ? 'effect-fade' : 'effect-slide'}" role="region" aria-label="Web Nasir Hero Highlights">
               
               <div id="hero-slider-track" class="hero-slider-grid w-full">
                 ${heroSlides.map((slide, idx) => `
@@ -2605,10 +2704,10 @@
 
               <!-- Slider Navigation Controls -->
               ${sliderCfg.show_arrows !== false && heroSlides.length > 1 ? `
-                <button id="hero-slider-prev" onclick="window.prevHeroSlide()" type="button" aria-label="Previous Slide" class="absolute -left-3 sm:-left-4 lg:-left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-white text-slate-800 hover:text-brand-600 border border-slate-200/90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 hover:scale-105 active:scale-95 cursor-pointer">
+                <button id="hero-slider-prev" onclick="window.prevHeroSlide()" type="button" aria-label="Previous Slide" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-white text-slate-800 hover:text-brand-600 border border-slate-200/90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 hover:scale-105 active:scale-95 cursor-pointer">
                   <i data-lucide="chevron-left" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </button>
-                <button id="hero-slider-next" onclick="window.nextHeroSlide()" type="button" aria-label="Next Slide" class="absolute -right-3 sm:-right-4 lg:-right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-white text-slate-800 hover:text-brand-600 border border-slate-200/90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 hover:scale-105 active:scale-95 cursor-pointer">
+                <button id="hero-slider-next" onclick="window.nextHeroSlide()" type="button" aria-label="Next Slide" class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-white text-slate-800 hover:text-brand-600 border border-slate-200/90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 hover:scale-105 active:scale-95 cursor-pointer">
                   <i data-lucide="chevron-right" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </button>
               ` : ''}
@@ -2991,7 +3090,7 @@
                   <div class="p-6 space-y-3">
                     <div class="flex items-center justify-between text-xs text-slate-400">
                       <span class="font-bold text-brand-700 uppercase tracking-wider text-[10px] bg-brand-50 px-2.5 py-0.5 rounded-md">${(a.tag || 'Guide').toUpperCase()}</span>
-                      <span>8 min read</span>
+                      <span>${escapeHtml(a.read_time || 'Practical guide')}</span>
                     </div>
                     <h3 class="text-base font-bold font-heading text-slate-900 leading-snug hover:text-brand-600 transition-colors">
                       <a href="/articles/${a.slug}">${escapeHtml(a.title)}</a>
@@ -3156,7 +3255,7 @@
                   <div class="flex flex-wrap items-center gap-3 pt-2">
                     <button type="button" onclick="openNasirVideoModal()" class="gradient-hero-btn text-white font-semibold px-6 py-3 rounded-xl text-xs flex items-center gap-2 shadow-md cursor-pointer">
                       <i data-lucide="play" class="w-4 h-4 fill-white"></i>
-                      <span>Watch Introduction Video</span>
+                      <span>Introduction Video — Coming Soon</span>
                     </button>
                     <a href="/about" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-5 py-3 rounded-xl text-xs border border-slate-700 transition-colors">
                       Read Full Story &amp; About Us
@@ -3194,15 +3293,15 @@
                         <div class="w-16 h-16 rounded-full bg-brand-600/90 text-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform mb-2">
                           <i data-lucide="play" class="w-7 h-7 fill-white ml-1"></i>
                         </div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Play Introduction Video</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Introduction Video — Coming Soon</span>
                       </div>
                     ` : `
                       <div class="absolute inset-0 bg-gradient-to-tr from-brand-950 via-slate-950 to-indigo-950 flex flex-col items-center justify-center p-6 text-center">
                         <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-brand-600 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-brand-600/50 group-hover:scale-110 transition-transform mb-3">
                           <i data-lucide="play" class="w-7 h-7 sm:w-8 sm:h-8 fill-white ml-1"></i>
                         </div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Play Video Introduction</span>
-                        <span class="text-[11px] text-slate-400 mt-0.5">Assalamu Alaikum • 3 Min Overview</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-300">Introduction Video — Coming Soon</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Nasir's own introduction video will be added here.</span>
                       </div>
                     `}
 
@@ -4989,7 +5088,7 @@
 
                   <div class="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10">
                     <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                      ${window.OFFICIAL_WHATSAPP_SVG ? window.OFFICIAL_WHATSAPP_SVG('w-4 h-4 fill-current') : '<i data-lucide="phone" class="w-4 h-4"></i>'}
+                      ${window.OFFICIAL_WHATSAPP_SVG || '<i data-lucide="phone" class="w-4 h-4"></i>'}
                     </div>
                     <div>
                       <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">WhatsApp Support</span>
@@ -5022,7 +5121,7 @@
 
                 <div class="pt-2">
                   <a href="https://wa.me/${cleanWa}" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all">
-                    ${window.OFFICIAL_WHATSAPP_SVG ? window.OFFICIAL_WHATSAPP_SVG('w-4 h-4 fill-current shrink-0') : ''}
+                    ${window.OFFICIAL_WHATSAPP_SVG || ''}
                     <span>Chat on WhatsApp</span>
                   </a>
                 </div>
@@ -5219,6 +5318,11 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div id="tool-interactive-container" class="bg-white rounded-3xl border border-bordercol p-5 sm:p-10 shadow-lg">
             <!-- Tool Injected Here -->
+          </div>
+          <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <div class="p-4 bg-white rounded-2xl border border-slate-200"><div class="text-xs font-bold text-slate-900">1. Enter your input</div><p class="text-[11px] text-slate-500 mt-1">Use the sample text or type your own — nothing is uploaded unless you run an AI tool.</p></div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200"><div class="text-xs font-bold text-slate-900">2. Generate instantly</div><p class="text-[11px] text-slate-500 mt-1">Calculators run in your browser; AI tools use our free Gemini-powered API.</p></div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200"><div class="text-xs font-bold text-slate-900">3. Copy or save</div><p class="text-[11px] text-slate-500 mt-1">Copy the result, or sign in to save it to your Student Portal.</p></div>
           </div>
         </div>
       `;
@@ -5509,23 +5613,39 @@
     }
 
     window.runNameGen = function() {
-      const seed = (document.getElementById('name-seed')?.value || 'Tech Web').split(' ')[0] || 'App';
+      // Use EVERY seed keyword (the old code only used the first word, so
+      // "Fast" and "Data" were silently ignored) and dedupe the output.
+      const seeds = (document.getElementById('name-seed')?.value || 'Tech Web')
+        .split(/[^A-Za-z0-9]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+      const seedWords = seeds.length ? seeds : ['App'];
       const prefixes = ['Hyper', 'Nova', 'Omni', 'Apex', 'Meta', 'Zen', 'Pulse', 'Strat', 'Velo', 'Aero'];
       const suffixes = ['flow', 'stack', 'hub', 'ly', 'forge', 'pulse', 'base', 'craft', 'io', 'scale'];
-      
+      const tlds = ['.com', '.io', '.co', '.app', '.dev'];
+      const seen = new Set();
       const names = [];
-      for (let i = 0; i < 10; i++) {
-        const p = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const s = suffixes[Math.floor(Math.random() * suffixes.length)];
-        names.push(i % 2 === 0 ? `${p}${seed}` : `${seed}${s}`);
+      let guard = 0;
+      while (names.length < 10 && guard++ < 200) {
+        const seed = seedWords[Math.floor(Math.random() * seedWords.length)];
+        const style = Math.floor(Math.random() * 3);
+        let base;
+        if (style === 0) base = prefixes[Math.floor(Math.random() * prefixes.length)] + seed;
+        else if (style === 1) base = seed + suffixes[Math.floor(Math.random() * suffixes.length)];
+        else base = seedWords.length > 1
+          ? seedWords[Math.floor(Math.random() * seedWords.length)] + seedWords[Math.floor(Math.random() * seedWords.length)]
+          : seed + suffixes[Math.floor(Math.random() * suffixes.length)];
+        const tld = tlds[Math.floor(Math.random() * tlds.length)];
+        const full = base + tld;
+        if (seen.has(full.toLowerCase())) continue;
+        seen.add(full.toLowerCase());
+        names.push(full);
       }
 
       const resBox = document.getElementById('name-results');
       if (resBox) {
         resBox.innerHTML = names.map(n => `
           <div class="p-3 bg-white rounded-xl border border-bordercol flex items-center justify-between text-xs font-bold text-dark hover:border-brand-300">
-            <span>${n}.com</span>
-            <button onclick="navigator.clipboard.writeText('${n}.com'); showToast('Copied ' + '${n}.com', 'success');" class="text-brand-600 hover:text-brand-800 text-[10px]">Copy</button>
+            <span>${n}</span>
+            <button onclick="navigator.clipboard.writeText('${n}'); showToast('Copied ' + '${n}', 'success');" class="text-brand-600 hover:text-brand-800 text-[10px]">Copy</button>
           </div>
         `).join('');
       }
@@ -5602,6 +5722,11 @@
               <div class="bg-surface p-3 rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500">Reading Time</div><div id="wc-read" class="text-lg font-bold text-brand-600 font-mono">0m</div></div>
               <div class="bg-surface p-3 rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500">Speaking Time</div><div id="wc-speak" class="text-lg font-bold text-slate-700 font-mono">0m</div></div>
             </div>
+
+            <div class="bg-surface p-4 sm:p-5 rounded-2xl border border-bordercol">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">Top Keywords &amp; Density</h3>
+              <div id="wc-density" class="text-xs text-slate-500">Type or paste text above to see keyword density.</div>
+            </div>
           </div>
         </div>
       `;
@@ -5610,7 +5735,8 @@
 
     window.runWordCount = function() {
       const text = document.getElementById('word-input')?.value || '';
-      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const wordList = text.trim() ? text.trim().split(/\s+/) : [];
+      const words = wordList.length;
       const chars = text.length;
       const readMin = Math.ceil(words / 200);
       const speakMin = Math.ceil(words / 130);
@@ -5619,6 +5745,36 @@
       if (document.getElementById('wc-chars')) document.getElementById('wc-chars').textContent = chars;
       if (document.getElementById('wc-read')) document.getElementById('wc-read').textContent = readMin + 'm';
       if (document.getElementById('wc-speak')) document.getElementById('wc-speak').textContent = speakMin + 'm';
+
+      // Keyword density: top repeated words (stopwords ignored), with count
+      // and % of total words — the output this tool's name promises.
+      const densityEl = document.getElementById('wc-density');
+      if (densityEl) {
+        const stopwords = new Set(('a,an,the,and,or,but,if,then,else,for,of,to,in,on,at,by,with,from,as,is,are,was,were,be,been,being,have,has,had,do,does,did,will,would,can,could,should,it,its,this,that,these,those,i,you,he,she,we,they,them,his,her,our,your,their,not,no,so,very,just,about,into,over,under,after,before,when,where,who,whom,what,which,how,all,any,both,each,few,more,most,other,some,such,only,own,same,than,too,very,am,an').split(','));
+        const counts = {};
+        wordList.forEach((w) => {
+          const clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+          if (clean.length < 3 || stopwords.has(clean)) return;
+          counts[clean] = (counts[clean] || 0) + 1;
+        });
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+        densityEl.innerHTML = top.length === 0
+          ? '<p class="text-xs text-slate-500">No repeated keywords found yet — paste a longer text to see density.</p>'
+          : `<table class="w-full text-left">
+              <thead><tr class="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <th class="py-1.5 pr-2 font-bold">Keyword</th>
+                <th class="py-1.5 pr-2 font-bold">Count</th>
+                <th class="py-1.5 font-bold">Density</th>
+              </tr></thead>
+              <tbody>${top.map(([word, count]) => `
+                <tr class="border-b border-slate-100 last:border-0">
+                  <td class="py-1.5 pr-2 font-semibold text-slate-800">${word}</td>
+                  <td class="py-1.5 pr-2 font-mono text-slate-700">${count}</td>
+                  <td class="py-1.5 font-mono text-brand-700">${words ? ((count / words) * 100).toFixed(1) : '0.0'}%</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>`;
+      }
     };
 
     // --- CLIENT UTILITY 9: MILITARY-GRADE PASSWORD GENERATOR ---
@@ -5642,6 +5798,27 @@
               <button onclick="navigator.clipboard.writeText(document.getElementById('pwd-out').value); showToast('Password Copied!', 'success');" class="gradient-hero-btn text-white px-4 py-3 rounded-xl text-xs font-semibold">Copy</button>
             </div>
 
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <button id="pwd-mode-password" type="button" onclick="setPwdMode('password')" class="flex-1 py-2 rounded-xl bg-brand-600 text-white">Password</button>
+              <button id="pwd-mode-passphrase" type="button" onclick="setPwdMode('passphrase')" class="flex-1 py-2 rounded-xl bg-white border border-bordercol text-slate-700">Passphrase</button>
+            </div>
+
+            <div id="pwd-char-options" class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+              <label class="flex items-center gap-2 bg-white border border-bordercol rounded-xl px-3 py-2 cursor-pointer"><input id="pwd-upper" type="checkbox" checked onchange="runPwdGen()" class="accent-brand-600"> Uppercase (A–Z)</label>
+              <label class="flex items-center gap-2 bg-white border border-bordercol rounded-xl px-3 py-2 cursor-pointer"><input id="pwd-lower" type="checkbox" checked onchange="runPwdGen()" class="accent-brand-600"> Lowercase (a–z)</label>
+              <label class="flex items-center gap-2 bg-white border border-bordercol rounded-xl px-3 py-2 cursor-pointer"><input id="pwd-numbers" type="checkbox" checked onchange="runPwdGen()" class="accent-brand-600"> Numbers (0–9)</label>
+              <label class="flex items-center gap-2 bg-white border border-bordercol rounded-xl px-3 py-2 cursor-pointer"><input id="pwd-symbols" type="checkbox" checked onchange="runPwdGen()" class="accent-brand-600"> Symbols (!@#$…)</label>
+            </div>
+
+            <div id="pwd-passphrase-options" class="hidden">
+              <label class="block text-xs font-bold uppercase text-slate-700 tracking-wider mb-1.5">Words in passphrase</label>
+              <div class="flex items-center gap-3">
+                <input id="pwd-words" type="range" min="3" max="8" value="5" oninput="document.getElementById('pwd-words-val').textContent = this.value; runPwdGen();" class="flex-1 accent-brand-600">
+                <span id="pwd-words-val" class="text-xs font-bold text-brand-700 w-4 text-center">5</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1.5">Memorable words joined with hyphens — easier to remember, still strong.</p>
+            </div>
+
             <div class="flex items-center justify-between text-xs font-bold text-slate-700">
               <span>Length: <span id="pwd-len-val">24</span></span>
               <input id="pwd-len" type="range" min="12" max="64" value="24" oninput="document.getElementById('pwd-len-val').textContent = this.value; runPwdGen();" class="w-1/2 accent-brand-600">
@@ -5657,17 +5834,47 @@
       runPwdGen();
     }
 
+    window._pwdMode = 'password';
+    window.setPwdMode = function(mode) {
+      window._pwdMode = mode === 'passphrase' ? 'passphrase' : 'password';
+      const pwBtn = document.getElementById('pwd-mode-password');
+      const ppBtn = document.getElementById('pwd-mode-passphrase');
+      const charOpts = document.getElementById('pwd-char-options');
+      const ppOpts = document.getElementById('pwd-passphrase-options');
+      if (pwBtn) { pwBtn.className = 'flex-1 py-2 rounded-xl ' + (window._pwdMode === 'password' ? 'bg-brand-600 text-white' : 'bg-white border border-bordercol text-slate-700'); }
+      if (ppBtn) { ppBtn.className = 'flex-1 py-2 rounded-xl ' + (window._pwdMode === 'passphrase' ? 'bg-brand-600 text-white' : 'bg-white border border-bordercol text-slate-700'); }
+      if (charOpts) charOpts.classList.toggle('hidden', window._pwdMode !== 'password');
+      if (ppOpts) ppOpts.classList.toggle('hidden', window._pwdMode !== 'passphrase');
+      runPwdGen();
+    };
+
     window.runPwdGen = function() {
+      const out = document.getElementById('pwd-out');
+      if (!out) return;
+      if (window._pwdMode === 'passphrase') {
+        const words = ['apple','river','mountain','falcon','ocean','tiger','meadow','copper','silver','forest','harbor','crystal','ember','willow','storm','prairie','copper','lantern','meadow','voyage','citrus','harbor','summit','velvet','cobalt','meadow','orbit','saddle','timber','zephyr','marble','canyon','orchid','sable','tundra','violet','walnut','yonder','zephyr','aurora','blizzard'];
+        const count = Number(document.getElementById('pwd-words')?.value || 5);
+        const arr = new Uint32Array(count);
+        window.crypto.getRandomValues(arr);
+        const picked = [];
+        for (let i = 0; i < count; i++) picked.push(words[arr[i] % words.length]);
+        out.value = picked.join('-');
+        return;
+      }
       const len = Number(document.getElementById('pwd-len')?.value || 24);
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+      let chars = '';
+      if (document.getElementById('pwd-upper')?.checked !== false) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (document.getElementById('pwd-lower')?.checked !== false) chars += 'abcdefghijklmnopqrstuvwxyz';
+      if (document.getElementById('pwd-numbers')?.checked !== false) chars += '0123456789';
+      if (document.getElementById('pwd-symbols')?.checked !== false) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      if (!chars) chars = 'abcdefghijklmnopqrstuvwxyz';
       const arr = new Uint32Array(len);
       window.crypto.getRandomValues(arr);
       let pwd = '';
       for (let i = 0; i < len; i++) {
         pwd += chars[arr[i] % chars.length];
       }
-      const out = document.getElementById('pwd-out');
-      if (out) out.value = pwd;
+      out.value = pwd;
     };
 
     // --- CLIENT UTILITY 10: AGE & MILESTONE CALCULATOR ---
@@ -5691,6 +5898,7 @@
               <input id="age-dob" type="date" value="1998-05-15" onchange="runAgeCalc()" class="w-full px-4 py-3 bg-white border border-bordercol rounded-xl text-sm font-medium">
             </div>
             <div id="age-result" class="grid grid-cols-3 gap-3 pt-3 text-center"></div>
+            <div id="age-milestones" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-center"></div>
           </div>
         </div>
       `;
@@ -5722,6 +5930,22 @@
           <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">Years</div><div class="text-xl font-black text-brand-700">${years}</div></div>
           <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">Months</div><div class="text-xl font-black text-dark">${months}</div></div>
           <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">Days</div><div class="text-xl font-black text-slate-700">${days}</div></div>
+        `;
+      }
+      // Milestones the tool's name promises: total days lived, next birthday
+      // (date + days away), and the 10,000th-day date.
+      const ms = document.getElementById('age-milestones');
+      if (ms) {
+        const totalDays = Math.floor((now - dob) / 86400000);
+        const nextBirthday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+        if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+        const daysToBirthday = Math.ceil((nextBirthday - now) / 86400000);
+        const tenThousandth = new Date(dob.getTime() + 10000 * 86400000);
+        const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        ms.innerHTML = `
+          <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">Total Days Lived</div><div class="text-base font-black text-dark">${totalDays.toLocaleString('en-IN')}</div></div>
+          <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">Next Birthday</div><div class="text-base font-black text-brand-700">${fmt(nextBirthday)}</div><div class="text-[11px] text-slate-500 font-semibold">${daysToBirthday === 0 ? 'Today!' : daysToBirthday + ' days away'}</div></div>
+          <div class="p-3 bg-white rounded-xl border border-bordercol"><div class="text-[10px] font-bold text-slate-500 uppercase">10,000th Day</div><div class="text-base font-black text-slate-700">${fmt(tenThousandth)}</div><div class="text-[11px] text-slate-500 font-semibold">${tenThousandth <= now ? 'Already passed' : 'Milestone date'}</div></div>
         `;
       }
     };
@@ -5993,13 +6217,23 @@
         </div>
       `;
 
-      let article = await apiFetch('/articles/' + slug);
+      let article = null;
+      try {
+        article = await apiFetch('/articles/' + slug);
+      } catch (err) {
+        console.warn('Article API fetch failed, using local copy:', err.message);
+      }
       if (!article) {
         const localMatch = (window.APP_STATE.articles || []).find(a => a.slug === slug);
-        if (localMatch) {
+        if (localMatch && (localMatch.body || localMatch.content)) {
+          article = { ...localMatch };
+        } else if (localMatch) {
+          // Index-only stub: no full body exists yet. Do NOT fabricate a
+          // body (the old code invented one sentence + raw markdown links).
+          // Show the real meta honestly and say the full guide is coming.
           article = {
             ...localMatch,
-            body: localMatch.body || localMatch.content || `# ${localMatch.title}\n\n${localMatch.meta || ''}\n\n---\n\nExplore our interactive [Free AI Tools](/tools) and [Professional Courses](/courses) to apply these strategies step by step.`
+            body: `${localMatch.meta || ''}\n\n---\n\nThe full step-by-step guide for this topic is being prepared. Meanwhile, explore our [Free AI Tools](/tools) and [Learning Pathways](/learning-pathways).`
           };
         }
       }
@@ -6129,14 +6363,21 @@
     window.openNasirVideoModal = function() {
       const modal = document.getElementById('video-modal');
       const iframe = document.getElementById('video-iframe');
+      const placeholder = document.getElementById('video-coming-soon');
       const s = window.APP_STATE.settings || {};
-
+      // No founder video has been supplied, so there is no embed URL at all.
+      // Show the "coming soon" placeholder card instead of any video.
+      const url = String(s.video_url || '').trim();
       if (iframe) {
-        let url = s.video_url || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-        if (!url.includes('autoplay')) {
-          url += (url.includes('?') ? '&' : '?') + 'autoplay=1';
+        if (url) {
+          iframe.classList.remove('hidden');
+          if (placeholder) { placeholder.classList.add('hidden'); placeholder.classList.remove('flex'); }
+          iframe.src = url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+        } else {
+          iframe.src = '';
+          iframe.classList.add('hidden');
+          if (placeholder) { placeholder.classList.remove('hidden'); placeholder.classList.add('flex'); }
         }
-        iframe.src = url;
       }
 
       if (modal) modal.classList.remove('hidden');

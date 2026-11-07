@@ -331,7 +331,7 @@ export const handler = async (event, context) => {
         storage: {
           production_cms: 'netlify-blobs',
           store_name: 'webnasir',
-          consistency: 'strong',
+          consistency: 'default', // 'strong' needs an 'uncachedEdgeURL' Blobs config this site does not have; it broke every AI tool.
           active_mode: isNetlify ? 'netlify-blobs' : 'local-filesystem-fallback (.netlify-blobs-data)',
           local_storage_dir_required_on_netlify: false,
         },
@@ -1604,9 +1604,9 @@ export const handler = async (event, context) => {
       // High-quality algorithmic fallback if GEMINI_API_KEY is not set or network fails
       let fallbackText = '';
       if (tool_type === 'ai_youtube') {
-        fallbackText = `### 🔥 5 Viral YouTube Title Ideas\n- **I Tried ${input} for 30 Days (Here's What Happened)**\n- **The ${input} Secret 99% Of People Don't Know in 2025**\n- **Stop Doing ${input} Wrong (Do This Instead)**\n- **From $0 to $10k with ${input}: Step-by-Step**\n- **Why ${input} is Changing Everything (Full Breakdown)**\n\n### ⚡ 30-Second Retention Hook\n"Most creators overcomplicate ${input}. Over the next 5 minutes, I'm revealing the exact 3-step framework I used to master it—without spending thousands on courses. Let's get right into it."\n\n### 🎨 Thumbnail Concept\n- **Left:** High-contrast facial reaction pointing right\n- **Right:** Clean graphic comparing "Before vs After" with bold text: "DON'T SKIP THIS"`;
+        fallbackText = `### 🔥 5 Viral YouTube Title Ideas\n- **I Tried ${input} for 30 Days (Here's What Happened)**\n- **The ${input} Secret 99% Of People Don't Know in 2026**\n- **Stop Doing ${input} Wrong (Do This Instead)**\n- **From $0 to $10k with ${input}: Step-by-Step**\n- **Why ${input} is Changing Everything (Full Breakdown)**\n\n### ⚡ 30-Second Retention Hook\n"Most creators overcomplicate ${input}. Over the next 5 minutes, I'm revealing the exact 3-step framework I used to master it—without spending thousands on courses. Let's get right into it."\n\n### 🎨 Thumbnail Concept\n- **Left:** High-contrast facial reaction pointing right\n- **Right:** Clean graphic comparing "Before vs After" with bold text: "DON'T SKIP THIS"`;
       } else if (tool_type === 'ai_blog') {
-        fallbackText = `### 🎯 SEO Keyword Strategy for "${input}"\n- **Primary Intent:** Informational & Commercial\n- **Target Keywords:** best ${input} tutorial, ${input} guide 2025, how to monetize ${input}, ${input} vs alternatives\n\n### 📝 Recommended Article Hierarchy\n- **H1:** The Ultimate Guide to ${input}: Blueprint for 2025\n- **H2:** 1. Why ${input} Matters Right Now\n  - *H3: Key Benefits & Cost Efficiencies*\n- **H2:** 2. Step-by-Step Implementation Framework\n  - *H3: Setup & Prerequisites*\n  - *H3: Core Architecture Walkthrough*\n- **H2:** 3. High-RPM Monetization & Traffic Strategies\n- **H2:** 4. Common Pitfalls to Avoid\n- **H2:** 5. Conclusion & Action Checklist`;
+        fallbackText = `### 🎯 SEO Keyword Strategy for "${input}"\n- **Primary Intent:** Informational & Commercial\n- **Target Keywords:** best ${input} tutorial, ${input} guide 2026, how to monetize ${input}, ${input} vs alternatives\n\n### 📝 Recommended Article Hierarchy\n- **H1:** The Ultimate Guide to ${input}: Blueprint for 2026\n- **H2:** 1. Why ${input} Matters Right Now\n  - *H3: Key Benefits & Cost Efficiencies*\n- **H2:** 2. Step-by-Step Implementation Framework\n  - *H3: Setup & Prerequisites*\n  - *H3: Core Architecture Walkthrough*\n- **H2:** 3. High-RPM Monetization & Traffic Strategies\n- **H2:** 4. Common Pitfalls to Avoid\n- **H2:** 5. Conclusion & Action Checklist`;
       } else if (tool_type === 'ai_code') {
         fallbackText = `### 💻 Code Analysis & Breakdown\n- **Purpose:** Executes pattern matching and procedural transformation on input streams.\n- **Efficiency:** O(N) linear time complexity with minimal heap allocations.\n- **Engineering Best Practice:** Ensure input sanitization and boundary assertions prior to execution to prevent unexpected edge-case errors.`;
       } else {
