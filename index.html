@@ -3768,7 +3768,7 @@
         </section>
 
         <!-- 13. FINAL CALL TO ACTION SECTION ("Start Building Your Digital Future Today.") -->
-        <section id="homepage-section-final_cta" data-cms-section="final_cta" class="py-14 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white relative overflow-hidden" ${secFinalCta.enabled === false ? 'style="display:none;"' : ''}>
+        <section id="homepage-section-final_cta" data-cms-section="final_cta" class="py-14 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white relative overflow-hidden" ${secFinalCta.enabled === false ? 'style="display:none;"' : 'style="background:#0f172a;"'}>
           <div class="max-w-4xl mx-auto px-4 text-center relative z-10 space-y-6">
             <h2 data-cms-heading class="text-2xl sm:text-4xl lg:text-5xl font-black font-heading tracking-tight">
               ${escapeHtml(secFinalCta.heading || 'Start Building Your Digital Future Today.')}
@@ -5661,7 +5661,7 @@
           </section>
 
           <!-- 6. FINAL CTA SECTION -->
-          <section class="py-16 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white">
+          <section id="about-final-cta" class="py-16 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white" style="background:#0f172a;">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
               <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black font-heading tracking-tight">
                 ${finalCtaHeading}
@@ -6900,7 +6900,8 @@
       if (iframe) {
         // No founder video supplied: leave the iframe empty (the modal shows
         // a "coming soon" placeholder). Never build a URL from an empty string.
-        const url = String(s.video_url || '').trim();
+        // Phase 2: a stored Rick Astley URL (dQw4w9WgXcQ) is treated as no video.
+        const url = /dQw4w9WgXcQ/i.test(String(s.video_url || '')) ? '' : String(s.video_url || '').trim();
         iframe.src = url ? (url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=1') : '';
       }
 

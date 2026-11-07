@@ -239,6 +239,20 @@
       transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
     }
     #tool-interactive-container .max-w-2xl { max-width: 48rem; }
+    /* Final CTA sections (Phase 2 fix): solid dark background, always.
+       The Tailwind gradient relied on `from-brand-950`, but the brand
+       palette only defines 50-900, so that class generates no CSS and
+       the gradient is transparent — leaving white text on the white
+       page background. A solid dark background (with !important so no
+       CMS override or gradient can undo it) makes the heading visible. */
+    #homepage-section-final_cta,
+    #about-final-cta {
+      background: #0f172a !important;
+      background-image: none !important;
+      color: #ffffff !important;
+    }
+    #homepage-section-final_cta h2,
+    #about-final-cta h2 { color: #ffffff !important; }
     .hero-slide.slide-fade-out {
       opacity: 0;
       pointer-events: none;
@@ -1555,10 +1569,13 @@
           : (sec.enabled !== false && (isMobileViewport ? sec.mobile_visible !== false : sec.desktop_visible !== false));
         secEl.style.display = visible ? '' : 'none';
 
-        // Contrast guard (Phase 1 fix): a CMS background must never leave
-        // white text on a light background (the final CTA heading was
-        // invisible). Light backgrounds get dark text; the dark final CTA
-        // keeps its dark gradient and is never repainted light.
+        // Contrast guard (Phase 1 fix, hardened Phase 2): a CMS background
+        // must never leave white text on a light background (the final CTA
+        // heading was invisible). Light backgrounds get dark text. The dark
+        // final CTA is forced to a solid dark background — never cleared
+        // (clearing it left the section transparent, and its Tailwind
+        // gradient cannot render because `from-brand-950` is not a defined
+        // brand shade, so the white page showed through behind white text).
         const _isLightBg = (hex) => {
           if (!hex || typeof hex !== 'string') return false;
           const m = hex.replace('#', '').match(/^([0-9a-f]{6})$/i);
@@ -1567,7 +1584,8 @@
           return (0.299 * r + 0.587 * g + 0.114 * b) > 160;
         };
         if (sec.id === 'final_cta') {
-          secEl.style.backgroundColor = '';
+          secEl.style.backgroundColor = '#0f172a';
+          secEl.style.backgroundImage = 'none';
           secEl.style.color = '#ffffff';
         } else if (sec.bg_color) {
           secEl.style.backgroundColor = sec.bg_color;
@@ -1751,6 +1769,8 @@
           }
           if (msg.settings) {
             window.APP_STATE.settings = { ...window.APP_STATE.settings, ...msg.settings };
+            // Phase 2: a stored blocked video URL must not survive a live-preview merge.
+            window.APP_STATE.settings.video_url = window.sanitizeStoredVideoUrl(window.APP_STATE.settings.video_url);
             applySettingsUI(window.APP_STATE.settings);
           }
           if (msg.rerender) {
@@ -3324,7 +3344,7 @@
         </section>
 
         <!-- 13. FINAL CALL TO ACTION SECTION ("Start Building Your Digital Future Today.") -->
-        <section id="homepage-section-final_cta" data-cms-section="final_cta" class="py-14 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white relative overflow-hidden" ${secFinalCta.enabled === false ? 'style="display:none;"' : ''}>
+        <section id="homepage-section-final_cta" data-cms-section="final_cta" class="py-14 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white relative overflow-hidden" ${secFinalCta.enabled === false ? 'style="display:none;"' : 'style="background:#0f172a;"'}>
           <div class="max-w-4xl mx-auto px-4 text-center relative z-10 space-y-6">
             <h2 data-cms-heading class="text-2xl sm:text-4xl lg:text-5xl font-black font-heading tracking-tight">
               ${escapeHtml(secFinalCta.heading || 'Start Building Your Digital Future Today.')}
@@ -4747,7 +4767,8 @@
         ? cmsAbout.biography
         : "I'm Nasir, a digital technology enthusiast and online publisher focused on AI-powered tools, website development, SEO and digital growth. Through Web Nasir, my goal is to make practical digital knowledge easier to access and help individuals develop skills they can apply in the real world.";
       const founderPhoto = cmsAbout.founder_photo || '';
-      const founderVideo = cmsAbout.video_url || '';
+      // Blocked-video guard (Phase 2): a stored Rick Astley URL is treated as no video.
+      const founderVideo = window.sanitizeStoredVideoUrl(cmsAbout.video_url);
 
       const missionText = (cmsAbout.mission && !cmsAbout.mission.includes('eliminate theoretical fluff'))
         ? cmsAbout.mission
@@ -4994,7 +5015,7 @@
           </section>
 
           <!-- 6. FINAL CTA SECTION -->
-          <section class="py-16 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white">
+          <section id="about-final-cta" class="py-16 sm:py-20 bg-gradient-to-tr from-brand-950 via-navy to-slate-950 text-white" style="background:#0f172a;">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
               <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black font-heading tracking-tight">
                 ${finalCtaHeading}
@@ -6360,6 +6381,19 @@
     let speechActive = false;
     let currentSpeechLang = 'urdu';
 
+    // Blocklist (Phase 2 fix): the old Rick Astley intro video (YouTube ID
+    // dQw4w9WgXcQ) is NOT the founder's video. The live CMS settings stored
+    // in the backend still contain its embed URL, which overrides the empty
+    // code default — so ANY stored URL containing this video ID is treated
+    // as "no video" everywhere it is consumed. No other video is substituted.
+    window.isBlockedVideoUrl = function(u) {
+      return /dQw4w9WgXcQ/i.test(String(u || ''));
+    };
+    window.sanitizeStoredVideoUrl = function(u) {
+      const s = String(u || '').trim();
+      return window.isBlockedVideoUrl(s) ? '' : s;
+    };
+
     window.openNasirVideoModal = function() {
       const modal = document.getElementById('video-modal');
       const iframe = document.getElementById('video-iframe');
@@ -6367,7 +6401,8 @@
       const s = window.APP_STATE.settings || {};
       // No founder video has been supplied, so there is no embed URL at all.
       // Show the "coming soon" placeholder card instead of any video.
-      const url = String(s.video_url || '').trim();
+      // A stored URL containing the blocked video ID is treated as no video.
+      const url = window.sanitizeStoredVideoUrl(s.video_url);
       if (iframe) {
         if (url) {
           iframe.classList.remove('hidden');
@@ -6621,6 +6656,11 @@
         if (settings && Object.keys(settings).length > 0) {
           window.APP_STATE.settings = { ...window.APP_STATE.settings, ...settings };
         }
+        // Phase 2: the stored settings may still hold the old Rick Astley
+        // embed URL — clear it here so it can never reach the video modal.
+        if (window.APP_STATE.settings) {
+          window.APP_STATE.settings.video_url = window.sanitizeStoredVideoUrl(window.APP_STATE.settings.video_url);
+        }
         if (Array.isArray(topics) && topics.length > 0) {
           window.APP_STATE.topics = topics;
         }
@@ -6771,7 +6811,10 @@
         `;
       } else if (contentType === 'video' && item.video_url) {
         const vUrl = String(item.video_url).trim();
-        if (vUrl.includes('youtube.com/embed/') || vUrl.includes('player.vimeo.com')) {
+        if (window.isBlockedVideoUrl(vUrl)) {
+          // Blocked video (Phase 2): never embed the old Rick Astley URL.
+          mediaHtml = '';
+        } else if (vUrl.includes('youtube.com/embed/') || vUrl.includes('player.vimeo.com')) {
           mediaHtml = `
             <div class="w-full aspect-video bg-black overflow-hidden border-b border-slate-100">
               <iframe src="${vUrl}" class="w-full h-full border-0" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>

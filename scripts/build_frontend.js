@@ -3138,7 +3138,8 @@ const html = `<!DOCTYPE html>
       if (iframe) {
         // No founder video supplied: leave the iframe empty (the modal shows
         // a "coming soon" placeholder). Never build a URL from an empty string.
-        const url = String(s.video_url || '').trim();
+        // Phase 2: a stored Rick Astley URL (dQw4w9WgXcQ) is treated as no video.
+        const url = /dQw4w9WgXcQ/i.test(String(s.video_url || '')) ? '' : String(s.video_url || '').trim();
         iframe.src = url ? (url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=1') : '';
       }
 
@@ -3309,6 +3310,8 @@ const html = `<!DOCTYPE html>
         let hasUpdates = false;
         if (settings && Object.keys(settings).length > 0) {
           window.APP_STATE.settings = { ...window.APP_STATE.settings, ...settings };
+          // Phase 2: a stored Rick Astley URL (dQw4w9WgXcQ) is treated as no video.
+          if (/dQw4w9WgXcQ/i.test(String(window.APP_STATE.settings.video_url || ''))) window.APP_STATE.settings.video_url = '';
           applySettingsUI(window.APP_STATE.settings);
           hasUpdates = true;
         }
